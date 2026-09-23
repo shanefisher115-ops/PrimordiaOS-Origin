@@ -1,0 +1,10 @@
+name: "Runtime Health & HUD Telemetry"
+version: "1.0.0"
+trigger:
+  event: "schedule"
+  interval_seconds: 15
+steps:
+  - name: "Check Subsystem Diagnostics"
+    command: "Test-PrimordialDiagnostic"
+  - name: "Display HUD"
+    command: "Show-PrimordialHUD"

@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "outDir": "dist-autonomy",
+    "rootDir": "."
+  },
+  "include": [
+    "autonomy/**/*.ts",
+    "api/**/*.ts",
+    "cli/**/*.ts",
+    "bridge/**/*.ts",
+    "diagnostics/**/*.ts"
+  ],
+  "exclude": [
+    "**/modules/**",
+    "**/core/**",
+    "**/kernel/**",
+    "**/services/**",
+    "**/scripts/**",
+    "**/unreal/**",
+    "**/PrimordiaUnreal*/**",
+    "**/PrimordiaOS_Engine*/**",
+    "**/PrimordiaOS/**",
+    "**/server/**",
+    "**/sigilforge-threecanvas/**",
+    "**/sovereign-cockpit/**",
+    "**/spatial-memory-engine/**",
+    "**/src/**",
+    "node_modules",
+    "dist",
+    "dist-autonomy"
+  ]
+}

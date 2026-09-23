@@ -1,0 +1,16 @@
+{
+  "name": "engine-core",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start-engine": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

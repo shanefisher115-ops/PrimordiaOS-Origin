@@ -1,30 +1,45 @@
 "use strict";
-// PrimordiaOS Kernel — Core State + Module Registry + Event Bus
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Kernel = exports.PrimordiaKernel = void 0;
-var PrimordiaKernel = /** @class */ (function () {
-    function PrimordiaKernel() {
-        this.modules = new Map();
-        this.events = [];
-        this.ready = false;
-    }
-    PrimordiaKernel.prototype.registerModule = function (name, module) {
-        this.modules.set(name, module);
-        console.log("[PrimordiaOS] Module registered: ".concat(name));
-    };
-    PrimordiaKernel.prototype.emit = function (event, payload) {
-        if (payload === void 0) { payload = {}; }
-        this.events.push({ event: event, payload: payload, ts: Date.now() });
-        console.log("[PrimordiaOS] Event: ".concat(event), payload);
-    };
-    PrimordiaKernel.prototype.getModule = function (name) {
-        return this.modules.get(name);
-    };
-    PrimordiaKernel.prototype.markReady = function () {
+class PrimordiaKernel {
+    modules = {};
+    events = {};
+    ready = false;
+    init() {
         this.ready = true;
-        console.log("[PrimordiaOS] Kernel is now READY.");
-    };
-    return PrimordiaKernel;
-}());
+        console.log("[PrimordiaOS] Kernel initialized");
+    }
+    register(name, module) {
+        this.modules[name] = module;
+        console.log(`[PrimordiaOS] Module registered: ${name}`);
+    }
+    on(event, handler) {
+        if (!this.events[event])
+            this.events[event] = [];
+        this.events[event].push(handler);
+    }
+    emit(event, payload) {
+        const listeners = this.events[event] || [];
+        for (const fn of listeners)
+            fn(payload);
+    }
+    handleIntent(intent) {
+        const { agent, action, payload } = intent;
+        if (!this.modules[agent]) {
+            return { ok: false, msg: `Unknown agent: ${agent}` };
+        }
+        const module = this.modules[agent];
+        if (typeof module[action] !== "function") {
+            return { ok: false, msg: `Unknown action: ${action}` };
+        }
+        try {
+            const result = module[action](payload);
+            return { ok: true, result };
+        }
+        catch (err) {
+            return { ok: false, msg: String(err) };
+        }
+    }
+}
 exports.PrimordiaKernel = PrimordiaKernel;
 exports.Kernel = new PrimordiaKernel();

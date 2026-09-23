@@ -1,0 +1,8 @@
+{
+  "id": "task-frontend-001",
+  "agent": "frontendEngineer",
+  "payload": {
+    "framework": "react",
+    "css": "tailwind"
+  }
+}

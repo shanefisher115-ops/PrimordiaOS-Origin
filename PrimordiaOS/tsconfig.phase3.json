@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "declaration": true
+  },
+  "include": [
+    "src/contracts/types.ts",
+    "src/telemetry/telemetryCollector.ts",
+    "src/ingest/tiktokLiveAdapter.ts",
+    "src/kernel/economicKernel.ts",
+    "src/kernel/offerEngine.ts",
+    "src/kernel/guardrails.ts",
+    "src/agents/funnelAgent.ts",
+    "src/execution/executionBridge.ts",
+    "src/phase2-orchestrator.ts",
+    "src/phase3-orchestrator.ts",
+    "src/phase3-blog-orchestrator.ts",
+    "src/realms/offerEngineRealm.ts",
+    "src/realms/blogEngine/topics.ts",
+    "src/realms/blogEngine/generators/deterministicGenerator.ts",
+    "src/realms/blogEngine/blogEngine.ts",
+    "src/realms/blogEngine/publisher.ts",
+    "src/realms/blogEngine/blogEngineRealm.ts"
+  ],
+  "exclude": [
+    "src/phase4-narrative-orchestrator.ts",
+    "src/realms/narrativeEngine/**",
+    "src/realms/narrativeEngineRealm.ts"
+  ]
+}

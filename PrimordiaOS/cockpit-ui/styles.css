@@ -1,0 +1,228 @@
+/* styles.css - Sovereign Cockpit v5 Cinematic Cosmic Theme */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Orbitron:wght@500;700;900&display=swap');
+
+:root {
+  --cosmic-bg: #030712;
+  --neon-cyan: #00f3ff;
+  --neon-teal: #10b981;
+  --neon-amber: #f59e0b;
+  --neon-purple: #a855f7;
+  --hud-glass: rgba(10, 18, 30, 0.72);
+  --hud-border: rgba(0, 243, 255, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--cosmic-bg);
+  font-family: 'JetBrains Mono', monospace;
+  color: #e2e8f0;
+}
+
+#canvas-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Cinematic Cosmic Scanline Vignette */
+.cinematic-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+  background: radial-gradient(circle at center, transparent 65%, rgba(1, 4, 10, 0.88) 100%);
+}
+
+.cinematic-overlay::before {
+  content: " ";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.12),
+    rgba(0, 0, 0, 0.12) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  opacity: 0.7;
+}
+
+/* Cosmic Top HUD Bar */
+#hud-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 16px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 20;
+  background: linear-gradient(180deg, rgba(3, 7, 18, 0.85) 0%, transparent 100%);
+  pointer-events: auto;
+}
+
+.hud-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hud-logo-icon {
+  width: 12px;
+  height: 12px;
+  background-color: var(--neon-cyan);
+  box-shadow: 0 0 14px var(--neon-cyan);
+  border-radius: 50%;
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+.hud-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(0, 243, 255, 0.6);
+}
+
+.hud-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(0, 243, 255, 0.1);
+  border: 1px solid var(--hud-border);
+  color: var(--neon-cyan);
+  letter-spacing: 1px;
+}
+
+.hud-metrics {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 0.8rem;
+}
+
+.hud-metric-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #94a3b8;
+}
+
+.hud-metric-val {
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+/* Realm Badge in Top Bar */
+.realm-indicator {
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  color: #d8b4fe;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.realm-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #a855f7;
+  box-shadow: 0 0 10px #a855f7;
+}
+
+/* Quick Control & Helper Bar (Bottom) */
+#hud-footer {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 22px;
+  background: var(--hud-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--hud-border);
+  border-radius: 24px;
+  z-index: 20;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.key-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+.key-kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--neon-cyan);
+  background: rgba(0, 243, 255, 0.12);
+  border: 1px solid rgba(0, 243, 255, 0.3);
+  border-radius: 4px;
+}
+
+/* WebXR VR Button Container */
+#vr-button-container {
+  position: absolute;
+  bottom: 18px;
+  right: 28px;
+  z-index: 30;
+}
+
+#vr-button-container button {
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  padding: 10px 20px !important;
+  background: rgba(14, 165, 233, 0.2) !important;
+  border: 1px solid #0ea5e9 !important;
+  color: #38bdf8 !important;
+  border-radius: 6px !important;
+  letter-spacing: 1.5px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 0 16px rgba(14, 165, 233, 0.3) !important;
+}
+
+#vr-button-container button:hover {
+  background: rgba(14, 165, 233, 0.4) !important;
+  box-shadow: 0 0 24px rgba(14, 165, 233, 0.6) !important;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
+}

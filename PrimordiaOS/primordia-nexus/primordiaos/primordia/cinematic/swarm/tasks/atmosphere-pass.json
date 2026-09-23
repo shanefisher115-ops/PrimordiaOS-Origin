@@ -1,0 +1,8 @@
+{
+  "id": "task-atmosphere-001",
+  "agent": "atmosphereAlchemist",
+  "payload": {
+    "fogDensity": 0.02,
+    "skyType": "nebula"
+  }
+}

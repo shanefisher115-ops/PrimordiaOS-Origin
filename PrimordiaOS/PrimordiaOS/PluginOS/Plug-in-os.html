@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Plug In OS — Master Build</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #020617;
+      color: #e5faff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+    }
+
+    #hud-root {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #0ea5e9;
+      border-radius: 14px;
+      backdrop-filter: blur(12px);
+      color: #e5faff;
+      box-shadow: 0 0 30px rgba(14, 165, 233, 0.35);
+      animation: hud-breathe 3s ease-in-out infinite;
+      z-index: 1000;
+    }
+
+    @keyframes hud-breathe {
+      0% { box-shadow: 0 0 18px rgba(14, 165, 233, 0.25); transform: translateY(0); }
+      50% { box-shadow: 0 0 32px rgba(56, 189, 248, 0.55); transform: translateY(-2px); }
+      100% { box-shadow: 0 0 18px rgba(14, 165, 233, 0.25); transform: translateY(0); }
+    }
+
+    #os-shell {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      height: 100vh;
+      margin-top: 80px;
+      color: #e5faff;
+    }
+
+    #os-nav {
+      border-right: 1px solid #111827;
+      background: radial-gradient(circle at top, #020617, #020617 40%, #000 100%);
+      padding: 20px;
+    }
+
+    #os-main {
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .os-nav-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .os-nav-item {
+      padding: 8px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 6px;
+      font-size: 14px;
+      color: #9ca3af;
+      transition: background 0.15s, color 0.15s, transform 0.1s;
+    }
+
+    .os-nav-item:hover {
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5faff;
+      transform: translateX(2px);
+    }
+
+    .os-nav-item.active {
+      background: linear-gradient(90deg, #0ea5e933, #22c55e22);
+      color: #e5faff;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .panel {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 14px;
+      border: 1px solid #1f2937;
+      padding: 16px 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.7);
+    }
+
+    .panel-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .panel-sub {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    .metric-row {
+      margin-top: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .metric-label {
+      opacity: 0.8;
+    }
+
+    .metric-value {
+      margin-left: 4px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.9);
+      opacity: 0.9;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #22c55e;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      margin-right: 4px;
+      margin-top: 4px;
+    }
+
+    .loop-item {
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .loop-name {
+      font-weight: 500;
+    }
+
+    .loop-path {
+      opacity: 0.8;
+      font-size: 12px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid rgba(56, 189, 248, 0.6);
+      background: rgba(8, 47, 73, 0.7);
+      margin-top: 6px;
+    }
+
+    .pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #38bdf8;
+    }
+
+    a.ref-link {
+      color: #38bdf8;
+      text-decoration: none;
+      font-size: 13px;
+    }
+
+    a.ref-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div id="hud-root"></div>
+
+  <div id="os-shell">
+    <div id="os-nav"></div>
+    <div id="os-main">
+      <div id="dashboard-root"></div>
+      <div id="referral-root" style="display:none;"></div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- HUD ----------
+    function initHUD() {
+      const hud = document.getElementById("hud-root");
+      if (!hud) return;
+
+      hud.innerHTML = `
+        <div style="font-size: 18px; font-weight: 600; display:flex; align-items:center; gap:8px;">
+          <span style="width:8px;height:8px;border-radius:999px;background:#22c55e;box-shadow:0 0 10px #22c55e;"></span>
+          Plug In OS HUD
+        </div>
+        <div style="margin-top: 6px; opacity: 0.8; font-size: 12px;">
+          Money that moves together. Collective online, always on.
+        </div>
+        <div style="margin-top: 10px; font-size: 11px; opacity:0.8;">
+          Mode: <span style="color:#38bdf8;">Build</span> • Status: <span style="color:#22c55e;">Stable</span>
+        </div>
+      `;
+    }
+
+    // ---------- Automation / Loops ----------
+    const automationLoops = [
+      {
+        name: "Shorts → Plug In OS",
+        source: "YouTube Shorts",
+        destination: "Plug In OS Landing",
+        status: "running"
+      },
+      {
+        name: "TikTok → MoneyPlugHub",
+        source: "TikTok",
+        destination: "MoneyPlugHub Page",
+        status: "running"
+      },
+      {
+        name: "X Threads → Notion Hub",
+        source: "X (Twitter)",
+        destination: "Notion System Hub",
+        status: "idle"
+      }
+    ];
+
+    function getAutomationLoops() {
+      return automationLoops;
+    }
+
+    function startLoopManager() {
+      console.log("MoneyPlugHub Loop Manager initialized.");
+      console.log("Active loops:", getAutomationLoops());
+    }
+
+    // ---------- Dashboard ----------
+    function initDashboard() {
+      const root = document.getElementById("dashboard-root");
+      if (!root) return;
+
+      const loops = getAutomationLoops();
+
+      root.innerHTML = `
+        <div class="panel">
+          <div class="panel-title">
+            Collective Pulse
+            <span class="badge" style="margin-left:8px;">
+              <span class="badge-dot"></span>
+              Live
+            </span>
+          </div>
+          <div class="panel-sub">High-level view of Plug In OS activity.</div>
+          <div class="metric-row">
+            <span class="metric-label">Sessions active:</span>
+            <span class="metric-value" style="color:#22c55e;">3</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Referral streams:</span>
+            <span class="metric-value" style="color:#38bdf8;">7</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Automation loops:</span>
+            <span class="metric-value" style="color:#f97316;">${loops.length}</span>
+          </div>
+          <div style="margin-top:12px;font-size:11px;opacity:0.7;">
+            This is the “are we moving?” view. If this is green, the Collective is alive.
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">MoneyPlugHub Loops</div>
+          <div class="panel-sub">Content → Clicks → Referrals → Revenue.</div>
+          ${loops
+            .map(
+              loop => `
+            <div class="loop-item">
+              <div class="loop-name">${loop.name}</div>
+              <div class="loop-path">${loop.source} → ${loop.destination}</div>
+              <div class="pill">
+                <span class="pill-dot"></span>
+                ${loop.status === "running" ? "Running" : "Idle"}
+              </div>
+            </div>
+          `
+            )
+            .join("")}
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">System Tags</div>
+          <div class="panel-sub">Quick mental model of what this OS is doing.</div>
+          <div style="margin-top:8px;">
+            <span class="tag">HUD-first</span>
+            <span class="tag">Automation-heavy</span>
+            <span class="tag">Referral-native</span>
+            <span class="tag">Collective</span>
+            <span class="tag">Plug In OS</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // ---------- Referral Hub ----------
+    function initReferralHub() {
+      const root = document.getElementById("referral-root");
+      if (!root) return;
+
+      root.innerHTML = `
+        <div class="panel">
+          <div class="panel-title">Referral Hub</div>
+          <div class="panel-sub">Central routing for all referral links.</div>
+          <div style="margin-top:10px;font-size:13px;">
+            <div>• Plug In OS — <a class="ref-link" href="#/go/plugin-os">/go/plugin-os</a></div>
+            <div>• MoneyPlugHub — <a class="ref-link" href="#/go/moneyplug">/go/moneyplug</a></div>
+            <div>• Collective Access — <a class="ref-link" href="#/go/collective">/go/collective</a></div>
+          </div>
+          <div style="margin-top:12px;font-size:11px;opacity:0.75;">
+            In a real deployment, these would be short links pointing to live offers, pages, or flows.
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Routing Logic (Concept)</div>
+          <div class="panel-sub">How clicks decide where to go.</div>
+          <div style="margin-top:10px;font-size:13px;">
+            <div>• If source = TikTok → send to fastest “hook” page.</div>
+            <div>• If source = YouTube → send to deeper “system” explainer.</div>
+            <div>• If source = X → send to thread-style breakdown.</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ---------- Nav ----------
+    function initNav() {
+      const nav = document.getElementById("os-nav");
+      if (!nav) return;
+
+      nav.innerHTML = `
+        <div class="os-nav-title">Plug In OS</div>
+        <div id="nav-dashboard" class="os-nav-item active">Dashboard</div>
+        <div id="nav-referrals" class="os-nav-item">Referral Hub</div>
+        <div id="nav-automation" class="os-nav-item">Automation View</div>
+      `;
+
+      const dashboardRoot = document.getElementById("dashboard-root");
+      const referralRoot = document.getElementById("referral-root");
+
+      function setActive(id) {
+        document
+          .querySelectorAll(".os-nav-item")
+          .forEach(el => el.classList.remove("active"));
+        const target = document.getElementById(id);
+        if (target) target.classList.add("active");
+
+        if (!dashboardRoot || !referralRoot) return;
+
+        if (id === "nav-dashboard") {
+          dashboardRoot.style.display = "block";
+          referralRoot.style.display = "none";
+        } else if (id === "nav-referrals") {
+          dashboardRoot.style.display = "none";
+          referralRoot.style.display = "block";
+        } else {
+          dashboardRoot.style.display = "block";
+          referralRoot.style.display = "block";
+        }
+      }
+
+      document
+        .getElementById("nav-dashboard")
+        ?.addEventListener("click", () => setActive("nav-dashboard"));
+      document
+        .getElementById("nav-referrals")
+        ?.addEventListener("click", () => setActive("nav-referrals"));
+      document
+        .getElementById("nav-automation")
+        ?.addEventListener("click", () => setActive("nav-automation"));
+    }
+
+    // ---------- Boot ----------
+    initHUD();
+    initNav();
+    initDashboard();
+    initReferralHub();
+    startLoopManager();
+  </script>
+</body>
+</html>

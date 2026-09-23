@@ -1,0 +1,6 @@
+{
+  "kernel": "nodemon dist/kernel/runtime/boot.js",
+  "server": "nodemon dist/server/bootstrap.js",
+  "ws": "nodemon dist/server/ws/server.js",
+  "unreal": "nodemon dist/Primordia-unreal-bridge/index.js"
+}

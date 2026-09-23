@@ -1,0 +1,136 @@
+{
+  "system": "PrimordiaOS Unified Multi-Realm Cognition Organism",
+  "version": "1.0.0",
+  "master_spine": {
+    "host": "localhost",
+    "kernel_port": 3000,
+    "event_bus_port": 17800,
+    "api_port": 3001,
+    "heartbeat_interval_ms": 12000
+  },
+  "realms": {
+    "local_realm": {
+      "id": "realm-local",
+      "name": "Local Workstation Realm",
+      "type": "substrate",
+      "endpoints": {
+        "sse_stream": "http://localhost:3000/api/stream",
+        "health": "http://localhost:3000/health",
+        "ipc": "\\\\.\\pipe\\primordiaos-kernel-ipc"
+      },
+      "components": [
+        "primordiaos/kernel/spine.ts",
+        "primordiaos/realms/local/runtime.ts",
+        "primordiaos/realms/local/workstation-node.ts",
+        "primordiaos/interfaces/cli.ts"
+      ],
+      "connected_realms": ["cloud_realm", "simulation_realm", "economic_realm", "identity_realm"]
+    },
+    "cloud_realm": {
+      "id": "realm-cloud",
+      "name": "Cloudflare & Distributed Cloud Realm",
+      "type": "edge_network",
+      "endpoints": {
+        "cloudflare_ai_gateway": "https://gateway.ai.cloudflare.com/v1/primordiaos/gateway",
+        "production_edge": "https://moneyplughub.com",
+        "worker_health": "http://localhost:3001/api/health"
+      },
+      "components": [
+        "primordiaos/realms/cloud/cloudflare-gateway.ts",
+        "primordiaos/realms/cloud/cloud-shell.ts",
+        "primordiaos/pipelines/cloudflare-pipeline.ts"
+      ],
+      "connected_realms": ["local_realm", "economic_realm"]
+    },
+    "simulation_realm": {
+      "id": "realm-simulation",
+      "name": "Unreal Engine 5 & Niagara Physics Realm",
+      "type": "virtual_physics",
+      "endpoints": {
+        "websocket_server": "ws://localhost:17800",
+        "pixel_stream": "ws://localhost:8888"
+      },
+      "components": [
+        "primordiaos/realms/simulation/unreal-bridge.ts",
+        "primordiaos/realms/simulation/niagara-stream.ts",
+        "primordiaos/realms/simulation/physics-kernel.ts",
+        "primordiaos/simulation/websocket-server.ts",
+        "primordiaos/pipelines/unreal-pipeline.ts"
+      ],
+      "connected_realms": ["local_realm", "identity_realm"]
+    },
+    "economic_realm": {
+      "id": "realm-economy",
+      "name": "MoneyPlugHub Autonomous Monetization Realm",
+      "type": "autonomous_economy",
+      "endpoints": {
+        "api_engine": "http://localhost:3001/api",
+        "monetization_loop": "http://localhost:3000",
+        "public_tunnel": "https://moneyplughub.com",
+        "latency_telemetry": "https://moneyplughub.com/api/telemetry/latency"
+      },
+      "components": [
+        "primordiaos/realms/economy/moneyplughub-loop.ts",
+        "primordiaos/realms/economy/affiliate-conduit.ts",
+        "primordiaos/realms/economy/transaction-logic.ts",
+        "primordiaos/economy/loop-manager.ts",
+        "primordiaos/pipelines/moneyplug-pipeline.ts"
+      ],
+      "connected_realms": ["local_realm", "cloud_realm", "identity_realm"]
+    },
+    "identity_realm": {
+      "id": "realm-identity",
+      "name": "Osmium Immutable Ledger & Sovereign Identity Realm",
+      "type": "cryptographic_ledger",
+      "endpoints": {
+        "ledger_query": "http://localhost:3000/api/ledger",
+        "signature_verify": "http://localhost:3000/api/identity/verify"
+      },
+      "components": [
+        "primordiaos/realms/identity/osmium-ledger.ts",
+        "primordiaos/realms/identity/memory-ledger.ts",
+        "primordiaos/realms/identity/signature-engine.ts",
+        "primordiaos/identity/osmium-core.ts",
+        "primordiaos/identity/sovereign-profile.ts"
+      ],
+      "connected_realms": ["local_realm", "economic_realm", "simulation_realm"]
+    }
+  },
+  "interconnections": [
+    {
+      "from": "local_realm",
+      "to": "simulation_realm",
+      "protocol": "WebSocket (port 17800)",
+      "events": ["BIG_BANG_TRIGGER", "TELEMETRY_UPDATE", "ACTION_TRIGGERED", "UNREAL_PLAY_STARTED"],
+      "bandwidth": "Real-time stream (2s tick)"
+    },
+    {
+      "from": "local_realm",
+      "to": "economic_realm",
+      "protocol": "HTTP / EventSource (port 3000/3001)",
+      "events": ["CYCLE_COMPLETED", "PULSE_DIFF", "MONEYPLUG_CAMPAIGN_SYNC", "COMMISSION_TRIGGER"],
+      "bandwidth": "Autonomous 12s pulse"
+    },
+    {
+      "from": "economic_realm",
+      "to": "cloud_realm",
+      "protocol": "HTTPS Cloudflare Tunnel",
+      "events": ["EDGE_DEPLOY", "GATEWAY_INFERENCE", "WEBHOOK_EVENT"],
+      "bandwidth": "On-demand edge sync"
+    },
+    {
+      "from": "economic_realm",
+      "to": "identity_realm",
+      "protocol": "Direct In-Memory & Hash Chain",
+      "events": ["LEDGER_WRITE", "SIGNATURE_RECORD", "SCHEMA_DIFF_IMMUTABLE"],
+      "bandwidth": "Every cycle"
+    },
+    {
+      "from": "simulation_realm",
+      "to": "identity_realm",
+      "protocol": "Telemetry Hash Signature",
+      "events": ["WORLD_STATE_COMMITTED", "PHYSICS_FRAME_SIGNATURE"],
+      "bandwidth": "Periodic verification"
+    }
+  ]
+}

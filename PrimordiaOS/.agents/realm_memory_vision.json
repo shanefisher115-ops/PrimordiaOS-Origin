@@ -1,0 +1,32 @@
+{
+  "longTerm": [
+    {
+      "id": "zg7mq5w",
+      "timestamp": "2026-07-15T02:59:03.731Z",
+      "text": "Prompt: \"Analyze the current live stream frame to verify layout overlay text alignment.\" | Output: \"[Sovereign Fallback Output] Received request: Analyze the current live stream frame to verify layout overlay text alignment.\"",
+      "metadata": {
+        "mode": "standard",
+        "model": "vision-specialist"
+      }
+    }
+  ],
+  "preferences": {
+    "prompt": 1,
+    "analyze": 2,
+    "current": 2,
+    "live": 2,
+    "stream": 2,
+    "frame": 2,
+    "verify": 2,
+    "layout": 2,
+    "overlay": 2,
+    "text": 2,
+    "alignment": 2,
+    "output": 2,
+    "sovereign": 1,
+    "fallback": 1,
+    "received": 1,
+    "request": 1
+  },
+  "totalInteractions": 1
+}

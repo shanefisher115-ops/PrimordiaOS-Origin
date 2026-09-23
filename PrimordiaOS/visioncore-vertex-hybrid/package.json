@@ -1,0 +1,32 @@
+{
+  "name": "@primordiaos/visioncore-vertex-hybrid",
+  "version": "1.0.0",
+  "description": "Vertex AI x VisionCore Hybrid Cinematic & Multimodal Intelligence Subsystem for PrimordiaOS",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "node src/index.ts",
+    "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\""
+  },
+  "keywords": [
+    "primordiaos",
+    "visioncore",
+    "vertex-ai",
+    "gemini",
+    "cinematic-ai",
+    "multimodal",
+    "creative-orchestration"
+  ],
+  "author": "PrimordiaOS Core Architecture Swarm",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.4.5"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "primitive": {
+    "color": {
+      "black-900": {
+        "value": "#050608"
+      },
+      "black-800": {
+        "value": "#0B0F14"
+      },
+      "green-neon": {
+        "value": "#39FF14"
+      },
+      "green-soft": {
+        "value": "#2ECC71"
+      },
+      "white": {
+        "value": "#FFFFFF"
+      },
+      "gray-400": {
+        "value": "#A0A8B8"
+      },
+      "gray-700": {
+        "value": "#1A1F2A"
+      },
+      "green-success": {
+        "value": "#22C55E"
+      }
+    }
+  }
+}

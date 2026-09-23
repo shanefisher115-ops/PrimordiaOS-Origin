@@ -1,10 +1,10 @@
 import { WebSocketServer } from 'ws';
-const wss = new WebSocketServer({ port: 9090 });
+const wss = new WebSocketServer({ port: 17800 });
 wss.on('connection', (ws) => {
-    console.log('Primordia WebSocket client connected');
+    console.log('Unreal ↔ PrimordiaOS handshake established');
+    ws.send(JSON.stringify({ event: 'PrimordiaOnline' }));
     ws.on('message', (msg) => {
-        console.log('WS → MCP:', msg.toString());
+        console.log('Unreal → PrimordiaOS:', msg.toString());
     });
-    ws.send(JSON.stringify({ ok: true, source: 'PrimordiaWS' }));
 });
-console.log('Primordia WebSocket listening on :9090');
+console.log('PrimordiaOS WebSocket listening on ws://localhost:17800');

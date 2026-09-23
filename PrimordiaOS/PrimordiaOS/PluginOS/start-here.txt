@@ -1,0 +1,20 @@
+WELCOME TO PLUG‑IN OS 🚀
+
+This folder contains everything you need to launch your automated content + referral system.
+
+FILES INCLUDED:
+- Dashboard-Link.txt
+- Automations.txt
+- Content-Pack.txt
+- Referral-Hub.txt
+- Bonuses.txt
+
+HOW TO START:
+1. Open Dashboard-Link.txt
+2. Duplicate the Notion dashboard
+3. Follow Automations.txt to connect your workflows
+4. Load your content from Content-Pack.txt
+5. Replace referral links using Referral-Hub.txt
+6. Use Bonuses.txt to accelerate growth
+
+You’re ready to plug in and earn.

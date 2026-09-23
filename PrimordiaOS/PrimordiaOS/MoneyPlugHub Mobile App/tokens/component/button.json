@@ -1,0 +1,35 @@
+{
+  "component": {
+    "button-primary": {
+      "background": {
+        "value": "{semantic.color.accent-primary}"
+      },
+      "text-color": {
+        "value": "{semantic.color.text-primary}"
+      },
+      "radius": {
+        "value": "{semantic.radius.button}"
+      },
+      "padding": {
+        "value": "{semantic.spacing.layout-padding}"
+      },
+      "shadow": {
+        "value": "{semantic.shadow.glow}"
+      }
+    },
+    "button-secondary": {
+      "border-color": {
+        "value": "{semantic.color.accent-primary}"
+      },
+      "text-color": {
+        "value": "{semantic.color.accent-primary}"
+      },
+      "background": {
+        "value": "transparent"
+      },
+      "radius": {
+        "value": "{semantic.radius.button}"
+      }
+    }
+  }
+}

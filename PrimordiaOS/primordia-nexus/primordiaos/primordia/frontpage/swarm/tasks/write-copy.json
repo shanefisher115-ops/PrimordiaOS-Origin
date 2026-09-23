@@ -1,0 +1,8 @@
+{
+  "id": "task-writer-001",
+  "agent": "contentWriter",
+  "payload": {
+    "page": "frontpage",
+    "tone": "cosmic-mythic"
+  }
+}

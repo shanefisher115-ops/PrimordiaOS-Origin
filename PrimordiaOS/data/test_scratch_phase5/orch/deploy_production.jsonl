@@ -1,0 +1,1 @@
+{"deployId":"dep_a5e1c1fbb1","serviceId":"svc_2da7eef222ca","target":{"targetId":"target_local_daemon","environment":"local_daemon","host":"localhost","port":3001,"healthPath":"/health"},"status":"DEPLOYED","healthChecked":true,"latencyMs":15,"auditHash":"a40067fc53dfc578b4bf8a496f9881d08f9be7beabbd1035cda05f5df038cfdf","deployedAt":1789170449785}

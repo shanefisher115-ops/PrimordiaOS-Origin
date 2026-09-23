@@ -1,0 +1,28 @@
+{
+  "name": "PrimordiaOS",
+  "version": "1.0.0",
+  "description": "Multi-realm, multi-agent operating system",
+
+  "nexus": {
+    "entry": "nexus.js",
+    "port": 3000
+  },
+
+  "mcp": {
+    "entry": "browser-realm/mcp-server.js",
+    "port": 3456
+  },
+
+  "realms": [
+    {
+      "name": "Canvas Universe",
+      "path": "canvas-universe"
+    }
+  ],
+
+  "agents": [
+    "agents/devtools-agent.js",
+    "agents/vision-agent.js",
+    "agents/primordial-antigravity-engine.js"
+  ]
+}

@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background: radial-gradient(circle at 50% 0%, #111528 0%, #08090e 100%);
+    color: #e2e8f0;
+    min-height: 100vh;
+    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom Cyber Glass Effects */
+.cyber-glass {
+  background: rgba(16, 20, 35, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cyber-glass-glow {
+  background: rgba(16, 24, 48, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.1);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #08090e;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s infinite ease-in-out;
+}

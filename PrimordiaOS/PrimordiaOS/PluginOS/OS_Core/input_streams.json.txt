@@ -1,0 +1,22 @@
+{
+  "streams": [
+    {
+      "id": "tasks",
+      "label": "Task Queue",
+      "type": "count",
+      "weight": 0.5
+    },
+    {
+      "id": "content",
+      "label": "Content Activity",
+      "type": "rate",
+      "weight": 0.3
+    },
+    {
+      "id": "signals",
+      "label": "System Signals",
+      "type": "events",
+      "weight": 0.2
+    }
+  ]
+}

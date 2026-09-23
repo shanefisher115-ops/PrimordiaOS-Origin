@@ -1,0 +1,16 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "1.0",
+  "FriendlyName": "PrimordiaOS Bridge",
+  "Description": "Bi-directional bridge between PrimordiaOS and Unreal.",
+  "Category": "Integration",
+  "EnabledByDefault": true,
+  "Modules": [
+    {
+      "Name": "PrimordiaOSBridge",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ]
+}

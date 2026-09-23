@@ -1,0 +1,268 @@
+{
+  "version": "1.0.0",
+  "timestamp": 1789024160578,
+  "realms": [
+    {
+      "realmId": "sovereign_core",
+      "name": "Sovereign Kernel Realm",
+      "description": "Supreme origin kernel of PrimordiaOS. Houses immutable rule engine and Tier 0 sovereign intent.",
+      "centerCoordinates": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "radius": 500,
+      "metadata": {
+        "tier": "Supreme",
+        "antiGravScore": 100
+      },
+      "createdAt": 1789024160529,
+      "updatedAt": 1789024160529
+    },
+    {
+      "realmId": "sovereign_cockpit",
+      "name": "Sovereign Cockpit Realm",
+      "description": "Interactive operator console, HUD, Cyber Arcade, and high-altitude neural telemetry.",
+      "centerCoordinates": {
+        "x": 1000,
+        "y": 0,
+        "z": 0
+      },
+      "radius": 400,
+      "metadata": {
+        "uiHost": "http://localhost:3000/arcade",
+        "wsPort": 3000
+      },
+      "createdAt": 1789024160529,
+      "updatedAt": 1789024160530
+    },
+    {
+      "realmId": "vision_core",
+      "name": "VisionCore Realm",
+      "description": "MovieForge 4K Neural Theater, visual shaders, DaVinci LUT processing, and perception.",
+      "centerCoordinates": {
+        "x": 0,
+        "y": 1000,
+        "z": 0
+      },
+      "radius": 400,
+      "metadata": {
+        "luts": [
+          "Imperial Gold",
+          "Cyberpunk Emerald",
+          "Neutral Raw"
+        ]
+      },
+      "createdAt": 1789024160529,
+      "updatedAt": 1789024160530
+    },
+    {
+      "realmId": "moneyplughub",
+      "name": "MoneyPlugHub Autonomous Realm",
+      "description": "Autonomous publishing loops, faceless media generation, and syndication engines.",
+      "centerCoordinates": {
+        "x": -1000,
+        "y": 0,
+        "z": 0
+      },
+      "radius": 400,
+      "metadata": {
+        "loopDepthLimit": 10,
+        "antiSpam": true
+      },
+      "createdAt": 1789024160529,
+      "updatedAt": 1789024160530
+    },
+    {
+      "realmId": "unreal_bridge",
+      "name": "Unreal Engine 5.4 Bridge Realm",
+      "description": "Niagara particle telemetry, physics simulation, and procedural actor mesh generation.",
+      "centerCoordinates": {
+        "x": 0,
+        "y": -1000,
+        "z": 0
+      },
+      "radius": 400,
+      "metadata": {
+        "ueVersion": "5.4",
+        "streamMode": "WebSocket"
+      },
+      "createdAt": 1789024160529,
+      "updatedAt": 1789024160530
+    },
+    {
+      "realmId": "lexicon_codex",
+      "name": "Lexicon Codex Realm",
+      "description": "Living conceptual registry, high-altitude terminology, and inscription chamber.",
+      "centerCoordinates": {
+        "x": 0,
+        "y": 0,
+        "z": 1000
+      },
+      "radius": 350,
+      "metadata": {
+        "cognitiveAltitude": "High"
+      },
+      "createdAt": 1789024160529,
+      "updatedAt": 1789024160530
+    },
+    {
+      "realmId": "offer_engine",
+      "name": "Autonomous Offer Engine Realm",
+      "description": "Deterministic sovereign offer engine, dynamic pricing, and chained state lineage.",
+      "centerCoordinates": {
+        "x": -500,
+        "y": 500,
+        "z": 0
+      },
+      "radius": 350,
+      "metadata": {
+        "tier": "Phase3",
+        "antiGravScore": 95,
+        "deterministic": true,
+        "zeroRandomness": true,
+        "bindings": [
+          "sovereign_core",
+          "moneyplughub",
+          "telemetry_stream",
+          "funnel_agent",
+          "merkle_audit_logger"
+        ]
+      },
+      "createdAt": 1789024160529,
+      "updatedAt": 1789024160530
+    },
+    {
+      "realmId": "narrative_engine",
+      "name": "PrimordiaOS Immersive Narrative Engine Realm",
+      "description": "Deterministic protagonist-centric narrative synthesis, multi-realm mythos, and anti-collapse story arcs.",
+      "centerCoordinates": {
+        "x": 500,
+        "y": 500,
+        "z": 500
+      },
+      "radius": 350,
+      "metadata": {
+        "tier": "Phase4",
+        "antiGravScore": 98,
+        "deterministic": true,
+        "zeroRandomness": true,
+        "bindings": [
+          "sovereign_core",
+          "telemetry_stream",
+          "offer_engine",
+          "funnel_agent",
+          "merkle_audit_logger",
+          "economic_kernel"
+        ]
+      },
+      "createdAt": 1789024160529,
+      "updatedAt": 1789024160530
+    },
+    {
+      "realmId": "multi_agent_matrix",
+      "name": "PrimordiaOS Autonomous Multi-Agent Matrix Realm",
+      "description": "Autonomous multi-agent civilization: Swarm Coordinator, Cross-Realm Exec, Microservice Forge, and Deploy Matrix.",
+      "centerCoordinates": {
+        "x": 1000,
+        "y": 1000,
+        "z": 500
+      },
+      "radius": 400,
+      "metadata": {
+        "tier": "Phase5",
+        "antiGravScore": 98,
+        "deterministic": true,
+        "zeroRandomness": true,
+        "bindings": [
+          "sovereign_core",
+          "offer_engine",
+          "narrative_engine",
+          "telemetry_stream",
+          "microservice_forge",
+          "deploy_matrix"
+        ]
+      },
+      "createdAt": 1789024160529,
+      "updatedAt": 1789024160530
+    }
+  ],
+  "adjacency": [
+    {
+      "from": "sovereign_core",
+      "to": [
+        "sovereign_cockpit",
+        "vision_core",
+        "moneyplughub",
+        "unreal_bridge",
+        "lexicon_codex",
+        "offer_engine",
+        "narrative_engine",
+        "multi_agent_matrix"
+      ]
+    },
+    {
+      "from": "sovereign_cockpit",
+      "to": [
+        "sovereign_core",
+        "moneyplughub",
+        "offer_engine"
+      ]
+    },
+    {
+      "from": "vision_core",
+      "to": [
+        "sovereign_core",
+        "unreal_bridge"
+      ]
+    },
+    {
+      "from": "moneyplughub",
+      "to": [
+        "sovereign_core",
+        "sovereign_cockpit",
+        "offer_engine"
+      ]
+    },
+    {
+      "from": "unreal_bridge",
+      "to": [
+        "sovereign_core",
+        "vision_core"
+      ]
+    },
+    {
+      "from": "lexicon_codex",
+      "to": [
+        "sovereign_core"
+      ]
+    },
+    {
+      "from": "offer_engine",
+      "to": [
+        "sovereign_core",
+        "moneyplughub",
+        "sovereign_cockpit",
+        "narrative_engine"
+      ]
+    },
+    {
+      "from": "narrative_engine",
+      "to": [
+        "sovereign_core",
+        "offer_engine",
+        "vision_core",
+        "moneyplughub"
+      ]
+    },
+    {
+      "from": "multi_agent_matrix",
+      "to": [
+        "sovereign_core",
+        "offer_engine",
+        "narrative_engine",
+        "moneyplughub"
+      ]
+    }
+  ]
+}

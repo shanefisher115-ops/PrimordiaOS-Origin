@@ -1,0 +1,24 @@
+﻿# PrimordiaOS Docker Shield
+node_modules/
+npm-debug.log
+.npm/
+.next/
+out/
+build/
+dist/
+.git/
+.gitignore
+.dockerignore
+Dockerfile
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.vercel/
+.obsidian/
+vault/04 - System/Attachments/
+vault/**/*.png
+vault/**/*.jpg
+vault/**/*.mp4
+vault/**/*.pdf

@@ -1,0 +1,45 @@
+{
+  "name": "primordia-flow",
+  "productName": "Primordia Flow",
+  "version": "1.0.0",
+  "description": "Primordia Flow — Sovereign Prospect Heat-Orbit Engine & Autonomous Multi-Agent Loop Cockpit",
+  "main": "electron/main.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k \"npm --prefix frontend run dev -- --host 0.0.0.0\" \"wait-on http://localhost:5174 && electron electron/main.cjs\"",
+    "flow:dev": "concurrently -k \"npm --prefix frontend run dev -- --host 0.0.0.0\" \"wait-on http://localhost:5174 && electron electron/main.cjs\"",
+    "daemon": "tsx backend/daemon.ts",
+    "client": "npm --prefix frontend run dev -- --host 0.0.0.0",
+    "build:client": "npm --prefix frontend run build",
+    "build": "npm run build:client && electron-builder",
+    "start": "concurrently -k \"npm --prefix frontend run dev -- --host 0.0.0.0\" \"wait-on http://localhost:5174 && electron electron/main.cjs\""
+  },
+  "build": {
+    "appId": "com.primordiaos.flow",
+    "productName": "Primordia Flow",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "backend/**/*",
+      "frontend/dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    }
+  },
+  "dependencies": {
+    "@types/nodemailer": "^8.0.1",
+    "nodemailer": "^10.0.1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "electron": "^44.3.0",
+    "wait-on": "^8.0.3"
+  }
+}

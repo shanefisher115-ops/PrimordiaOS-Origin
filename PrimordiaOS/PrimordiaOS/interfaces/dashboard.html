@@ -1,0 +1,2218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MoneyOS — Holographic Command Cockpit // moneyplughub.com</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Rajdhani:wght@500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-deep: #020612;
+      --cockpit-hull: #030a1a;
+      --panel-bg: rgba(6, 14, 28, 0.88);
+      --panel-border: rgba(0, 240, 255, 0.32);
+      --panel-border-bright: rgba(0, 240, 255, 0.75);
+      --panel-glow: 0 8px 32px rgba(0, 0, 0, 0.7), inset 0 0 16px rgba(0, 240, 255, 0.08);
+      --neon-cyan: #00f0ff;
+      --neon-green: #00ff88;
+      --neon-purple: #b026ff;
+      --neon-gold: #ffb703;
+      --neon-red: #ff3366;
+      --font-hud: 'Orbitron', -apple-system, sans-serif;
+      --font-body: 'Rajdhani', -apple-system, sans-serif;
+      --font-mono: 'Fira Code', Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-deep);
+      color: #e2e8f0;
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 50% 15%, rgba(0, 240, 255, 0.12) 0%, transparent 60%),
+        radial-gradient(circle at 50% 90%, rgba(0, 180, 255, 0.08) 0%, transparent 50%);
+      user-select: none;
+    }
+
+    /* Baseline Standard Scrollbar */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 240, 255, 0.3) transparent;
+    }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.3); border-radius: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+
+    /* View Transitions API */
+    @view-transition { navigation: auto; }
+    ::view-transition-old(root), ::view-transition-new(root) {
+      animation-duration: 0.22s;
+      animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+    }
+
+    /* ==========================================================================
+       HOLOGRAPHIC COCKPIT CANOPY ARCHITECTURE (3D PERSPECTIVE)
+       ========================================================================== */
+    .cockpit-canopy {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      background: radial-gradient(ellipse at 50% 30%, rgba(4, 18, 38, 0.7) 0%, #01040d 95%);
+      box-shadow: inset 0 0 100px rgba(0, 240, 255, 0.12);
+    }
+
+    /* Top Curved Canopy Arch */
+    .canopy-arch-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      border-bottom: 2px solid rgba(0, 240, 255, 0.35);
+      background: linear-gradient(180deg, rgba(0, 240, 255, 0.08) 0%, transparent 100%);
+      border-radius: 0 0 50% 50% / 0 0 25px 25px;
+      pointer-events: none;
+      box-shadow: 0 5px 25px rgba(0, 240, 255, 0.15);
+      z-index: 10;
+    }
+
+    /* ==========================================================================
+       TOP NAVIGATION BAR
+       ========================================================================== */
+    .cockpit-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 36px;
+      position: relative;
+      z-index: 20;
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+      background: rgba(2, 6, 18, 0.85);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .brand-hex {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, var(--neon-cyan), var(--neon-green));
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px var(--neon-cyan);
+      animation: hexPulse 3s infinite ease-in-out;
+    }
+    @keyframes hexPulse {
+      0%, 100% { transform: scale(1); filter: brightness(1); }
+      50% { transform: scale(1.05); filter: brightness(1.3); }
+    }
+    .brand-title {
+      font-family: var(--font-hud);
+      font-weight: 900;
+      font-size: 20px;
+      letter-spacing: 2px;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(0, 240, 255, 0.8);
+    }
+    .brand-title span { color: var(--neon-cyan); }
+    .brand-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--neon-green);
+      color: var(--neon-green);
+      background: rgba(0, 255, 136, 0.1);
+      letter-spacing: 1px;
+    }
+
+    .nav-search {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(4, 12, 28, 0.8);
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      border-radius: 20px;
+      padding: 6px 16px;
+      width: 360px;
+      transition: all 0.2s;
+    }
+    .nav-search:focus-within {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+    }
+    .nav-search input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      width: 100%;
+    }
+    .nav-search input::placeholder { color: #64748b; }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .nav-pill-btn {
+      background: rgba(0, 240, 255, 0.08);
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      color: var(--neon-cyan);
+      font-family: var(--font-hud);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 7px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .nav-pill-btn:hover {
+      background: rgba(0, 240, 255, 0.2);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
+      transform: translateY(-1px);
+    }
+    .nav-pill-btn.gold {
+      background: rgba(255, 183, 3, 0.12);
+      border-color: var(--neon-gold);
+      color: var(--neon-gold);
+    }
+    .nav-pill-btn.gold:hover {
+      background: rgba(255, 183, 3, 0.25);
+      box-shadow: 0 0 14px rgba(255, 183, 3, 0.6);
+    }
+
+    /* ==========================================================================
+       3D CURVED COCKPIT BRIDGE GRID
+       ========================================================================== */
+    .cockpit-viewport {
+      perspective: 1600px;
+      perspective-origin: 50% 45%;
+      width: 100%;
+      padding: 10px 24px 30px;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      z-index: 5;
+    }
+
+    .cockpit-cluster {
+      display: grid;
+      grid-template-columns: 280px 290px 370px 290px 280px;
+      gap: 16px;
+      max-width: 1640px;
+      width: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* 3D Column Rotations for Holographic Surround Effect */
+    .col-outer-left {
+      transform: rotateY(13deg) translateZ(10px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .col-mid-left {
+      transform: rotateY(6deg) translateZ(25px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .col-center-hero {
+      transform: translateZ(45px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .col-mid-right {
+      transform: rotateY(-6deg) translateZ(25px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .col-outer-right {
+      transform: rotateY(-13deg) translateZ(10px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Responsive Flat Mode for smaller screens */
+    @media (max-width: 1540px) {
+      .cockpit-viewport { perspective: none; }
+      .cockpit-cluster {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        transform-style: flat;
+      }
+      .col-outer-left, .col-mid-left, .col-center-hero, .col-mid-right, .col-outer-right {
+        transform: none !important;
+      }
+    }
+
+    /* ==========================================================================
+       HOLOGRAPHIC COCKPIT WINDOW PANELS
+       ========================================================================== */
+    .cockpit-window {
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--panel-glow);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+    }
+    .cockpit-window::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+      opacity: 0.6;
+    }
+    .cockpit-window:hover {
+      border-color: var(--panel-border-bright);
+      box-shadow: 0 12px 40px rgba(0, 240, 255, 0.2), inset 0 0 20px rgba(0, 240, 255, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .window-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+    }
+    .window-title {
+      font-family: var(--font-hud);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-transform: uppercase;
+    }
+    .window-title .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--neon-cyan);
+      box-shadow: 0 0 8px var(--neon-cyan);
+    }
+    .window-title .dot.green { background: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); }
+    .window-title .dot.gold { background: var(--neon-gold); box-shadow: 0 0 8px var(--neon-gold); }
+    .window-title .dot.purple { background: var(--neon-purple); box-shadow: 0 0 8px var(--neon-purple); }
+
+    .window-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #94a3b8;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* 1. Live Ticker Stream */
+    .ticker-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .ticker-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: rgba(3, 10, 22, 0.6);
+      border-left: 2px solid var(--neon-cyan);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .ticker-item:hover { background: rgba(0, 240, 255, 0.12); }
+    .ticker-sym { color: #fff; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .ticker-val { color: var(--neon-green); font-weight: 700; }
+    .ticker-val.down { color: var(--neon-red); }
+
+    /* 2. Mountain Chart Area */
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 120px;
+      margin-top: 4px;
+    }
+    .chart-svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    .chart-meta {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 6px;
+    }
+    .chart-pills {
+      display: flex;
+      gap: 4px;
+    }
+    .chart-pill {
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      background: rgba(0, 240, 255, 0.1);
+      color: var(--neon-cyan);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      cursor: pointer;
+    }
+    .chart-pill.active {
+      background: var(--neon-cyan);
+      color: #000;
+      font-weight: 700;
+    }
+
+    /* 3. Radial Multi-Ring Gauge */
+    .gauge-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 8px 0;
+    }
+    .gauge-svg-box {
+      width: 110px;
+      height: 110px;
+      position: relative;
+    }
+    .gauge-svg-box svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+    .gauge-center-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    .gauge-num {
+      font-family: var(--font-hud);
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--neon-cyan);
+      text-shadow: 0 0 10px var(--neon-cyan);
+    }
+    .gauge-label {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      color: #94a3b8;
+      letter-spacing: 1px;
+    }
+    .gauge-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .gauge-stat-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .gauge-stat-val { color: #fff; font-weight: 700; }
+
+    /* 4. Swarm Syndicates List ('MY ARMS') */
+    .syndicate-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .syndicate-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(2, 9, 20, 0.7);
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .syndicate-card:hover, .syndicate-card.active {
+      border-color: var(--neon-cyan);
+      background: rgba(0, 240, 255, 0.12);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
+    }
+    .synd-info { display: flex; align-items: center; gap: 8px; }
+    .synd-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, rgba(0,240,255,0.3), rgba(176,38,255,0.3));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+    .synd-name { font-family: var(--font-hud); font-size: 11px; font-weight: 700; color: #fff; }
+    .synd-role { font-family: var(--font-mono); font-size: 9px; color: #94a3b8; }
+    .synd-status {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--neon-green);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* 5. Autonomous Velocity & Dual Sliders */
+    .slider-box {
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .slider-head {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #94a3b8;
+    }
+    .slider-head span:last-child { color: var(--neon-cyan); font-weight: 700; }
+    input[type=range].hud-range {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 5px;
+      background: #0f172a;
+      border-radius: 3px;
+      outline: none;
+    }
+    input[type=range].hud-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--neon-cyan);
+      box-shadow: 0 0 10px var(--neon-cyan);
+      cursor: pointer;
+    }
+
+    /* 6. Center Hero Window */
+    .hero-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    .hero-avatar-ring {
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      border: 3px solid var(--neon-cyan);
+      padding: 3px;
+      background: radial-gradient(circle, rgba(0,240,255,0.3) 0%, transparent 70%);
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.6);
+      position: relative;
+      margin-bottom: 8px;
+    }
+    .hero-avatar-ring .avatar-fallback {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #091a33;
+      font-family: var(--font-hud);
+      font-size: 28px;
+      color: var(--neon-cyan);
+      text-shadow: 0 0 10px var(--neon-cyan);
+    }
+    .hero-name-title {
+      text-align: center;
+      font-family: var(--font-hud);
+      font-size: 21px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 1.5px;
+      margin-bottom: 2px;
+      text-shadow: 0 0 14px rgba(0, 240, 255, 0.7);
+    }
+    .hero-level-sub {
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--neon-cyan);
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    /* Gold Commission Shield Badge */
+    .commission-badge-shield {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: linear-gradient(90deg, rgba(255,183,3,0.15) 0%, rgba(255,183,3,0.05) 50%, rgba(255,183,3,0.15) 100%);
+      border: 1px solid rgba(255, 183, 3, 0.4);
+      border-radius: 12px;
+      padding: 8px 16px;
+      margin-bottom: 14px;
+    }
+    .shield-icon {
+      font-size: 24px;
+      filter: drop-shadow(0 0 8px var(--neon-gold));
+    }
+    .shield-text-big {
+      font-family: var(--font-hud);
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--neon-gold);
+      letter-spacing: 1px;
+    }
+    .shield-text-sub {
+      font-size: 11px;
+      color: #cbd5e1;
+    }
+
+    /* Dual Balance Boxes */
+    .dual-balance-row {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .balance-box {
+      background: rgba(2, 8, 20, 0.85);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      border-radius: 12px;
+      padding: 10px 14px;
+      text-align: center;
+    }
+    .balance-label {
+      font-size: 10px;
+      color: #94a3b8;
+      letter-spacing: 1px;
+      font-family: var(--font-hud);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .balance-amt {
+      font-family: var(--font-hud);
+      font-size: 21px;
+      font-weight: 900;
+      color: #fff;
+    }
+    .balance-amt.cyan { color: var(--neon-cyan); text-shadow: 0 0 12px var(--neon-cyan); }
+    .balance-amt.green { color: var(--neon-green); text-shadow: 0 0 12px var(--neon-green); }
+
+    /* Primary CTA Buttons */
+    .hero-btn-stack {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .cta-claim-now {
+      width: 100%;
+      background: linear-gradient(135deg, #ffb703 0%, #fb8500 100%);
+      color: #000;
+      font-family: var(--font-hud);
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      padding: 13px 20px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(255, 183, 3, 0.6), inset 0 0 10px rgba(255,255,255,0.4);
+      transition: all 0.2s;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .cta-claim-now:hover {
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 0 35px rgba(255, 183, 3, 0.9);
+      filter: brightness(1.1);
+    }
+    .cta-claim-now:active { transform: scale(0.98); }
+
+    .cta-crate-sub {
+      width: 100%;
+      background: rgba(176, 38, 255, 0.15);
+      border: 1px solid var(--neon-purple);
+      color: #e2e8f0;
+      font-family: var(--font-hud);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .cta-crate-sub:hover {
+      background: rgba(176, 38, 255, 0.3);
+      box-shadow: 0 0 16px rgba(176, 38, 255, 0.5);
+    }
+
+    /* 7. Center Matrix 3D Sigil Canvas Window */
+    .sigil-canvas-box {
+      width: 100%;
+      height: 180px;
+      background: radial-gradient(circle at center, rgba(0,240,255,0.08) 0%, #01040b 100%);
+      border-radius: 12px;
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      position: relative;
+      overflow: hidden;
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #forge-sigil-canvas { width: 100%; height: 180px; display: block; cursor: grab; }
+    #forge-sigil-canvas:active { cursor: grabbing; }
+    .sigil-canvas-overlay {
+      position: absolute;
+      top: 8px;
+      left: 10px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--neon-cyan);
+      display: flex;
+      gap: 12px;
+      z-index: 5;
+    }
+    .sigil-archetype-pills {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .archetype-pill {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(0, 240, 255, 0.08);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--neon-cyan);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .archetype-pill.active, .archetype-pill:hover {
+      background: var(--neon-cyan);
+      color: #000;
+      font-weight: 700;
+    }
+
+    /* 8. RETIREE AGE Donut Window */
+    .donut-gauge-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 10px 0;
+    }
+    .donut-svg-box {
+      width: 110px;
+      height: 110px;
+      position: relative;
+    }
+    .donut-svg-box svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+    .donut-center-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    .donut-num {
+      font-family: var(--font-hud);
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--neon-green);
+      text-shadow: 0 0 10px var(--neon-green);
+    }
+    .donut-sub {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      color: #94a3b8;
+    }
+    .fire-details {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .fire-row { display: flex; justify-content: space-between; gap: 12px; }
+    .fire-row span:last-child { color: #fff; font-weight: 700; }
+
+    /* 9. Layered Hexagon Window ('EOVENTTARES' / ANTIGRAV) */
+    .hex-matrix-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 6px 0;
+    }
+    .hex-svg-box {
+      width: 90px;
+      height: 90px;
+    }
+    .hex-nodes-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .hex-node-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .hex-node-circle {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--neon-cyan);
+      box-shadow: 0 0 8px var(--neon-cyan);
+    }
+    .hex-node-circle.gold { background: var(--neon-gold); box-shadow: 0 0 8px var(--neon-gold); }
+    .hex-node-circle.purple { background: var(--neon-purple); box-shadow: 0 0 8px var(--neon-purple); }
+
+    /* 10. High-Volatility Line Chart ('POREIALE') */
+    .vol-chart-box {
+      width: 100%;
+      height: 110px;
+      position: relative;
+    }
+
+    /* 11. Circular Sonar Radar Window */
+    .radar-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 4px 0;
+    }
+    .radar-sweep-box {
+      width: 85px;
+      height: 85px;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.08) 0%, transparent 70%);
+      position: relative;
+      overflow: hidden;
+    }
+    .radar-sweep-line {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 50%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--neon-green));
+      transform-origin: 0% 0%;
+      animation: sweepRadar 3s infinite linear;
+    }
+    @keyframes sweepRadar {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .radar-channels {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+    }
+    .channel-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .channel-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
+    }
+
+    /* 12. Multi-colored Daily Bar Matrix */
+    .daily-bars-grid {
+      display: flex;
+      align-items: flex-end;
+      gap: 5px;
+      height: 80px;
+      padding-top: 10px;
+      border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+      margin-bottom: 8px;
+    }
+    .matrix-bar-col {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .matrix-bar-fill {
+      width: 100%;
+      border-radius: 3px 3px 0 0;
+      background: linear-gradient(180deg, var(--neon-cyan), rgba(0,240,255,0.3));
+      transition: all 0.2s;
+    }
+    .matrix-bar-col:hover .matrix-bar-fill {
+      background: var(--neon-green);
+      box-shadow: 0 0 10px var(--neon-green);
+    }
+    .matrix-bar-lbl {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      color: #64748b;
+    }
+
+    /* ==========================================================================
+       BOTTOM PERSPECTIVE GRID FLOOR & PEDESTAL
+       ========================================================================== */
+    .cockpit-pedestal-floor {
+      position: relative;
+      width: 100%;
+      height: 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-top: 1px solid rgba(0, 240, 255, 0.25);
+      background: linear-gradient(180deg, rgba(2, 8, 20, 0.9) 0%, #000208 100%);
+      z-index: 10;
+    }
+
+    /* 3D Wireframe Perspective Floor Grid */
+    .floor-grid-plane {
+      position: absolute;
+      top: 0;
+      left: -20%;
+      right: -20%;
+      bottom: -40%;
+      background-image: 
+        linear-gradient(rgba(0, 240, 255, 0.18) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 240, 255, 0.18) 1px, transparent 1px);
+      background-size: 32px 32px;
+      transform: perspective(350px) rotateX(68deg);
+      transform-origin: 50% 0%;
+      pointer-events: none;
+      opacity: 0.55;
+    }
+
+    /* Glowing Pedestal Floor Text */
+    .floor-glow-title {
+      font-family: var(--font-hud);
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 5px;
+      color: var(--neon-cyan);
+      text-transform: uppercase;
+      text-shadow: 
+        0 0 15px rgba(0, 240, 255, 0.9),
+        0 0 35px rgba(0, 240, 255, 0.5),
+        0 0 60px rgba(0, 240, 255, 0.3);
+      position: relative;
+      z-index: 2;
+      animation: pedestalBreathe 4s infinite ease-in-out;
+    }
+    @keyframes pedestalBreathe {
+      0%, 100% { filter: brightness(1) drop-shadow(0 0 10px rgba(0,240,255,0.7)); }
+      50% { filter: brightness(1.3) drop-shadow(0 0 25px rgba(0,240,255,1)); }
+    }
+    .floor-subline {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: #94a3b8;
+      margin-top: 4px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Persistent Voice Audio Bar in Footer */
+    .voice-dock-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(4, 14, 30, 0.85);
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      border-radius: 30px;
+      padding: 6px 20px;
+      margin-top: 10px;
+      position: relative;
+      z-index: 2;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+    }
+    .voice-mic-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--neon-cyan);
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      box-shadow: 0 0 12px var(--neon-cyan);
+      transition: transform 0.15s;
+    }
+    .voice-mic-btn:hover { transform: scale(1.1); }
+    .voice-waves {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 16px;
+    }
+    .wave-bar {
+      width: 3px;
+      height: 8px;
+      background: var(--neon-green);
+      border-radius: 2px;
+      animation: waveDance 1.2s infinite ease-in-out alternate;
+    }
+    .wave-bar:nth-child(2) { animation-delay: 0.2s; height: 14px; }
+    .wave-bar:nth-child(3) { animation-delay: 0.4s; height: 10px; }
+    .wave-bar:nth-child(4) { animation-delay: 0.1s; height: 16px; }
+    .wave-bar:nth-child(5) { animation-delay: 0.3s; height: 8px; }
+    @keyframes waveDance {
+      0% { transform: scaleY(0.4); }
+      100% { transform: scaleY(1.3); }
+    }
+
+    /* ==========================================================================
+       TOP LAYER NATIVE <dialog> MODALS (@starting-style)
+       ========================================================================== */
+    dialog.modern-dialog {
+      margin: auto;
+      background: rgba(3, 10, 24, 0.95);
+      border: 1px solid var(--neon-cyan);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(0, 240, 255, 0.3);
+      color: #e2e8f0;
+      padding: 28px 32px;
+      max-width: 460px;
+      width: 90%;
+      outline: none;
+      backdrop-filter: blur(20px);
+      transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), overlay 0.25s allow-discrete, display 0.25s allow-discrete;
+      opacity: 0;
+      transform: scale(0.92) translateY(15px);
+    }
+    dialog.modern-dialog[open] {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+    @starting-style {
+      dialog.modern-dialog[open] {
+        opacity: 0;
+        transform: scale(0.92) translateY(15px);
+      }
+    }
+    dialog.modern-dialog::backdrop {
+      background: rgba(1, 4, 10, 0.85);
+      backdrop-filter: blur(8px);
+      transition: opacity 0.25s ease-out, overlay 0.25s allow-discrete, display 0.25s allow-discrete;
+      opacity: 0;
+    }
+    dialog.modern-dialog[open]::backdrop {
+      opacity: 1;
+    }
+    @starting-style {
+      dialog.modern-dialog[open]::backdrop {
+        opacity: 0;
+      }
+    }
+
+    .dialog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(0, 240, 255, 0.25);
+      padding-bottom: 12px;
+    }
+    .dialog-title {
+      font-family: var(--font-hud);
+      font-size: 17px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 1px;
+    }
+    .dialog-close {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .dialog-close:hover { color: var(--neon-cyan); }
+
+    .dialog-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .input-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .input-field label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #cbd5e1;
+      letter-spacing: 1px;
+    }
+    .input-field input {
+      background: rgba(2, 6, 18, 0.8);
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .input-field input:focus {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+    }
+    .dialog-btn-primary {
+      background: linear-gradient(135deg, var(--neon-cyan), var(--neon-green));
+      color: #000;
+      font-family: var(--font-hud);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      text-transform: uppercase;
+      margin-top: 6px;
+      transition: all 0.2s;
+    }
+    .dialog-btn-primary:hover {
+      box-shadow: 0 0 20px var(--neon-cyan);
+      transform: translateY(-1px);
+    }
+
+    /* Floating Toast */
+    .toast-hud {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(3, 12, 28, 0.95);
+      border: 1px solid var(--neon-cyan);
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #fff;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 240, 255, 0.4);
+      z-index: 1000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .toast-hud.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Unboxing Loot Crate Animation */
+    .crate-box-spin {
+      width: 100px;
+      height: 100px;
+      margin: 16px auto;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #7928ca, #ff0080);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      box-shadow: 0 0 30px rgba(255, 0, 128, 0.6);
+      cursor: pointer;
+      animation: crateFloat 3s infinite ease-in-out;
+      transition: transform 0.2s;
+    }
+    .crate-box-spin:hover { transform: scale(1.1) rotate(5deg); }
+    @keyframes crateFloat {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(3deg); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cockpit-canopy">
+  <!-- Top Curved Canopy Arch Framework -->
+  <div class="canopy-arch-top"></div>
+
+  <!-- Top Cockpit Header Navigation -->
+  <header class="cockpit-nav">
+    <div class="brand-section" onclick="triggerOmnisearchFocus()">
+      <div class="brand-hex">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+      </div>
+      <div class="brand-title">MONEY<span>OS</span></div>
+      <span class="brand-badge" id="backend-status-badge">SOVEREIGN // STANDALONE</span>
+    </div>
+
+    <!-- Center Search bar matching mockup -->
+    <div class="nav-search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="text" id="cockpit-omnisearch" placeholder="Search features, syndicates, yield, audit..." oninput="filterCockpitWindows(this.value)" />
+      <span style="font-family: var(--font-mono); font-size: 10px; color: #64748b;">⌘K</span>
+    </div>
+
+    <!-- Right Header Actions -->
+    <div class="nav-actions">
+      <button class="nav-pill-btn gold" onclick="openLootDialog()">
+        <span>🎁</span> LOOT CRATE
+      </button>
+      <button class="nav-pill-btn" onclick="openProfileDialog()">
+        <span>👤</span> SHANE (T0)
+      </button>
+      <button class="nav-pill-btn" onclick="openWizardDialog()">
+        <span>⚙️</span> PROTOCOL
+      </button>
+    </div>
+  </header>
+
+  <!-- 3D Curved Cockpit Bridge Cluster -->
+  <main class="cockpit-viewport">
+    <div class="cockpit-cluster">
+
+      <!-- ====================================================================
+           COLUMN 1 (OUTER LEFT - ANGLED INWARD)
+           ==================================================================== -->
+      <div class="col-outer-left">
+        <!-- Window 1: Live Ticker Stream -->
+        <section class="cockpit-window" id="win-tickers">
+          <div class="window-header">
+            <div class="window-title"><span class="dot"></span> LIVE TICKERS</div>
+            <span class="window-tag" id="ticker-counter">24/s</span>
+          </div>
+          <div class="ticker-list" id="ticker-container">
+            <div class="ticker-item" onclick="copyTickerHash('0x9a4f...7b12')">
+              <span class="ticker-sym"><span style="color:var(--neon-gold)">●</span> SOL / USDC</span>
+              <span class="ticker-val">$184.20 <small style="color:#64748b">(+6.4%)</small></span>
+            </div>
+            <div class="ticker-item" onclick="copyTickerHash('0x4e21...98c3')">
+              <span class="ticker-sym"><span style="color:var(--neon-cyan)">●</span> AFF / RAKUTEN</span>
+              <span class="ticker-val">+$48.50/s</span>
+            </div>
+            <div class="ticker-item" onclick="copyTickerHash('0x12bb...881f')">
+              <span class="ticker-sym"><span style="color:var(--neon-green)">●</span> SWARM YIELD</span>
+              <span class="ticker-val">+$1,420/d</span>
+            </div>
+            <div class="ticker-item" onclick="copyTickerHash('0x9910...aa41')">
+              <span class="ticker-sym"><span style="color:var(--neon-purple)">●</span> ETH / ARB</span>
+              <span class="ticker-val">$3,412.80</span>
+            </div>
+          </div>
+          <div style="margin-top: 8px; display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 9px; color: #64748b;">
+            <span>STREAM: AGENT-PULSE</span>
+            <span style="color: var(--neon-green)">LATENCY: 14ms</span>
+          </div>
+        </section>
+
+        <!-- Window 2: Mountain Area Chart (PAX LANDER) -->
+        <section class="cockpit-window" id="win-chart-area">
+          <div class="window-header">
+            <div class="window-title"><span class="dot green"></span> PAX LANDER</div>
+            <div class="chart-pills">
+              <span class="chart-pill active" onclick="setChartRange(this, '1W')">1W</span>
+              <span class="chart-pill" onclick="setChartRange(this, '1M')">1M</span>
+              <span class="chart-pill" onclick="setChartRange(this, 'ALL')">ALL</span>
+            </div>
+          </div>
+          <div class="chart-container">
+            <svg class="chart-svg" viewBox="0 0 240 100" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.5"/>
+                  <stop offset="100%" stop-color="#00f0ff" stop-opacity="0.0"/>
+                </linearGradient>
+              </defs>
+              <!-- Filled mountain polygon -->
+              <polygon id="chart-poly" points="0,95 20,70 50,78 80,45 110,55 140,30 170,40 200,18 240,12 240,100 0,100" fill="url(#areaGrad)" />
+              <!-- Top neon stroke line -->
+              <polyline id="chart-line" points="0,95 20,70 50,78 80,45 110,55 140,30 170,40 200,18 240,12" fill="none" stroke="#00f0ff" stroke-width="2.5" stroke-linecap="round" />
+            </svg>
+          </div>
+          <div class="chart-meta">
+            <span>2018: $1.2K</span>
+            <span style="color: var(--neon-cyan); font-weight: 700;">2026: $48.9K</span>
+          </div>
+        </section>
+
+        <!-- Window 3: Radial Multi-Ring Gauge (58%) -->
+        <section class="cockpit-window" id="win-radial-gauge">
+          <div class="window-header">
+            <div class="window-title"><span class="dot gold"></span> ATTRIBUTION</div>
+            <span class="window-tag">COOKIE 30D</span>
+          </div>
+          <div class="gauge-wrapper">
+            <div class="gauge-svg-box">
+              <svg viewBox="0 0 100 100">
+                <!-- Outer background track -->
+                <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8"/>
+                <!-- Outer colored ring (58%) -->
+                <circle cx="50" cy="50" r="42" fill="none" stroke="url(#gaugeGrad)" stroke-width="8" stroke-dasharray="264" stroke-dashoffset="110" stroke-linecap="round"/>
+                <!-- Inner secondary ring -->
+                <circle cx="50" cy="50" r="30" fill="none" stroke="rgba(0,255,136,0.2)" stroke-width="4"/>
+                <circle cx="50" cy="50" r="30" fill="none" stroke="#00ff88" stroke-width="4" stroke-dasharray="188" stroke-dashoffset="50" stroke-linecap="round"/>
+                <defs>
+                  <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#00f0ff"/>
+                    <stop offset="100%" stop-color="#ffb703"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div class="gauge-center-text">
+                <div class="gauge-num" id="gauge-percent">58%</div>
+                <div class="gauge-label">CONV. RATIO</div>
+              </div>
+            </div>
+            <div class="gauge-stats">
+              <div class="gauge-stat-row">
+                <span style="color:#94a3b8">Streak:</span>
+                <span class="gauge-stat-val" style="color:var(--neon-green)">1.50x</span>
+              </div>
+              <div class="gauge-stat-row">
+                <span style="color:#94a3b8">Clicks:</span>
+                <span class="gauge-stat-val">12,480</span>
+              </div>
+              <div class="gauge-stat-row">
+                <span style="color:#94a3b8">EPC:</span>
+                <span class="gauge-stat-val" style="color:var(--neon-gold)">$3.42</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ====================================================================
+           COLUMN 2 (MID LEFT)
+           ==================================================================== -->
+      <div class="col-mid-left">
+        <!-- Window 4: Swarm & Channels List ('MY ARMS') -->
+        <section class="cockpit-window" id="win-arms">
+          <div class="window-header">
+            <div class="window-title"><span class="dot purple"></span> MY ARMS // SWARM</div>
+            <span class="window-tag">4 ACTIVE</span>
+          </div>
+          <div class="syndicate-list">
+            <div class="syndicate-card active" onclick="selectSyndicate('VRTX')">
+              <div class="synd-info">
+                <div class="synd-icon">🐉</div>
+                <div>
+                  <div class="synd-name">[VORTEX] Cyber</div>
+                  <div class="synd-role">Autonomous Syndication</div>
+                </div>
+              </div>
+              <div class="synd-status">● 142K XP</div>
+            </div>
+            <div class="syndicate-card" onclick="selectSyndicate('APEX')">
+              <div class="synd-info">
+                <div class="synd-icon">👑</div>
+                <div>
+                  <div class="synd-name">[APEX] Capital</div>
+                  <div class="synd-role">High-Ticket Vault</div>
+                </div>
+              </div>
+              <div class="synd-status">● 118K XP</div>
+            </div>
+            <div class="syndicate-card" onclick="selectSyndicate('PLSE')">
+              <div class="synd-info">
+                <div class="synd-icon">⚡</div>
+                <div>
+                  <div class="synd-name">[PULSE] TikTok</div>
+                  <div class="synd-role">Viral Video Loop</div>
+                </div>
+              </div>
+              <div class="synd-status">● 95K XP</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Window 5: Autonomous Velocity Engine ('NIOIDES') -->
+        <section class="cockpit-window" id="win-velocity">
+          <div class="window-header">
+            <div class="window-title"><span class="dot"></span> VELOCITY ENGINE</div>
+            <span class="window-tag" id="worker-count-badge">8 WORKERS</span>
+          </div>
+          <div class="slider-box">
+            <div class="slider-row">
+              <div class="slider-head">
+                <span>Autonomous Frequency</span>
+                <span id="slider-freq-val">60s</span>
+              </div>
+              <input type="range" class="hud-range" min="10" max="120" value="60" oninput="updateVelocityFreq(this.value)" />
+            </div>
+            <div class="slider-row">
+              <div class="slider-head">
+                <span>Yield Multiplier</span>
+                <span id="slider-mult-val">2.4x</span>
+              </div>
+              <input type="range" class="hud-range" min="1" max="5" step="0.1" value="2.4" oninput="updateYieldMult(this.value)" />
+            </div>
+          </div>
+          <button class="nav-pill-btn" style="width: 100%; margin-top: 12px; justify-content: center;" onclick="pulseSubstrate()">
+            ⚡ PULSE SUBSTRATE
+          </button>
+        </section>
+      </div>
+
+      <!-- ====================================================================
+           COLUMN 3 (CENTER HERO STAGE)
+           ==================================================================== -->
+      <div class="col-center-hero">
+        <!-- Window 6: Avatar Card, Gold Shield, Dual Balances & Primary CTA -->
+        <section class="cockpit-window" id="win-hero-stage" style="border-color: rgba(0,240,255,0.5);">
+          <div class="hero-card">
+            <!-- Glowing Avatar Ring -->
+            <div class="hero-avatar-ring">
+              <div class="avatar-fallback">👑</div>
+            </div>
+            <div class="hero-name-title">SHANE</div>
+            <div class="hero-level-sub">SOVEREIGN TIER 0 // CORE OPERATOR</div>
+
+            <!-- Gold Commission Shield Badge -->
+            <div class="commission-badge-shield">
+              <div class="shield-icon">🛡️</div>
+              <div>
+                <div class="shield-text-big">10% COMMISSION ACTIVE</div>
+                <div class="shield-text-sub">LIFETIME SOVEREIGN ATTRIBUTION</div>
+              </div>
+            </div>
+
+            <!-- Dual Balance Boxes -->
+            <div class="dual-balance-row">
+              <div class="balance-box">
+                <div class="balance-label">Daily Balance</div>
+                <div class="balance-amt cyan" id="harvest-amt">$13,800.00</div>
+              </div>
+              <div class="balance-box">
+                <div class="balance-label">Pending Vault</div>
+                <div class="balance-amt green" id="vault-amt">$17,852.40</div>
+              </div>
+            </div>
+
+            <!-- Primary Claim CTA -->
+            <div class="hero-btn-stack">
+              <button class="cta-claim-now" id="claim-button" onclick="executeHarvestClaim()">
+                <span>⚡</span> CLAIM NOW <span>$13,800</span>
+              </button>
+              <button class="cta-crate-sub" onclick="openLootDialog()">
+                <span>🎁</span> OPEN DAILY MYSTERY LOOT CRATE
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Window 7: Center Matrix 3D Sigil Canvas Window -->
+        <section class="cockpit-window" id="win-sigil-matrix">
+          <div class="window-header">
+            <div class="window-title"><span class="dot"></span> 3D SIGIL FORGE MATRIX</div>
+            <span class="window-tag" id="sigil-status-tag">528Hz SOLFEGGIO</span>
+          </div>
+          <div class="sigil-canvas-box">
+            <div class="sigil-canvas-overlay">
+              <span>ROT: <span id="sigil-rot-lbl">45°</span></span>
+              <span>LUMEN: 99.4%</span>
+              <span style="color:var(--neon-green)">STABLE</span>
+            </div>
+            <canvas id="forge-sigil-canvas" width="340" height="180"></canvas>
+          </div>
+          <div class="sigil-archetype-pills">
+            <span class="archetype-pill active" onclick="switchSigilArchetype(this, 'DRAGON')">CYBER DRAGON</span>
+            <span class="archetype-pill" onclick="switchSigilArchetype(this, 'EMPEROR')">SOVEREIGN EMP</span>
+            <span class="archetype-pill" onclick="switchSigilArchetype(this, 'PULSE')">VIRAL PULSE</span>
+            <span class="archetype-pill" onclick="playSolfeggioTone()">🔊 528Hz TONE</span>
+          </div>
+        </section>
+      </div>
+
+      <!-- ====================================================================
+           COLUMN 4 (MID RIGHT)
+           ==================================================================== -->
+      <div class="col-mid-right">
+        <!-- Window 8: RETIREE AGE Donut & FIRE Freedom Clock -->
+        <section class="cockpit-window" id="win-retiree-donut">
+          <div class="window-header">
+            <div class="window-title"><span class="dot green"></span> RETIREE AGE // FIRE</div>
+            <span class="window-tag">9.4 YRS</span>
+          </div>
+          <div class="donut-gauge-box">
+            <div class="donut-svg-box">
+              <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8"/>
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#00ff88" stroke-width="8" stroke-dasharray="238" stroke-dashoffset="60" stroke-linecap="round"/>
+              </svg>
+              <div class="donut-center-text">
+                <div class="donut-num" id="retire-age-val">41.4</div>
+                <div class="donut-sub">TARGET AGE</div>
+              </div>
+            </div>
+            <div class="fire-details">
+              <div class="fire-row">
+                <span style="color:#94a3b8">Goal Nest:</span>
+                <span>$1.875M</span>
+              </div>
+              <div class="fire-row">
+                <span style="color:#94a3b8">Monte Carlo:</span>
+                <span style="color:var(--neon-green)">98.6%</span>
+              </div>
+              <div class="fire-row">
+                <span style="color:#94a3b8">Passive Mo:</span>
+                <span style="color:var(--neon-gold)">$7,800</span>
+              </div>
+            </div>
+          </div>
+          <div style="padding: 0 4px 6px;">
+            <div style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; color: #94a3b8; margin-bottom: 4px;">
+              <span>Target Retirement Age</span>
+              <span id="fire-age-label" style="color:var(--neon-green); font-weight: 700;">41 yrs</span>
+            </div>
+            <input type="range" class="hud-range" min="30" max="65" value="41" oninput="updateFireTarget(this.value)" />
+          </div>
+        </section>
+
+        <!-- Window 9: ANTIGRAV Hexagon Window ('EOVENTTARES') -->
+        <section class="cockpit-window" id="win-antigrav-hex">
+          <div class="window-header">
+            <div class="window-title"><span class="dot"></span> EOVENTTARES</div>
+            <span class="window-tag">ANTIGRAV()</span>
+          </div>
+          <div class="hex-matrix-box">
+            <div class="hex-svg-box">
+              <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
+                <polygon points="50,5 90,27 90,73 50,95 10,73 10,27" fill="rgba(0,240,255,0.06)" stroke="rgba(0,240,255,0.4)" stroke-width="2"/>
+                <polygon points="50,18 80,34 80,66 50,82 20,66 20,34" fill="none" stroke="var(--neon-cyan)" stroke-width="1.5" stroke-dasharray="6,3"/>
+                <circle cx="50" cy="50" r="14" fill="rgba(0,240,255,0.2)" stroke="var(--neon-cyan)" stroke-width="2"/>
+                <text x="50" y="54" font-family="'Orbitron', sans-serif" font-size="10" font-weight="900" fill="#fff" text-anchor="middle">94</text>
+              </svg>
+            </div>
+            <div class="hex-nodes-list">
+              <div class="hex-node-item">
+                <div class="hex-node-circle"></div>
+                <span style="color:#cbd5e1">15% Sync Substrate</span>
+              </div>
+              <div class="hex-node-item">
+                <div class="hex-node-circle gold"></div>
+                <span style="color:#cbd5e1">30% Deploy Loop</span>
+              </div>
+              <div class="hex-node-item">
+                <div class="hex-node-circle purple"></div>
+                <span style="color:#cbd5e1">294% Supercritical</span>
+              </div>
+            </div>
+          </div>
+          <button class="nav-pill-btn" style="width: 100%; margin-top: 6px; justify-content: center;" onclick="runAntigravAudit()">
+            🛡️ RUN SOVEREIGN AUDIT
+          </button>
+        </section>
+      </div>
+
+      <!-- ====================================================================
+           COLUMN 5 (OUTER RIGHT - ANGLED INWARD)
+           ==================================================================== -->
+      <div class="col-outer-right">
+        <!-- Window 10: High-Volatility Line Chart ('POREIALE') -->
+        <section class="cockpit-window" id="win-chart-poreiale">
+          <div class="window-header">
+            <div class="window-title"><span class="dot"></span> POREIALE // YIELD</div>
+            <span class="window-tag">+14.8% APY</span>
+          </div>
+          <div class="vol-chart-box">
+            <svg viewBox="0 0 240 90" style="width: 100%; height: 100%;">
+              <path d="M0,80 Q30,75 60,65 T120,40 T180,25 T240,8" fill="none" stroke="#00f0ff" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M0,85 Q40,82 80,75 T160,65 T240,55" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="4,4"/>
+              <circle cx="240" cy="8" r="4" fill="#00ff88" filter="drop-shadow(0 0 6px #00ff88)"/>
+            </svg>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 9px; color: #64748b;">
+            <span>Linear: $22K</span>
+            <span style="color: var(--neon-cyan); font-weight: 700;">Compounded: $68.4K</span>
+          </div>
+        </section>
+
+        <!-- Window 11: Circular Sonar Radar Window -->
+        <section class="cockpit-window" id="win-radar">
+          <div class="window-header">
+            <div class="window-title"><span class="dot green"></span> PAYOUT RADAR</div>
+            <span class="window-tag">TRACKING</span>
+          </div>
+          <div class="radar-wrapper">
+            <div class="radar-sweep-box">
+              <div class="radar-sweep-line"></div>
+              <div style="position: absolute; top: 25%; left: 65%; width: 5px; height: 5px; border-radius: 50%; background: var(--neon-green); box-shadow: 0 0 6px var(--neon-green);"></div>
+              <div style="position: absolute; top: 70%; left: 30%; width: 4px; height: 4px; border-radius: 50%; background: var(--neon-cyan); box-shadow: 0 0 6px var(--neon-cyan);"></div>
+            </div>
+            <div class="radar-channels">
+              <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                  <span>MaxBounty</span>
+                  <span style="color: #fff">$5,840</span>
+                </div>
+                <div class="channel-bar-bg"><div class="channel-bar-fill" style="width: 85%;"></div></div>
+              </div>
+              <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                  <span>Rakuten</span>
+                  <span style="color: #fff">$4,120</span>
+                </div>
+                <div class="channel-bar-bg"><div class="channel-bar-fill" style="width: 62%;"></div></div>
+              </div>
+              <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                  <span>Direct Conduit</span>
+                  <span style="color: #fff">$1,650</span>
+                </div>
+                <div class="channel-bar-bg"><div class="channel-bar-fill" style="width: 38%;"></div></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Window 12: Multi-colored Daily Bar Matrix -->
+        <section class="cockpit-window" id="win-daily-matrix">
+          <div class="window-header">
+            <div class="window-title"><span class="dot gold"></span> 14D MATRIX // TAX</div>
+            <span class="window-tag">-$924 SAVED</span>
+          </div>
+          <div class="daily-bars-grid" id="matrix-bars-container">
+            <!-- 14 dynamic bars rendered via JS -->
+          </div>
+          <div style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px;">
+            <span style="color:#94a3b8">Sched C Write-Off:</span>
+            <span style="color:var(--neon-green); font-weight:700;">$3,850.00</span>
+          </div>
+        </section>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Bottom Perspective Grid Floor & Pedestal -->
+  <footer class="cockpit-pedestal-floor">
+    <div class="floor-grid-plane"></div>
+    <div class="floor-glow-title">MONEYPLUGHUB.COM</div>
+    <div class="floor-subline">CREATOR FINANCIAL OPERATING SYSTEM // ALL WINDOWS LIVE</div>
+
+    <!-- Interactive AI Voice Control Bar -->
+    <div class="voice-dock-bar">
+      <button class="voice-mic-btn" id="voice-btn" onclick="toggleVoiceOS()">
+        🎙️
+      </button>
+      <div style="font-family: var(--font-mono); font-size: 11px; color: #fff;">
+        <span id="voice-status-text">MoneyOS Neural Voice: Ready</span>
+      </div>
+      <div class="voice-waves">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ==========================================================================
+     NATIVE <dialog> MODALS (Top Layer)
+     ========================================================================== -->
+
+<!-- 1. Profile / Sovereign Modal -->
+<dialog class="modern-dialog" id="profile-dialog">
+  <div class="dialog-header">
+    <div class="dialog-title">SOVEREIGN IDENTITY // TIER 0</div>
+    <button class="dialog-close" onclick="closeDialog('profile-dialog')">✕</button>
+  </div>
+  <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+    <div style="width: 60px; height: 60px; border-radius: 50%; background: #0b1e38; border: 2px solid var(--neon-cyan); display: flex; align-items: center; justify-content: center; font-size: 28px;">
+      👑
+    </div>
+    <div>
+      <h3 style="font-family: var(--font-hud); font-size: 18px; color: #fff;">SHANE</h3>
+      <p style="font-family: var(--font-mono); font-size: 11px; color: var(--neon-cyan);">Operator ID: PRIM-T0-9942-SHN</p>
+      <p style="font-family: var(--font-mono); font-size: 11px; color: var(--neon-green);">Commission: 10% Gold Lifetime</p>
+    </div>
+  </div>
+  <div style="background: rgba(2,6,18,0.7); border: 1px solid rgba(0,240,255,0.2); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 11px; line-height: 1.6;">
+    <div><strong>Vault Balance:</strong> $17,852.40 USD</div>
+    <div><strong>Compounding Yield:</strong> +8.4% Annual APY</div>
+    <div><strong>Antigravity Score:</strong> 94.2 / 100 (Passes All Gates)</div>
+    <div><strong>Connected Edge:</strong> moneyplughub.com</div>
+  </div>
+  <button class="dialog-btn-primary" style="width:100%" onclick="closeDialog('profile-dialog')">CONFIRM & CLOSE</button>
+</dialog>
+
+<!-- 2. Protocol / API Key Manager Modal -->
+<dialog class="modern-dialog" id="wizard-dialog">
+  <div class="dialog-header">
+    <div class="dialog-title">PROTOCOL & API CONDUIT</div>
+    <button class="dialog-close" onclick="closeDialog('wizard-dialog')">✕</button>
+  </div>
+  <form class="dialog-form" onsubmit="event.preventDefault(); saveProtocolSettings();">
+    <div class="input-field">
+      <label>LOCAL BACKEND URL (PORT 3000 / 3001)</label>
+      <input type="text" id="cfg-backend-url" value="http://localhost:3000" />
+    </div>
+    <div class="input-field">
+      <label>AFFILIATE NETWORK CONDUIT KEY</label>
+      <input type="password" id="cfg-aff-key" value="prim_live_9481726a4b" />
+    </div>
+    <div class="input-field">
+      <label>SOLFEGGIO HARMONIC FREQUENCY</label>
+      <input type="text" id="cfg-freq" value="528 Hz (Sacred Transformation)" />
+    </div>
+    <button type="submit" class="dialog-btn-primary">SAVE PROTOCOL SETTINGS</button>
+  </form>
+</dialog>
+
+<!-- 3. Daily Mystery Loot Crate Modal -->
+<dialog class="modern-dialog" id="loot-dialog">
+  <div class="dialog-header">
+    <div class="dialog-title">DAILY MYSTERY LOOT CRATE</div>
+    <button class="dialog-close" onclick="closeDialog('loot-dialog')">✕</button>
+  </div>
+  <div style="text-align: center;">
+    <div class="crate-box-spin" id="crate-box" onclick="openLootCrate()">
+      📦
+    </div>
+    <div id="loot-result-text" style="font-family: var(--font-hud); font-size: 14px; color: var(--neon-gold); min-height: 24px; margin-top: 8px;">
+      CLICK THE CRATE TO CRACK OPEN
+    </div>
+    <p style="font-family: var(--font-mono); font-size: 11px; color: #94a3b8; margin-top: 8px;">
+      Resets daily at 00:00 UTC. Guaranteed Sovereign XP or Yield Multipliers.
+    </p>
+  </div>
+  <button class="dialog-btn-primary" style="width:100%; margin-top: 20px;" onclick="closeDialog('loot-dialog')">DONE</button>
+</dialog>
+
+<!-- Floating HUD Toast -->
+<div class="toast-hud" id="hud-toast">
+  <span id="toast-icon">⚡</span>
+  <span id="toast-msg">Harvest Claim Initiated</span>
+</div>
+
+<!-- ==========================================================================
+     INTERACTIVE ENGINES, 3D SIGIL CANVAS & AUDIO SYNTHESIS
+     ========================================================================== -->
+<script>
+  // Global State
+  const state = {
+    vaultBalance: 17852.40,
+    dailyBalance: 13800.00,
+    claimed: false,
+    solfeggioFreq: 528,
+    activeSyndicate: 'VRTX',
+    sigilArchetype: 'DRAGON',
+    voiceActive: false,
+    audioCtx: null
+  };
+
+  // 1. Toast Notification Helper
+  function showToast(msg, icon = '⚡') {
+    const t = document.getElementById('hud-toast');
+    document.getElementById('toast-msg').innerText = msg;
+    document.getElementById('toast-icon').innerText = icon;
+    t.classList.add('show');
+    playTone(880, 'sine', 0.1);
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // 2. WebAudio Synthesizer for UI feedback (zero external audio files needed)
+  function getAudioContext() {
+    if (!state.audioCtx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) state.audioCtx = new AudioContext();
+    }
+    if (state.audioCtx && state.audioCtx.state === 'suspended') {
+      state.audioCtx.resume();
+    }
+    return state.audioCtx;
+  }
+
+  function playTone(freq = 440, type = 'sine', duration = 0.15) {
+    try {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch (e) {
+      console.warn('Audio tone error:', e);
+    }
+  }
+
+  function playSolfeggioTone() {
+    try {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(528, ctx.currentTime);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.8);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 1.8);
+      showToast('Emitting 528Hz Solfeggio Aura Resonator', '🔮');
+    } catch (e) {
+      console.warn('Solfeggio audio error:', e);
+    }
+  }
+
+  // 3. Primary Harvest Claim Interaction
+  function executeHarvestClaim() {
+    if (state.claimed) {
+      showToast('Daily Harvest already secured for today!', '🛡️');
+      return;
+    }
+
+    state.claimed = true;
+    state.vaultBalance += state.dailyBalance;
+    state.dailyBalance = 0.00;
+
+    // Visual Updates
+    document.getElementById('harvest-amt').innerText = '$0.00';
+    document.getElementById('vault-amt').innerText = '$' + state.vaultBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    
+    const btn = document.getElementById('claim-button');
+    btn.innerHTML = '<span>✔</span> HARVEST CLAIMED ($13,800.00)';
+    btn.style.background = 'linear-gradient(135deg, #00ff88 0%, #00f0ff 100%)';
+    btn.style.boxShadow = '0 0 30px rgba(0,255,136,0.8)';
+
+    // Play triumphant chime
+    playTone(528, 'triangle', 0.2);
+    setTimeout(() => playTone(660, 'triangle', 0.25), 120);
+    setTimeout(() => playTone(880, 'triangle', 0.4), 240);
+
+    showToast('Success! $13,800.00 deposited into Sovereign Vault.', '💰');
+  }
+
+  // 4. Daily Mystery Loot Crate
+  function openLootCrate() {
+    const box = document.getElementById('crate-box');
+    const res = document.getElementById('loot-result-text');
+    box.style.transform = 'scale(1.25) rotate(15deg)';
+    playTone(330, 'square', 0.1);
+    
+    setTimeout(() => {
+      box.innerText = '✨';
+      box.style.transform = 'scale(1)';
+      const rewards = [
+        '+500 XP Reactor Boost // Level 43 Unlocked',
+        '2x Sovereign Multiplier for 24h',
+        'Golden Affiliate Pass: 15% Tier Bump',
+        '528Hz Sacred Solfeggio Shield Equipped'
+      ];
+      const pick = rewards[Math.floor(Math.random() * rewards.length)];
+      res.innerText = 'UNLOCKED: ' + pick;
+      res.style.color = 'var(--neon-green)';
+      playTone(528, 'sine', 0.3);
+      showToast('Loot Reward Claimed: ' + pick, '🎁');
+    }, 400);
+  }
+
+  // 5. Native Dialog Handlers
+  function openProfileDialog() {
+    document.getElementById('profile-dialog').showModal();
+    playTone(600, 'sine', 0.08);
+  }
+  function openWizardDialog() {
+    document.getElementById('wizard-dialog').showModal();
+    playTone(600, 'sine', 0.08);
+  }
+  function openLootDialog() {
+    document.getElementById('loot-dialog').showModal();
+    playTone(600, 'sine', 0.08);
+  }
+  function closeDialog(id) {
+    document.getElementById(id).close();
+    playTone(400, 'sine', 0.08);
+  }
+
+  // Close dialog on outside backdrop click
+  document.querySelectorAll('dialog.modern-dialog').forEach(d => {
+    d.addEventListener('click', (e) => {
+      const rect = d.getBoundingClientRect();
+      const inDialog = (
+        rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
+        rect.left <= e.clientX && e.clientX <= rect.left + rect.width
+      );
+      if (!inDialog) d.close();
+    });
+  });
+
+  // 6. Interactive Controls & Range Sliders
+  function updateVelocityFreq(val) {
+    document.getElementById('slider-freq-val').innerText = val + 's';
+  }
+  function updateYieldMult(val) {
+    document.getElementById('slider-mult-val').innerText = val + 'x';
+  }
+  function updateFireTarget(val) {
+    document.getElementById('fire-age-label').innerText = val + ' yrs';
+    document.getElementById('retire-age-val').innerText = val;
+  }
+  function setChartRange(el, range) {
+    document.querySelectorAll('.chart-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    playTone(550, 'sine', 0.06);
+
+    // Morph the SVG chart line according to range
+    const poly = document.getElementById('chart-poly');
+    const line = document.getElementById('chart-line');
+    if (range === '1W') {
+      line.setAttribute('points', '0,80 30,65 70,72 110,40 150,50 190,30 240,15');
+      poly.setAttribute('points', '0,80 30,65 70,72 110,40 150,50 190,30 240,15 240,100 0,100');
+    } else if (range === '1M') {
+      line.setAttribute('points', '0,90 35,75 75,55 120,60 160,35 200,20 240,8');
+      poly.setAttribute('points', '0,90 35,75 75,55 120,60 160,35 200,20 240,8 240,100 0,100');
+    } else {
+      line.setAttribute('points', '0,95 20,70 50,78 80,45 110,55 140,30 170,40 200,18 240,12');
+      poly.setAttribute('points', '0,95 20,70 50,78 80,45 110,55 140,30 170,40 200,18 240,12 240,100 0,100');
+    }
+  }
+
+  function selectSyndicate(tag) {
+    state.activeSyndicate = tag;
+    document.querySelectorAll('.syndicate-card').forEach(c => c.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    showToast(`Syndicate Switched to [${tag}]`, '🐉');
+  }
+
+  function pulseSubstrate() {
+    playTone(700, 'triangle', 0.2);
+    showToast('⚡ Autonomous Pulse Broadcasted to Local Workers', '⚡');
+    const badge = document.getElementById('worker-count-badge');
+    badge.innerText = 'SYNCING...';
+    badge.style.color = 'var(--neon-gold)';
+    setTimeout(() => {
+      badge.innerText = '8 WORKERS ACTIVE';
+      badge.style.color = 'var(--neon-green)';
+    }, 1200);
+  }
+
+  function runAntigravAudit() {
+    playTone(800, 'sine', 0.15);
+    showToast('Running ANTIGRAV() Sovereign Integrity Check...', '🛡️');
+    setTimeout(() => {
+      showToast('ANTIGRAV() Score: 94.2/100 (Zero Passive Collapse)', '✔');
+    }, 1000);
+  }
+
+  function copyTickerHash(hash) {
+    showToast(`Conduit Tx Hash: ${hash}`, '📋');
+  }
+
+  function toggleVoiceOS() {
+    state.voiceActive = !state.voiceActive;
+    const txt = document.getElementById('voice-status-text');
+    const btn = document.getElementById('voice-btn');
+    if (state.voiceActive) {
+      txt.innerText = 'MoneyOS Neural Voice: LISTENING...';
+      txt.style.color = 'var(--neon-green)';
+      btn.style.background = 'var(--neon-green)';
+      playTone(660, 'sine', 0.1);
+      showToast('Voice Command Interface Armed', '🎙️');
+    } else {
+      txt.innerText = 'MoneyOS Neural Voice: Ready';
+      txt.style.color = '#fff';
+      btn.style.background = 'var(--neon-cyan)';
+      showToast('Voice Interface Standby', '🎙️');
+    }
+  }
+
+  function triggerOmnisearchFocus() {
+    document.getElementById('cockpit-omnisearch').focus();
+  }
+
+  // Keyboard shortcut Ctrl+K or / to search
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      document.getElementById('cockpit-omnisearch').focus();
+    }
+  });
+
+  function filterCockpitWindows(query) {
+    const q = query.toLowerCase().trim();
+    document.querySelectorAll('.cockpit-window').forEach(w => {
+      if (!q) {
+        w.style.opacity = '1';
+        w.style.border = '1px solid var(--panel-border)';
+        return;
+      }
+      if (w.innerText.toLowerCase().includes(q)) {
+        w.style.opacity = '1';
+        w.style.border = '2px solid var(--neon-cyan)';
+      } else {
+        w.style.opacity = '0.35';
+        w.style.border = '1px solid var(--panel-border)';
+      }
+    });
+  }
+
+  function saveProtocolSettings() {
+    showToast('Protocol Settings Saved to Local Substrate', '⚙️');
+    closeDialog('wizard-dialog');
+  }
+
+  // 7. Render 14-Day Matrix Bars
+  function initDailyMatrixBars() {
+    const container = document.getElementById('matrix-bars-container');
+    container.innerHTML = '';
+    const heights = [45, 60, 50, 75, 40, 65, 85, 55, 70, 90, 65, 80, 95, 100];
+    const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S', 'M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    heights.forEach((h, i) => {
+      const col = document.createElement('div');
+      col.className = 'matrix-bar-col';
+      col.title = `Day ${i+1}: $${(h * 38.5).toFixed(0)}`;
+      col.onclick = () => showToast(`Day ${i+1} Revenue: $${(h * 38.5).toFixed(2)}`, '📊');
+      col.innerHTML = `
+        <div class="matrix-bar-fill" style="height: ${h}%;"></div>
+        <span class="matrix-bar-lbl">${days[i]}</span>
+      `;
+      container.appendChild(col);
+    });
+  }
+
+  // 8. Procedural 3D Sigil Forge Canvas (Sacred Geometry + Interactive Orbit)
+  const sigilCanvas = document.getElementById('forge-sigil-canvas');
+  const sCtx = sigilCanvas.getContext('2d');
+  let angle = 0;
+  let isDragging = false;
+  let lastMouseX = 0;
+
+  sigilCanvas.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    lastMouseX = e.clientX;
+  });
+  window.addEventListener('mouseup', () => { isDragging = false; });
+  window.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      const delta = e.clientX - lastMouseX;
+      angle += delta * 0.015;
+      lastMouseX = e.clientX;
+      document.getElementById('sigil-rot-lbl').innerText = Math.round((angle % (Math.PI * 2)) * (180 / Math.PI)) + '°';
+    }
+  });
+
+  function switchSigilArchetype(el, type) {
+    state.sigilArchetype = type;
+    document.querySelectorAll('.archetype-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    playTone(660, 'sine', 0.1);
+    showToast(`Sigil Archetype: ${type}`, '🔮');
+  }
+
+  function drawSigil() {
+    if (!isDragging) {
+      angle += 0.008;
+      document.getElementById('sigil-rot-lbl').innerText = Math.round((angle % (Math.PI * 2)) * (180 / Math.PI)) + '°';
+    }
+
+    const w = sigilCanvas.width;
+    const h = sigilCanvas.height;
+    const cx = w / 2;
+    const cy = h / 2;
+
+    sCtx.clearRect(0, 0, w, h);
+
+    // Concentric Energy Rings
+    sCtx.strokeStyle = 'rgba(0, 240, 255, 0.25)';
+    sCtx.lineWidth = 1;
+    sCtx.beginPath();
+    sCtx.arc(cx, cy, 55, 0, Math.PI * 2);
+    sCtx.stroke();
+
+    sCtx.strokeStyle = 'rgba(0, 255, 136, 0.3)';
+    sCtx.beginPath();
+    sCtx.arc(cx, cy, 70, 0, Math.PI * 2);
+    sCtx.stroke();
+
+    // Rotating Outer Sacred Hexagon
+    sCtx.save();
+    sCtx.translate(cx, cy);
+    sCtx.rotate(angle);
+    sCtx.strokeStyle = '#00f0ff';
+    sCtx.lineWidth = 1.5;
+    sCtx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const a = (i * Math.PI) / 3;
+      const x = 50 * Math.cos(a);
+      const y = 50 * Math.sin(a);
+      if (i === 0) sCtx.moveTo(x, y);
+      else sCtx.lineTo(x, y);
+    }
+    sCtx.closePath();
+    sCtx.stroke();
+    sCtx.restore();
+
+    // Counter-Rotating Inner Triangle / Polyhedron
+    sCtx.save();
+    sCtx.translate(cx, cy);
+    sCtx.rotate(-angle * 1.5);
+    sCtx.strokeStyle = state.sigilArchetype === 'DRAGON' ? '#ffb703' : '#b026ff';
+    sCtx.lineWidth = 2;
+    sCtx.beginPath();
+    for (let i = 0; i < 3; i++) {
+      const a = (i * 2 * Math.PI) / 3;
+      const x = 36 * Math.cos(a);
+      const y = 36 * Math.sin(a);
+      if (i === 0) sCtx.moveTo(x, y);
+      else sCtx.lineTo(x, y);
+    }
+    sCtx.closePath();
+    sCtx.stroke();
+    sCtx.restore();
+
+    // Glowing Central Singularity
+    sCtx.fillStyle = '#fff';
+    sCtx.beginPath();
+    sCtx.arc(cx, cy, 4 + Math.sin(angle * 4) * 1.5, 0, Math.PI * 2);
+    sCtx.fill();
+
+    requestAnimationFrame(drawSigil);
+  }
+
+  // 9. Auto-Detect Local Masterplane Server
+  async function detectBackend() {
+    const badge = document.getElementById('backend-status-badge');
+    try {
+      const res = await fetch('http://localhost:3000/api/health', { signal: AbortSignal.timeout(1500) });
+      if (res.ok) {
+        badge.innerText = '● LIVE LINK (PORT 3000)';
+        badge.style.borderColor = 'var(--neon-green)';
+        badge.style.color = 'var(--neon-green)';
+        return;
+      }
+    } catch {}
+
+    try {
+      const res3001 = await fetch('http://localhost:3001/api/health', { signal: AbortSignal.timeout(1500) });
+      if (res3001.ok) {
+        badge.innerText = '● LIVE LINK (PORT 3001)';
+        badge.style.borderColor = 'var(--neon-green)';
+        badge.style.color = 'var(--neon-green)';
+        return;
+      }
+    } catch {}
+
+    badge.innerText = '● STANDALONE SOVEREIGN (OFFLINE)';
+    badge.style.borderColor = 'var(--neon-cyan)';
+    badge.style.color = 'var(--neon-cyan)';
+  }
+
+  // Initialize on load
+  window.addEventListener('DOMContentLoaded', () => {
+    initDailyMatrixBars();
+    drawSigil();
+    detectBackend();
+  });
+</script>
+
+</body>
+</html>

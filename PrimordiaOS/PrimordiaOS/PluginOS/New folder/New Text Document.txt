@@ -1,0 +1,37 @@
+I'll help you upgrade the Java runtime to the latest LTS version. Let me start by analyzing your project's current configuration. 
+
+Read [](file:///c%3A/Users/Shane/PlugInOS/frontend/demo/pom.xml#1-1), lines 1 to 50
+
+Analyzing your answers...
+
+Report upgrade event
+Completed with input: {
+  "event": "precheckCompleted",
+  "phase": "precheck",
+  "projectPath": "c:\\Users\\Shane\\PlugInOS\\frontend\\demo",
+  "status": "succeeded",
+  "details": {
+    "components": [
+      {
+        "name": "jdk",
+        "baseVersion": "17",
+        "targetVersion": "25"
+      }
+    ]
+  }
+}
+
+Report upgrade event
+Completed with input: {
+  "event": "planGenerationStarted",
+  "phase": "plan",
+  "projectPath": "c:\\Users\\Shane\\PlugInOS\\frontend\\demo",
+  "sessionId": "20260618043816",
+  "status": "succeeded"
+}
+
+Now analyzing your project. Let me detect available tools and assess compatibility:    
+
+Read [](file:///c%3A/Users/Shane/PlugInOS/frontend/demo/pom.xml#1-1), lines 1 to 80
+
+Version Control

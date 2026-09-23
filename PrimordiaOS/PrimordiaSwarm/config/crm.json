@@ -1,0 +1,15 @@
+{
+  "activeProvider": "apollo",
+  "apollo": {
+    "apiKey": "FjeJA9LEM0o12VBzZFUjRQ"
+  },
+  "instantly": {
+    "apiKey": "YOUR_INSTANTLY_API_KEY"
+  },
+  "lemlist": {
+    "apiKey": "YOUR_LEMLIST_API_KEY"
+  },
+  "webhook": {
+    "url": "https://hooks.zapier.com/hooks/catch/XXXXXX/YYYYYY"
+  }
+}

@@ -1,0 +1,3 @@
+{
+  "sequence": ["kernel", "runtime", "logging", "money-engine"]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "primordia-modules",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "echo Modules built"
+  }
+}

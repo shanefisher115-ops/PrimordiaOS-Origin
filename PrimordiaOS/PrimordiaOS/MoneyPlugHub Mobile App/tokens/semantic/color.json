@@ -1,0 +1,30 @@
+{
+  "semantic": {
+    "color": {
+      "background-primary": {
+        "value": "{primitive.color.black-900}"
+      },
+      "background-card": {
+        "value": "{primitive.color.black-800}"
+      },
+      "text-primary": {
+        "value": "{primitive.color.white}"
+      },
+      "text-secondary": {
+        "value": "{primitive.color.gray-400}"
+      },
+      "border-subtle": {
+        "value": "{primitive.color.gray-700}"
+      },
+      "accent-primary": {
+        "value": "{primitive.color.green-neon}"
+      },
+      "accent-secondary": {
+        "value": "{primitive.color.green-soft}"
+      },
+      "success": {
+        "value": "{primitive.color.green-success}"
+      }
+    }
+  }
+}

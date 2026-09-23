@@ -1,0 +1,15 @@
+name = "primordia-gateway"
+main = "index.ts"
+compatibility_date = "2024-07-01"
+
+[vars]
+ENVIRONMENT = "dev"
+AUTH_SECRET = "primordia_super_secret_key_123"
+
+[durable_objects]
+bindings = [
+  { name = "PRIMORDIA_SESSION", class_name = "PrimordiaSession" }
+]
+
+[[ai]]
+binding = "AI"

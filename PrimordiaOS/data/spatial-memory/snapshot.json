@@ -1,0 +1,69 @@
+{
+  "version": "1.0.0",
+  "timestamp": 1789024160610,
+  "nodeCount": 2,
+  "edgeCount": 1,
+  "nodes": [
+    {
+      "id": "6e1f9388-b3d3-456c-ad1a-a96ee69e1170",
+      "realmId": "sovereign_core",
+      "type": "directive",
+      "content": "Shane issued supreme directive to initiate Niagara particle warp",
+      "coordinates": {
+        "x": 50,
+        "y": 50,
+        "z": 0
+      },
+      "timestamp": 1789024160544,
+      "semanticTags": [
+        "sovereign",
+        "warp",
+        "niagara"
+      ],
+      "semanticFingerprint": "8067131b282b12915f070b02dc0b5f8d68f482e6b2c6a546db7ca83c8dce3a05",
+      "metadata": {
+        "semanticCategory": "UNREAL_SIMULATION"
+      },
+      "version": 1,
+      "quarantineStatus": "clean",
+      "accessCount": 0,
+      "lastAccessedAt": 1789024160544
+    },
+    {
+      "id": "ebf7b54c-cc55-4077-ba33-f26b843f47c8",
+      "realmId": "unreal_bridge",
+      "type": "observation",
+      "content": "Unreal Engine 5.4 Niagara emitter spawned warp particles at velocity 2500",
+      "coordinates": {
+        "x": 80,
+        "y": 70,
+        "z": 10
+      },
+      "timestamp": 1789024160550,
+      "semanticTags": [
+        "niagara",
+        "particle",
+        "velocity"
+      ],
+      "semanticFingerprint": "5331b14de7239544c51980ec77e9adf5467ab82777a1c4aebbb6836211f2c7bd",
+      "metadata": {
+        "semanticCategory": "UNREAL_SIMULATION"
+      },
+      "version": 1,
+      "quarantineStatus": "clean",
+      "accessCount": 0,
+      "lastAccessedAt": 1789024160550
+    }
+  ],
+  "edges": [
+    {
+      "id": "2aec0706-1c65-4adc-8c0b-89482e92a159",
+      "sourceId": "6e1f9388-b3d3-456c-ad1a-a96ee69e1170",
+      "targetId": "ebf7b54c-cc55-4077-ba33-f26b843f47c8",
+      "type": "causal",
+      "weight": 0.95,
+      "metadata": {},
+      "timestamp": 1789024160552
+    }
+  ]
+}

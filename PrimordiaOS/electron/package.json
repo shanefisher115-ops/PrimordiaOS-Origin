@@ -1,0 +1,10 @@
+{
+  "name": "primordia-flow",
+  "productName": "Primordia Flow",
+  "version": "1.0.0",
+  "description": "Primordia Flow — Sovereign Desktop Antigravity Cockpit & Autonomous Loop Engine",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron main.cjs"
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "PrimordiaOS Antigravity Realm Unifier Hooks",
+  "version": "1.0.0",
+  "author": "Shane (Tier 0)",
+  "originLawId": "PRIMORDIAL_ORIGIN_LAW_001",
+  "commands": {
+    "agy realm unify": {
+      "description": "Trigger deep multi-realm discovery, cross-realm topological binding, and refresh RealmMap.json",
+      "entrypoint": "node C:\\primordiaos\\realm-unifier\\RealmUnifier.js --unify",
+      "timeoutMs": 10000,
+      "requiresToken": true,
+      "worldStateImpact": "FLUX"
+    },
+    "agy realm status": {
+      "description": "Query real-time health, active actor count, cognitive attention metrics, and worldstate across all 7 realms",
+      "entrypoint": "node C:\\primordiaos\\realm-unifier\\RealmUnifier.js --status",
+      "timeoutMs": 3000,
+      "requiresToken": false,
+      "worldStateImpact": "STABLE"
+    },
+    "agy realm pulse": {
+      "description": "Dispatch a synchronized Niagara pulse wave (NS_PulseWaveBurst) across simulation, spatial memory, and VisionCore",
+      "entrypoint": "node C:\\primordiaos\\realm-unifier\\RealmUnifier.js --pulse",
+      "timeoutMs": 5000,
+      "requiresToken": true,
+      "defaultParameters": {
+        "system": "NS_PulseWaveBurst",
+        "color": "Imperial Gold",
+        "intensity": 2.0
+      },
+      "worldStateImpact": "CHARGED"
+    }
+  },
+  "lifecycleHooks": [
+    {
+      "event": "pre_control_loop_tick",
+      "description": "Fires prior to each sovereign loop tick for telemetry collection",
+      "handler": "TelemetryWeaver.prepareTick",
+      "priority": 10,
+      "blocking": false
+    },
+    {
+      "event": "on_telemetry_merge",
+      "description": "Dispatched after 60fps simulation, 30fps cognitive, and 1Hz loop telemetry are synchronized",
+      "handler": "TelemetryWeaver.mergeStreams",
+      "priority": 20,
+      "blocking": false
+    },
+    {
+      "event": "on_niagara_burst",
+      "description": "Triggered when a Niagara VFX burst event is dispatched to Unreal Engine 5.4",
+      "handler": "VisionCoreAdapter.ingestVfxTrigger",
+      "priority": 30,
+      "blocking": false
+    },
+    {
+      "event": "on_spatial_anomaly",
+      "description": "Triggered when spatial memory detects an anomalous cluster or pawn proximity violation",
+      "handler": "UnrealRealmAdapter.ingestSpatialEvent",
+      "priority": 40,
+      "blocking": true
+    },
+    {
+      "event": "on_state_flux",
+      "description": "Triggered when system transitions between [STABLE], [FLUX], or [CHARGED]",
+      "handler": "SovereignGovernor.auditTransition",
+      "priority": 50,
+      "blocking": true
+    },
+    {
+      "event": "post_reconciliation",
+      "description": "Fires after state reconciliation, triggering RealmMap.json persistence if changes occurred",
+      "handler": "RealmBinder.saveMap",
+      "priority": 60,
+      "blocking": false
+    }
+  ],
+  "safetyPolicies": {
+    "circuitBreaker": {
+      "maxConsecutiveErrors": 5,
+      "cooldownPeriodMs": 15000,
+      "autoReset": true
+    },
+    "rateLimiting": {
+      "maxPulsesPerMinute": 120,
+      "maxDirectivesPerSecond": 50
+    },
+    "tokenVerification": {
+      "enforceSovereignToken": true,
+      "tokenEnvVar": "PRIMORDIA_SOVEREIGN_TOKEN"
+    },
+    "antigravityFrictionScore": {
+      "minimumAcceptable": 70,
+      "blockOnCollapsePattern": true
+    }
+  }
+}

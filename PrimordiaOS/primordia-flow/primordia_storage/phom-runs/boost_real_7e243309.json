@@ -1,0 +1,2141 @@
+{
+  "success": true,
+  "boostId": "boost_real_7e243309",
+  "timestamp": 1789472849,
+  "durationMs": 4432,
+  "layersExecuted": 11,
+  "signalsProcessed": 16,
+  "prospectsDiscovered": 16,
+  "hotProspects": 0,
+  "personasSynthesized": 16,
+  "outboundGenerated": 16,
+  "postsDistributed": 16,
+  "graphStats": {
+    "nodesCount": 1154,
+    "edgesCount": 2243,
+    "prospectsCount": 147,
+    "signalsCount": 100
+  },
+  "pipelineRecords": [
+    {
+      "signal": {
+        "id": "hn_49708431",
+        "source": "hackernews",
+        "author": "networked",
+        "content": "I can't stop thinking about Papua New Guinea (Live discussion on notnottalmud.substack.com)",
+        "url": "https://notnottalmud.substack.com/p/why-i-cant-stop-thinking-about-papua",
+        "timestamp": 1789452984,
+        "metadata": {
+          "domain": "notnottalmud.substack.com",
+          "score": 303,
+          "commentsCount": 111,
+          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49708431",
+          "multiSourceDeduplicated": true,
+          "sources": [
+            "hackernews"
+          ],
+          "mergedContent": "I can't stop thinking about Papua New Guinea (Live discussion on notnottalmud.substack.com) | [hackernews]: I can't stop thinking about Papua New Guinea (Live discussion on notnottalmud.substack.com)",
+          "totalInteractionCount": 2
+        }
+      },
+      "prospect": {
+        "id": "prosp_a330557de0",
+        "email": "networked@notnottalmud.substack.com",
+        "name": "networked",
+        "domain": "notnottalmud.substack.com",
+        "mxVerified": false,
+        "mxRecords": "",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "TypeScript",
+            "Node.js"
+          ]
+        },
+        "confidenceScore": {
+          "score": 55,
+          "confidence": "medium",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 0,
+            "reputation": 15
+          }
+        }
+      },
+      "score": {
+        "heat": 52,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 30,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_c9a24f8a22",
+        "prospectId": "prosp_a330557de0",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=notnottalmud.substack.com"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi networked,\n\nSaw your work on AI at notnottalmud.substack.com. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_509fd017-8",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_509fd017-8",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_2t12v4xc?domain=notnottalmud.substack.com&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49710253",
+        "source": "hackernews",
+        "author": "choult",
+        "content": "Suspected sabotage causes major Netherlands rail disruption (Live discussion on bbc.com)",
+        "url": "https://www.bbc.com/news/articles/c8ly49w9g1edo",
+        "timestamp": 1789467766,
+        "metadata": {
+          "domain": "bbc.com",
+          "score": 136,
+          "commentsCount": 101,
+          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49710253",
+          "multiSourceDeduplicated": true,
+          "sources": [
+            "hackernews"
+          ],
+          "mergedContent": "Suspected sabotage causes major Netherlands rail disruption (Live discussion on bbc.com) | [hackernews]: Suspected sabotage causes major Netherlands rail disruption (Live discussion on bbc.com)",
+          "totalInteractionCount": 2
+        }
+      },
+      "prospect": {
+        "id": "prosp_ac6294d243",
+        "email": "choult@bbc.com",
+        "name": "choult",
+        "domain": "bbc.com",
+        "mxVerified": true,
+        "mxRecords": "cluster8.eu.messagelabs.com (pri 10), cluster8a.eu.messagelabs.com (pri 20)",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "TypeScript",
+            "Node.js"
+          ]
+        },
+        "confidenceScore": {
+          "score": 85,
+          "confidence": "verified",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 30,
+            "reputation": 15
+          }
+        }
+      },
+      "score": {
+        "heat": 52,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 30,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_19fbd51ed7",
+        "prospectId": "prosp_ac6294d243",
+        "tone": "technical",
+        "interests": [
+          "AI"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=bbc.com"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi choult,\n\nSaw your work on AI at bbc.com. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_e007045d-c",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_e007045d-c",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_8e5z5vn7?domain=bbc.com&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49709381",
+        "source": "hackernews",
+        "author": "rmoff",
+        "content": "Alternatives to MinIO for single-node local S3 (Live discussion on rmoff.net)",
+        "url": "https://rmoff.net/2026/01/14/alternatives-to-minio-for-single-node-local-s3/",
+        "timestamp": 1789460487,
+        "metadata": {
+          "domain": "rmoff.net",
+          "score": 51,
+          "commentsCount": 31,
+          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49709381",
+          "multiSourceDeduplicated": true,
+          "sources": [
+            "hackernews"
+          ],
+          "mergedContent": "Alternatives to MinIO for single-node local S3 (Live discussion on rmoff.net) | [hackernews]: Alternatives to MinIO for single-node local S3 (Live discussion on rmoff.net)",
+          "totalInteractionCount": 2
+        }
+      },
+      "prospect": {
+        "id": "prosp_1e1800ce80",
+        "email": "rmoff@rmoff.net",
+        "name": "rmoff",
+        "domain": "rmoff.net",
+        "mxVerified": true,
+        "mxRecords": "aspmx.l.google.com (pri 1), alt1.aspmx.l.google.com (pri 5), alt2.aspmx.l.google.com (pri 5), aspmx2.googlemail.com (pri 10), aspmx3.googlemail.com (pri 10)",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "TypeScript",
+            "Node.js"
+          ]
+        },
+        "confidenceScore": {
+          "score": 70,
+          "confidence": "high",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 30,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 52,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 30,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_2894836a87",
+        "prospectId": "prosp_1e1800ce80",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=rmoff.net"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi rmoff,\n\nSaw your work on AI at rmoff.net. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_bb8b8d6f-b",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_bb8b8d6f-b",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_fdqko4ib?domain=rmoff.net&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49710015",
+        "source": "hackernews",
+        "author": "_ZeD_",
+        "content": "How much of F-Droid is LLM generated? (Live discussion on tintotint.eu)",
+        "url": "https://tintotint.eu/whacky-corner/f-droid_slop/",
+        "timestamp": 1789465668,
+        "metadata": {
+          "domain": "tintotint.eu",
+          "score": 63,
+          "commentsCount": 46,
+          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49710015",
+          "multiSourceDeduplicated": true,
+          "sources": [
+            "hackernews"
+          ],
+          "mergedContent": "How much of F-Droid is LLM generated? (Live discussion on tintotint.eu) | [hackernews]: How much of F-Droid is LLM generated? (Live discussion on tintotint.eu)",
+          "totalInteractionCount": 2
+        }
+      },
+      "prospect": {
+        "id": "prosp_d6709a006c",
+        "email": "_zed_@tintotint.eu",
+        "name": "_ZeD_",
+        "domain": "tintotint.eu",
+        "mxVerified": false,
+        "mxRecords": "",
+        "enrichment": {
+          "industry": "Artificial Intelligence & Neural Compute",
+          "companySize": "51-200 employees",
+          "techStack": [
+            "PyTorch",
+            "CUDA"
+          ]
+        },
+        "confidenceScore": {
+          "score": 40,
+          "confidence": "medium",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 0,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 52,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 30,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_aca576c1a1",
+        "prospectId": "prosp_d6709a006c",
+        "tone": "executive",
+        "interests": [
+          "AI"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Review the Sovereign Executive Teardown & ROI Briefing",
+          "ctaType": "boardroom_briefing",
+          "ctaUrl": "https://moneyplughub.com/?tab=boardroom&domain=tintotint.eu"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 9,
+          "recommendedDay": "Tuesday",
+          "timezone": "Europe/Paris (UTC+1/+2)",
+          "windowDescription": "Tuesday 09:00 UTC (10:00 CET Morning Peak)"
+        }
+      },
+      "outboundText": "Hi _ZeD_,\n\nFollowing tintotint.eu's growth in AI. We help engineering teams eliminate third-party SaaS bottlenecks and cut compute latency by 40% using sovereign local-first orchestration.\n\nOpen to a brief sync this Thursday?",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_d509f0ce-9",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_d509f0ce-9",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_8k3tszps?domain=tintotint.eu&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49701004",
+        "source": "hackernews",
+        "author": "throw0101d",
+        "content": "iOS 27, iPadOS 27, and macOS 27 (Live discussion on apple.com)",
+        "url": "https://www.apple.com/newsroom/2026/09/major-updates-for-apples-software-platforms-are-now-available/",
+        "timestamp": 1789408229,
+        "metadata": {
+          "domain": "apple.com",
+          "score": 632,
+          "commentsCount": 721,
+          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49701004",
+          "multiSourceDeduplicated": true,
+          "sources": [
+            "hackernews"
+          ],
+          "mergedContent": "iOS 27, iPadOS 27, and macOS 27 (Live discussion on apple.com) | [hackernews]: iOS 27, iPadOS 27, and macOS 27 (Live discussion on apple.com)",
+          "totalInteractionCount": 2
+        }
+      },
+      "prospect": {
+        "id": "prosp_aeeba3d097",
+        "email": "throw0101d@apple.com",
+        "name": "throw0101d",
+        "domain": "apple.com",
+        "mxVerified": true,
+        "mxRecords": "mx-in.g.apple.com (pri 10), mx-in-ma.apple.com (pri 20), mx-in-rn.apple.com (pri 20), mx-in-sg.apple.com (pri 20), mx-in-hfd.apple.com (pri 20), mx-in-vib.apple.com (pri 20)",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "TypeScript",
+            "Node.js"
+          ]
+        },
+        "confidenceScore": {
+          "score": 85,
+          "confidence": "verified",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 30,
+            "reputation": 15
+          }
+        }
+      },
+      "score": {
+        "heat": 52,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 30,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_e39336a17e",
+        "prospectId": "prosp_aeeba3d097",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=apple.com"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi throw0101d,\n\nSaw your work on AI at apple.com. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_f7fb7005-7",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_f7fb7005-7",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_pa0ys32n?domain=apple.com&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49675817",
+        "source": "hackernews",
+        "author": "arunbahl",
+        "content": "4,400-Year-Old Tomb of Egyptian Judge Found at Saqqara with Colors on Walls (Live discussion on arkeonews.net)",
+        "url": "https://arkeonews.net/4400-year-old-tomb-of-an-egyptian-judge-found-at-saqqara-with-colors-still-on-the-walls/",
+        "timestamp": 1789239100,
+        "metadata": {
+          "domain": "arkeonews.net",
+          "score": 156,
+          "commentsCount": 51,
+          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49675817"
+        }
+      },
+      "prospect": {
+        "id": "prosp_026c8d7176",
+        "email": "arunbahl@arkeonews.net",
+        "name": "arunbahl",
+        "domain": "arkeonews.net",
+        "mxVerified": true,
+        "mxRecords": "mail.protonmail.ch (pri 10), mailsec.protonmail.ch (pri 20)",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "WAL"
+          ]
+        },
+        "confidenceScore": {
+          "score": 70,
+          "confidence": "high",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 30,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 52,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 30,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_7e1802dd65",
+        "prospectId": "prosp_026c8d7176",
+        "tone": "technical",
+        "interests": [
+          "database"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=arkeonews.net"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi arunbahl,\n\nSaw your work on database at arkeonews.net. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_0a30cd76-2",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_0a30cd76-2",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_37kalvip?domain=arkeonews.net&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49700477",
+        "source": "hackernews",
+        "author": "lukaspetersson",
+        "content": "Pion, an agent designed to run any company autonomously (Live discussion on andonlabs.com)",
+        "url": "https://andonlabs.com/blog/why-we-built-pion",
+        "timestamp": 1789406166,
+        "metadata": {
+          "domain": "andonlabs.com",
+          "score": 421,
+          "commentsCount": 524,
+          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49700477",
+          "multiSourceDeduplicated": true,
+          "sources": [
+            "hackernews"
+          ],
+          "mergedContent": "Pion, an agent designed to run any company autonomously (Live discussion on andonlabs.com) | [hackernews]: Pion, an agent designed to run any company autonomously (Live discussion on andonlabs.com)",
+          "totalInteractionCount": 2
+        }
+      },
+      "prospect": {
+        "id": "prosp_f76aefd889",
+        "email": "lukaspetersson@andonlabs.com",
+        "name": "lukaspetersson",
+        "domain": "andonlabs.com",
+        "mxVerified": true,
+        "mxRecords": "smtp.google.com (pri 1)",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "TypeScript",
+            "Node.js"
+          ]
+        },
+        "confidenceScore": {
+          "score": 85,
+          "confidence": "verified",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 30,
+            "reputation": 15
+          }
+        }
+      },
+      "score": {
+        "heat": 52,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 30,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_ea051f262f",
+        "prospectId": "prosp_f76aefd889",
+        "tone": "technical",
+        "interests": [
+          "AI"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=andonlabs.com"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi lukaspetersson,\n\nSaw your work on AI at andonlabs.com. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_d2347d73-d",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_d2347d73-d",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_h8f90u2v?domain=andonlabs.com&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49697549",
+        "source": "hackernews",
+        "author": "gmays",
+        "content": "A rough guide for going back to the Moon (Live discussion on research.ibm.com)",
+        "url": "https://research.ibm.com/blog/nasa-ibm-lunar-foundation-model",
+        "timestamp": 1789396380,
+        "metadata": {
+          "domain": "research.ibm.com",
+          "score": 8,
+          "commentsCount": 0,
+          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49697549",
+          "multiSourceDeduplicated": true,
+          "sources": [
+            "hackernews"
+          ],
+          "mergedContent": "A rough guide for going back to the Moon (Live discussion on research.ibm.com) | [hackernews]: A rough guide for going back to the Moon (Live discussion on research.ibm.com)",
+          "totalInteractionCount": 2
+        }
+      },
+      "prospect": {
+        "id": "prosp_391bbbeb73",
+        "email": "gmays@research.ibm.com",
+        "name": "gmays",
+        "domain": "research.ibm.com",
+        "mxVerified": true,
+        "mxRecords": "mx0b-001b2d05.pphosted.com (pri 10), mx0a-001b2d05.pphosted.com (pri 10)",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "Go"
+          ]
+        },
+        "confidenceScore": {
+          "score": 85,
+          "confidence": "verified",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 30,
+            "reputation": 15
+          }
+        }
+      },
+      "score": {
+        "heat": 52,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 30,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_994ee7b985",
+        "prospectId": "prosp_391bbbeb73",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=research.ibm.com"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi gmays,\n\nSaw your work on AI at research.ibm.com. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_dd4a9319-b",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_dd4a9319-b",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_tpjdodil?domain=research.ibm.com&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49707627",
+        "source": "hackernews",
+        "author": "sippingabonedry",
+        "content": "Linux from Scratch (Live discussion on linuxfromscratch.org)",
+        "url": "https://www.linuxfromscratch.org/",
+        "timestamp": 1789445723,
+        "metadata": {
+          "domain": "linuxfromscratch.org",
+          "score": 217,
+          "commentsCount": 72,
+          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49707627",
+          "multiSourceDeduplicated": true,
+          "sources": [
+            "hackernews"
+          ],
+          "mergedContent": "Linux from Scratch (Live discussion on linuxfromscratch.org) | [hackernews]: Linux from Scratch (Live discussion on linuxfromscratch.org)",
+          "totalInteractionCount": 2
+        }
+      },
+      "prospect": {
+        "id": "prosp_6565c75b78",
+        "email": "sippingabonedry@linuxfromscratch.org",
+        "name": "sippingabonedry",
+        "domain": "linuxfromscratch.org",
+        "mxVerified": true,
+        "mxRecords": "rivendell.linuxfromscratch.org (pri 10)",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "TypeScript",
+            "Node.js"
+          ]
+        },
+        "confidenceScore": {
+          "score": 90,
+          "confidence": "verified",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 30,
+            "reputation": 20
+          }
+        }
+      },
+      "score": {
+        "heat": 47,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 25,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_10ef2b2e80",
+        "prospectId": "prosp_6565c75b78",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=linuxfromscratch.org"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi sippingabonedry,\n\nSaw your work on AI at linuxfromscratch.org. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_616a0cb6-9",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_616a0cb6-9",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_zi4ylvkl?domain=linuxfromscratch.org&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "sig_58223aea",
+        "source": "instagram",
+        "author": "Alex Mercer",
+        "content": "",
+        "url": "https://network.primordia.app/lead",
+        "timestamp": 1789472683,
+        "metadata": {
+          "id": "sig_58223aea",
+          "source": "instagram",
+          "author": "Alex Mercer",
+          "content": "",
+          "url": "https://network.primordia.app/lead",
+          "timestamp": 1789472683,
+          "metadata": {
+            "id": "sig_58223aea",
+            "source": "instagram",
+            "author": "Alex Mercer",
+            "content": "",
+            "url": "https://network.primordia.app/lead",
+            "timestamp": 1789472683,
+            "metadata": {
+              "id": "sig_58223aea",
+              "source": "instagram",
+              "author": "Alex Mercer",
+              "content": "",
+              "url": "https://network.primordia.app/lead",
+              "timestamp": 1789472683,
+              "normalizedTime": {
+                "utc": 1789472683,
+                "local": "9/15/2026, 11:44:43 AM",
+                "iso": "2026-09-15T11:44:43.000Z"
+              },
+              "metadata": {
+                "envelopeVersion": "1.0.0",
+                "ingestedAt": 1789472684
+              }
+            }
+          }
+        }
+      },
+      "prospect": {
+        "id": "prosp_3a295762d5",
+        "email": "alex mercer@network.primordia.app",
+        "name": "Alex Mercer",
+        "domain": "network.primordia.app",
+        "mxVerified": false,
+        "mxRecords": "",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "TypeScript",
+            "Node.js"
+          ]
+        },
+        "confidenceScore": {
+          "score": 40,
+          "confidence": "medium",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 0,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 45,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0,
+          "keywordScore": 0,
+          "depthScore": 25,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_094c4b41b2",
+        "prospectId": "prosp_3a295762d5",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=network.primordia.app"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi Alex,\n\nSaw your work on AI at network.primordia.app. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_8cffa9dd-8",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_8cffa9dd-8",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_duozyxwl?domain=network.primordia.app&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "sig_dc84dabc",
+        "source": "linkedin",
+        "author": "Alex Mercer",
+        "content": "We urgently need to reduce infrastructure p99 latency before Q4 scaling. alex@mercertech.io",
+        "url": "https://network.primordia.app/lead",
+        "timestamp": 1789472651,
+        "metadata": {
+          "id": "sig_dc84dabc",
+          "source": "linkedin",
+          "author": "Alex Mercer",
+          "content": "We urgently need to reduce infrastructure p99 latency before Q4 scaling. alex@mercertech.io",
+          "url": "https://network.primordia.app/lead",
+          "timestamp": 1789472651,
+          "metadata": {
+            "id": "sig_dc84dabc",
+            "source": "linkedin",
+            "author": "Alex Mercer",
+            "content": "We urgently need to reduce infrastructure p99 latency before Q4 scaling. alex@mercertech.io",
+            "url": "https://network.primordia.app/lead",
+            "timestamp": 1789472651,
+            "metadata": {
+              "id": "sig_dc84dabc",
+              "source": "linkedin",
+              "author": "Alex Mercer",
+              "content": "We urgently need to reduce infrastructure p99 latency before Q4 scaling. alex@mercertech.io",
+              "url": "https://network.primordia.app/lead",
+              "timestamp": 1789472651,
+              "normalizedTime": {
+                "utc": 1789472651,
+                "local": "9/15/2026, 11:44:11 AM",
+                "iso": "2026-09-15T11:44:11.000Z"
+              },
+              "metadata": {
+                "envelopeVersion": "1.0.0",
+                "ingestedAt": 1789472652
+              }
+            }
+          }
+        }
+      },
+      "prospect": {
+        "id": "prosp_6d4e9b3e60",
+        "email": "alex@mercertech.io",
+        "name": "Alex Mercer",
+        "domain": "mercertech.io",
+        "mxVerified": false,
+        "mxRecords": "",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "TypeScript",
+            "Node.js"
+          ]
+        },
+        "confidenceScore": {
+          "score": 60,
+          "confidence": "medium",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 0,
+            "reputation": 20
+          }
+        }
+      },
+      "score": {
+        "heat": 61,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 1,
+          "quorumScore": 35,
+          "intentLevel": "medium",
+          "matchedIntents": [
+            "latency"
+          ]
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 9,
+          "depthScore": 30,
+          "matchedKeywords": [
+            "latency"
+          ]
+        }
+      },
+      "persona": {
+        "id": "pers_ea7b4478c2",
+        "prospectId": "prosp_6d4e9b3e60",
+        "tone": "technical",
+        "interests": [
+          "infra"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=mercertech.io"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 120,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi Alex,\n\nSaw your work on infra at mercertech.io. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_d7b9e0e1-4",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_d7b9e0e1-4",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_50rlzxez?domain=mercertech.io&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49710109",
+        "source": "hackernews",
+        "author": "ingve",
+        "content": "Let's make quality the norm again (Live discussion on forbrukerradet.no)",
+        "url": "https://www.forbrukerradet.no/short-life/",
+        "timestamp": 1789466416,
+        "metadata": {
+          "id": "hn_49710109",
+          "source": "hackernews",
+          "author": "ingve",
+          "content": "Let's make quality the norm again (Live discussion on forbrukerradet.no)",
+          "url": "https://www.forbrukerradet.no/short-life/",
+          "timestamp": 1789466416,
+          "metadata": {
+            "id": "hn_49710109",
+            "source": "hackernews",
+            "author": "ingve",
+            "content": "Let's make quality the norm again (Live discussion on forbrukerradet.no)",
+            "url": "https://www.forbrukerradet.no/short-life/",
+            "timestamp": 1789466416,
+            "metadata": {
+              "id": "hn_49710109",
+              "source": "hackernews",
+              "author": "ingve",
+              "content": "Let's make quality the norm again (Live discussion on forbrukerradet.no)",
+              "url": "https://www.forbrukerradet.no/short-life/",
+              "timestamp": 1789466416,
+              "metadata": {
+                "id": "hn_49710109",
+                "source": "hackernews",
+                "author": "ingve",
+                "content": "Let's make quality the norm again (Live discussion on forbrukerradet.no)",
+                "url": "https://www.forbrukerradet.no/short-life/",
+                "timestamp": 1789466416,
+                "metadata": {
+                  "id": "hn_49710109",
+                  "source": "hackernews",
+                  "author": "ingve",
+                  "content": "Let's make quality the norm again (Live discussion on forbrukerradet.no)",
+                  "url": "https://www.forbrukerradet.no/short-life/",
+                  "timestamp": 1789466416,
+                  "metadata": {
+                    "id": "hn_49710109",
+                    "source": "hackernews",
+                    "author": "ingve",
+                    "content": "Let's make quality the norm again (Live discussion on forbrukerradet.no)",
+                    "url": "https://www.forbrukerradet.no/short-life/",
+                    "timestamp": 1789466416,
+                    "metadata": {
+                      "domain": "forbrukerradet.no",
+                      "score": 66,
+                      "commentsCount": 61,
+                      "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49710109",
+                      "multiSourceDeduplicated": true,
+                      "sources": [
+                        "hackernews"
+                      ],
+                      "mergedContent": "Let's make quality the norm again (Live discussion on forbrukerradet.no) | [hackernews]: Let's make quality the norm again (Live discussion on forbrukerradet.no)",
+                      "totalInteractionCount": 2
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "prospect": {
+        "id": "prosp_b21942075e",
+        "email": "ingve@forbrukerradet.no",
+        "name": "ingve",
+        "domain": "forbrukerradet.no",
+        "mxVerified": true,
+        "mxRecords": "forbrukerradet-no.mail.protection.outlook.com (pri 0)",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "TypeScript",
+            "Node.js"
+          ]
+        },
+        "confidenceScore": {
+          "score": 70,
+          "confidence": "high",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 30,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 52,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 30,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_d4ef711101",
+        "prospectId": "prosp_b21942075e",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "automation"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=forbrukerradet.no"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi ingve,\n\nSaw your work on AI at forbrukerradet.no. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_41a328b2-3",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_41a328b2-3",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_2u2fttfr?domain=forbrukerradet.no&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49695459",
+        "source": "hackernews",
+        "author": "unfocso",
+        "content": "XCancel suspended \"due to a new development in the ongoing legal proceedings\" (Live discussion on xcancel.com)",
+        "url": "https://xcancel.com/twitter",
+        "timestamp": 1789387552,
+        "metadata": {
+          "id": "hn_49695459",
+          "source": "hackernews",
+          "author": "unfocso",
+          "content": "XCancel suspended \"due to a new development in the ongoing legal proceedings\" (Live discussion on xcancel.com)",
+          "url": "https://xcancel.com/twitter",
+          "timestamp": 1789387552,
+          "metadata": {
+            "id": "hn_49695459",
+            "source": "hackernews",
+            "author": "unfocso",
+            "content": "XCancel suspended \"due to a new development in the ongoing legal proceedings\" (Live discussion on xcancel.com)",
+            "url": "https://xcancel.com/twitter",
+            "timestamp": 1789387552,
+            "metadata": {
+              "id": "hn_49695459",
+              "source": "hackernews",
+              "author": "unfocso",
+              "content": "XCancel suspended \"due to a new development in the ongoing legal proceedings\" (Live discussion on xcancel.com)",
+              "url": "https://xcancel.com/twitter",
+              "timestamp": 1789387552,
+              "metadata": {
+                "id": "hn_49695459",
+                "source": "hackernews",
+                "author": "unfocso",
+                "content": "XCancel suspended \"due to a new development in the ongoing legal proceedings\" (Live discussion on xcancel.com)",
+                "url": "https://xcancel.com/twitter",
+                "timestamp": 1789387552,
+                "metadata": {
+                  "id": "hn_49695459",
+                  "source": "hackernews",
+                  "author": "unfocso",
+                  "content": "XCancel suspended \"due to a new development in the ongoing legal proceedings\" (Live discussion on xcancel.com)",
+                  "url": "https://xcancel.com/twitter",
+                  "timestamp": 1789387552,
+                  "metadata": {
+                    "id": "hn_49695459",
+                    "source": "hackernews",
+                    "author": "unfocso",
+                    "content": "XCancel suspended \"due to a new development in the ongoing legal proceedings\" (Live discussion on xcancel.com)",
+                    "url": "https://xcancel.com/twitter",
+                    "timestamp": 1789387552,
+                    "metadata": {
+                      "id": "hn_49695459",
+                      "source": "hackernews",
+                      "author": "unfocso",
+                      "content": "XCancel suspended \"due to a new development in the ongoing legal proceedings\" (Live discussion on xcancel.com)",
+                      "url": "https://xcancel.com/twitter",
+                      "timestamp": 1789387552,
+                      "metadata": {
+                        "id": "hn_49695459",
+                        "source": "hackernews",
+                        "author": "unfocso",
+                        "content": "XCancel suspended \"due to a new development in the ongoing legal proceedings\" (Live discussion on xcancel.com)",
+                        "url": "https://xcancel.com/twitter",
+                        "timestamp": 1789387552,
+                        "metadata": {
+                          "domain": "xcancel.com",
+                          "score": 73,
+                          "commentsCount": 35,
+                          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49695459",
+                          "multiSourceDeduplicated": true,
+                          "sources": [
+                            "hackernews"
+                          ],
+                          "mergedContent": "XCancel suspended \"due to a new development in the ongoing legal proceedings\" (Live discussion on xcancel.com) | [hackernews]: XCancel suspended \"due to a new development in the ongoing legal proceedings\" (Live discussion on xcancel.com)",
+                          "totalInteractionCount": 2
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "prospect": {
+        "id": "prosp_82ffc6ea22",
+        "email": "unfocso@xcancel.com",
+        "name": "unfocso",
+        "domain": "xcancel.com",
+        "mxVerified": true,
+        "mxRecords": "mx.xcancel.com (pri 10)",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "Go"
+          ]
+        },
+        "confidenceScore": {
+          "score": 85,
+          "confidence": "verified",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 30,
+            "reputation": 15
+          }
+        }
+      },
+      "score": {
+        "heat": 52,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 30,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_9de12497ab",
+        "prospectId": "prosp_82ffc6ea22",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=xcancel.com"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi unfocso,\n\nSaw your work on AI at xcancel.com. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_a7244004-b",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_a7244004-b",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_n374xxy8?domain=xcancel.com&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49695409",
+        "source": "hackernews",
+        "author": "tosh",
+        "content": "Apple's Siri AI Can Be Swapped Out for Claude, ChatGPT, Code Shows (Live discussion on macrumors.com)",
+        "url": "https://www.macrumors.com/2026/09/14/siri-can-be-swapped-out-for-chatgpt-claude/",
+        "timestamp": 1789387292,
+        "metadata": {
+          "id": "hn_49695409",
+          "source": "hackernews",
+          "author": "tosh",
+          "content": "Apple's Siri AI Can Be Swapped Out for Claude, ChatGPT, Code Shows (Live discussion on macrumors.com)",
+          "url": "https://www.macrumors.com/2026/09/14/siri-can-be-swapped-out-for-chatgpt-claude/",
+          "timestamp": 1789387292,
+          "metadata": {
+            "id": "hn_49695409",
+            "source": "hackernews",
+            "author": "tosh",
+            "content": "Apple's Siri AI Can Be Swapped Out for Claude, ChatGPT, Code Shows (Live discussion on macrumors.com)",
+            "url": "https://www.macrumors.com/2026/09/14/siri-can-be-swapped-out-for-chatgpt-claude/",
+            "timestamp": 1789387292,
+            "metadata": {
+              "id": "hn_49695409",
+              "source": "hackernews",
+              "author": "tosh",
+              "content": "Apple's Siri AI Can Be Swapped Out for Claude, ChatGPT, Code Shows (Live discussion on macrumors.com)",
+              "url": "https://www.macrumors.com/2026/09/14/siri-can-be-swapped-out-for-chatgpt-claude/",
+              "timestamp": 1789387292,
+              "metadata": {
+                "id": "hn_49695409",
+                "source": "hackernews",
+                "author": "tosh",
+                "content": "Apple's Siri AI Can Be Swapped Out for Claude, ChatGPT, Code Shows (Live discussion on macrumors.com)",
+                "url": "https://www.macrumors.com/2026/09/14/siri-can-be-swapped-out-for-chatgpt-claude/",
+                "timestamp": 1789387292,
+                "metadata": {
+                  "id": "hn_49695409",
+                  "source": "hackernews",
+                  "author": "tosh",
+                  "content": "Apple's Siri AI Can Be Swapped Out for Claude, ChatGPT, Code Shows (Live discussion on macrumors.com)",
+                  "url": "https://www.macrumors.com/2026/09/14/siri-can-be-swapped-out-for-chatgpt-claude/",
+                  "timestamp": 1789387292,
+                  "metadata": {
+                    "id": "hn_49695409",
+                    "source": "hackernews",
+                    "author": "tosh",
+                    "content": "Apple's Siri AI Can Be Swapped Out for Claude, ChatGPT, Code Shows (Live discussion on macrumors.com)",
+                    "url": "https://www.macrumors.com/2026/09/14/siri-can-be-swapped-out-for-chatgpt-claude/",
+                    "timestamp": 1789387292,
+                    "metadata": {
+                      "id": "hn_49695409",
+                      "source": "hackernews",
+                      "author": "tosh",
+                      "content": "Apple's Siri AI Can Be Swapped Out for Claude, ChatGPT, Code Shows (Live discussion on macrumors.com)",
+                      "url": "https://www.macrumors.com/2026/09/14/siri-can-be-swapped-out-for-chatgpt-claude/",
+                      "timestamp": 1789387292,
+                      "metadata": {
+                        "id": "hn_49695409",
+                        "source": "hackernews",
+                        "author": "tosh",
+                        "content": "Apple's Siri AI Can Be Swapped Out for Claude, ChatGPT, Code Shows (Live discussion on macrumors.com)",
+                        "url": "https://www.macrumors.com/2026/09/14/siri-can-be-swapped-out-for-chatgpt-claude/",
+                        "timestamp": 1789387292,
+                        "metadata": {
+                          "domain": "macrumors.com",
+                          "score": 32,
+                          "commentsCount": 10,
+                          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49695409",
+                          "multiSourceDeduplicated": true,
+                          "sources": [
+                            "hackernews"
+                          ],
+                          "mergedContent": "Apple's Siri AI Can Be Swapped Out for Claude, ChatGPT, Code Shows (Live discussion on macrumors.com) | [hackernews]: Apple's Siri AI Can Be Swapped Out for Claude, ChatGPT, Code Shows (Live discussion on macrumors.com)",
+                          "totalInteractionCount": 2
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "prospect": {
+        "id": "prosp_bab00ff7dc",
+        "email": "tosh@macrumors.com",
+        "name": "tosh",
+        "domain": "macrumors.com",
+        "mxVerified": true,
+        "mxRecords": "macrumors-com.relay1a.spamh.com (pri 10), macrumors-com.relay1b.spamh.com (pri 20), macrumors-com.relay1c.spamh.com (pri 30)",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "TypeScript",
+            "Node.js"
+          ]
+        },
+        "confidenceScore": {
+          "score": 85,
+          "confidence": "verified",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 30,
+            "reputation": 15
+          }
+        }
+      },
+      "score": {
+        "heat": 52,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 30,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_8f630e314c",
+        "prospectId": "prosp_bab00ff7dc",
+        "tone": "technical",
+        "interests": [
+          "AI"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=macrumors.com"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi tosh,\n\nSaw your work on AI at macrumors.com. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_06c4e4fa-4",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_06c4e4fa-4",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_m0dlkb4b?domain=macrumors.com&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49694871",
+        "source": "hackernews",
+        "author": "joozio",
+        "content": "Watch AI materials-science and bioscience abilities closely (Live discussion on lesswrong.com)",
+        "url": "https://www.lesswrong.com/posts/SCtkSz4nQ9icLZ4uq/watch-ai-materials-science-and-bioscience-abilities-closely",
+        "timestamp": 1789383660,
+        "metadata": {
+          "id": "hn_49694871",
+          "source": "hackernews",
+          "author": "joozio",
+          "content": "Watch AI materials-science and bioscience abilities closely (Live discussion on lesswrong.com)",
+          "url": "https://www.lesswrong.com/posts/SCtkSz4nQ9icLZ4uq/watch-ai-materials-science-and-bioscience-abilities-closely",
+          "timestamp": 1789383660,
+          "metadata": {
+            "id": "hn_49694871",
+            "source": "hackernews",
+            "author": "joozio",
+            "content": "Watch AI materials-science and bioscience abilities closely (Live discussion on lesswrong.com)",
+            "url": "https://www.lesswrong.com/posts/SCtkSz4nQ9icLZ4uq/watch-ai-materials-science-and-bioscience-abilities-closely",
+            "timestamp": 1789383660,
+            "metadata": {
+              "id": "hn_49694871",
+              "source": "hackernews",
+              "author": "joozio",
+              "content": "Watch AI materials-science and bioscience abilities closely (Live discussion on lesswrong.com)",
+              "url": "https://www.lesswrong.com/posts/SCtkSz4nQ9icLZ4uq/watch-ai-materials-science-and-bioscience-abilities-closely",
+              "timestamp": 1789383660,
+              "metadata": {
+                "id": "hn_49694871",
+                "source": "hackernews",
+                "author": "joozio",
+                "content": "Watch AI materials-science and bioscience abilities closely (Live discussion on lesswrong.com)",
+                "url": "https://www.lesswrong.com/posts/SCtkSz4nQ9icLZ4uq/watch-ai-materials-science-and-bioscience-abilities-closely",
+                "timestamp": 1789383660,
+                "metadata": {
+                  "id": "hn_49694871",
+                  "source": "hackernews",
+                  "author": "joozio",
+                  "content": "Watch AI materials-science and bioscience abilities closely (Live discussion on lesswrong.com)",
+                  "url": "https://www.lesswrong.com/posts/SCtkSz4nQ9icLZ4uq/watch-ai-materials-science-and-bioscience-abilities-closely",
+                  "timestamp": 1789383660,
+                  "metadata": {
+                    "id": "hn_49694871",
+                    "source": "hackernews",
+                    "author": "joozio",
+                    "content": "Watch AI materials-science and bioscience abilities closely (Live discussion on lesswrong.com)",
+                    "url": "https://www.lesswrong.com/posts/SCtkSz4nQ9icLZ4uq/watch-ai-materials-science-and-bioscience-abilities-closely",
+                    "timestamp": 1789383660,
+                    "metadata": {
+                      "id": "hn_49694871",
+                      "source": "hackernews",
+                      "author": "joozio",
+                      "content": "Watch AI materials-science and bioscience abilities closely (Live discussion on lesswrong.com)",
+                      "url": "https://www.lesswrong.com/posts/SCtkSz4nQ9icLZ4uq/watch-ai-materials-science-and-bioscience-abilities-closely",
+                      "timestamp": 1789383660,
+                      "metadata": {
+                        "id": "hn_49694871",
+                        "source": "hackernews",
+                        "author": "joozio",
+                        "content": "Watch AI materials-science and bioscience abilities closely (Live discussion on lesswrong.com)",
+                        "url": "https://www.lesswrong.com/posts/SCtkSz4nQ9icLZ4uq/watch-ai-materials-science-and-bioscience-abilities-closely",
+                        "timestamp": 1789383660,
+                        "metadata": {
+                          "domain": "lesswrong.com",
+                          "score": 28,
+                          "commentsCount": 18,
+                          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49694871",
+                          "multiSourceDeduplicated": true,
+                          "sources": [
+                            "hackernews"
+                          ],
+                          "mergedContent": "Watch AI materials-science and bioscience abilities closely (Live discussion on lesswrong.com) | [hackernews]: Watch AI materials-science and bioscience abilities closely (Live discussion on lesswrong.com)",
+                          "totalInteractionCount": 2
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "prospect": {
+        "id": "prosp_5f157d2401",
+        "email": "joozio@lesswrong.com",
+        "name": "joozio",
+        "domain": "lesswrong.com",
+        "mxVerified": true,
+        "mxRecords": "mail.trikeapps.com (pri 0)",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "TypeScript",
+            "Node.js"
+          ]
+        },
+        "confidenceScore": {
+          "score": 85,
+          "confidence": "verified",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 30,
+            "reputation": 15
+          }
+        }
+      },
+      "score": {
+        "heat": 52,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 30,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_b47a91c880",
+        "prospectId": "prosp_5f157d2401",
+        "tone": "technical",
+        "interests": [
+          "AI"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=lesswrong.com"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi joozio,\n\nSaw your work on AI at lesswrong.com. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_a912b743-9",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_a912b743-9",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_am6abryy?domain=lesswrong.com&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49694722",
+        "source": "hackernews",
+        "author": "timr",
+        "content": "Who Aligns the Aligners? (Live discussion on prestonbyrne.com)",
+        "url": "https://prestonbyrne.com/2026/09/13/aligners/",
+        "timestamp": 1789382516,
+        "metadata": {
+          "id": "hn_49694722",
+          "source": "hackernews",
+          "author": "timr",
+          "content": "Who Aligns the Aligners? (Live discussion on prestonbyrne.com)",
+          "url": "https://prestonbyrne.com/2026/09/13/aligners/",
+          "timestamp": 1789382516,
+          "metadata": {
+            "id": "hn_49694722",
+            "source": "hackernews",
+            "author": "timr",
+            "content": "Who Aligns the Aligners? (Live discussion on prestonbyrne.com)",
+            "url": "https://prestonbyrne.com/2026/09/13/aligners/",
+            "timestamp": 1789382516,
+            "metadata": {
+              "id": "hn_49694722",
+              "source": "hackernews",
+              "author": "timr",
+              "content": "Who Aligns the Aligners? (Live discussion on prestonbyrne.com)",
+              "url": "https://prestonbyrne.com/2026/09/13/aligners/",
+              "timestamp": 1789382516,
+              "metadata": {
+                "id": "hn_49694722",
+                "source": "hackernews",
+                "author": "timr",
+                "content": "Who Aligns the Aligners? (Live discussion on prestonbyrne.com)",
+                "url": "https://prestonbyrne.com/2026/09/13/aligners/",
+                "timestamp": 1789382516,
+                "metadata": {
+                  "id": "hn_49694722",
+                  "source": "hackernews",
+                  "author": "timr",
+                  "content": "Who Aligns the Aligners? (Live discussion on prestonbyrne.com)",
+                  "url": "https://prestonbyrne.com/2026/09/13/aligners/",
+                  "timestamp": 1789382516,
+                  "metadata": {
+                    "id": "hn_49694722",
+                    "source": "hackernews",
+                    "author": "timr",
+                    "content": "Who Aligns the Aligners? (Live discussion on prestonbyrne.com)",
+                    "url": "https://prestonbyrne.com/2026/09/13/aligners/",
+                    "timestamp": 1789382516,
+                    "metadata": {
+                      "id": "hn_49694722",
+                      "source": "hackernews",
+                      "author": "timr",
+                      "content": "Who Aligns the Aligners? (Live discussion on prestonbyrne.com)",
+                      "url": "https://prestonbyrne.com/2026/09/13/aligners/",
+                      "timestamp": 1789382516,
+                      "metadata": {
+                        "id": "hn_49694722",
+                        "source": "hackernews",
+                        "author": "timr",
+                        "content": "Who Aligns the Aligners? (Live discussion on prestonbyrne.com)",
+                        "url": "https://prestonbyrne.com/2026/09/13/aligners/",
+                        "timestamp": 1789382516,
+                        "metadata": {
+                          "id": "hn_49694722",
+                          "source": "hackernews",
+                          "author": "timr",
+                          "content": "Who Aligns the Aligners? (Live discussion on prestonbyrne.com)",
+                          "url": "https://prestonbyrne.com/2026/09/13/aligners/",
+                          "timestamp": 1789382516,
+                          "metadata": {
+                            "id": "hn_49694722",
+                            "source": "hackernews",
+                            "author": "timr",
+                            "content": "Who Aligns the Aligners? (Live discussion on prestonbyrne.com)",
+                            "url": "https://prestonbyrne.com/2026/09/13/aligners/",
+                            "timestamp": 1789382516,
+                            "metadata": {
+                              "domain": "prestonbyrne.com",
+                              "score": 39,
+                              "commentsCount": 32,
+                              "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49694722"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "prospect": {
+        "id": "prosp_fa080dd1bc",
+        "email": "timr@prestonbyrne.com",
+        "name": "timr",
+        "domain": "prestonbyrne.com",
+        "mxVerified": true,
+        "mxRecords": "aspmx.l.google.com (pri 1), alt2.aspmx.l.google.com (pri 5), alt1.aspmx.l.google.com (pri 5), alt4.aspmx.l.google.com (pri 10), alt3.aspmx.l.google.com (pri 10)",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "TypeScript",
+            "Node.js"
+          ]
+        },
+        "confidenceScore": {
+          "score": 85,
+          "confidence": "verified",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 30,
+            "reputation": 15
+          }
+        }
+      },
+      "score": {
+        "heat": 52,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 30,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_4081b585a6",
+        "prospectId": "prosp_fa080dd1bc",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=prestonbyrne.com"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi timr,\n\nSaw your work on AI at prestonbyrne.com. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_38d8d4e3-e",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_38d8d4e3-e",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_ux6h56q9?domain=prestonbyrne.com&p=LinkedIn"
+      }
+    }
+  ]
+}

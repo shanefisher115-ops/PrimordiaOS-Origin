@@ -1,0 +1,8 @@
+{
+  "id": "task-overlay-001",
+  "agent": "overlayDesigner",
+  "payload": {
+    "uiPreset": "primordia-cosmic",
+    "text": "AI is building a world..."
+  }
+}

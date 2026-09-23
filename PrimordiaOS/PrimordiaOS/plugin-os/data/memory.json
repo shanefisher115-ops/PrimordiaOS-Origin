@@ -1,0 +1,29 @@
+[
+  {
+    "id": "mem_1782483637378_bfeeb800c0bbe",
+    "scope": "short_term",
+    "content": "OS booted",
+    "tags": [
+      "system"
+    ],
+    "ts": "2026-06-26T14:20:37.378Z"
+  },
+  {
+    "id": "mem_1782483703757_576ee6ffff2698",
+    "scope": "short_term",
+    "content": "OS booted",
+    "tags": [
+      "system"
+    ],
+    "ts": "2026-06-26T14:21:43.757Z"
+  },
+  {
+    "id": "mem_1782484970536_75ca973199afa8",
+    "scope": "short_term",
+    "content": "OS booted",
+    "tags": [
+      "system"
+    ],
+    "ts": "2026-06-26T14:42:50.536Z"
+  }
+]

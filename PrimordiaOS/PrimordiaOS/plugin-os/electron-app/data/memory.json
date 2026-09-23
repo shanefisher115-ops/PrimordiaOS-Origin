@@ -1,0 +1,11 @@
+{
+  "facts": [],
+  "chats": [],
+  "god.lastSnapshot": {
+    "ts": 1783536601743,
+    "sessionCount": 0,
+    "totalFacts": 3,
+    "auditLines": 17
+  },
+  "test.key": "test value"
+}

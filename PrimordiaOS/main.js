@@ -1,30 +1,15 @@
-import { app, BrowserWindow } from "electron";
-import path from "path";
-
-const createWindow = () => {
-  const win = new BrowserWindow({
-    width: 1280,
-    height: 800,
-    webPreferences: {
-      preload: path.join(process.cwd(), "preload.js")
-    }
-  });
-
-  // Load Vite dev server during development
-  win.loadURL("http://localhost:5173");
-
-  // For production:
-  // win.loadFile("dist/index.html");
-};
-
-app.whenReady().then(() => {
-  createWindow();
-
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
-});
-
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") app.quit();
-});
+import { initDB } from "./db.ts";
+import { runScheduler } from "./scheduler.ts";
+import { handleUCL } from "./ucl.ts";
+console.log("PrimordiaOS Booting…");
+await initDB();
+import { getIdentity } from "./identity.ts";
+const identity = getIdentity();
+console.log("PrimordiaOS Identity:", identity);
+const args = Deno.args;
+if (args[0] === "run-cycle") {
+    await runScheduler();
+}
+else {
+    await handleUCL(args);
+}

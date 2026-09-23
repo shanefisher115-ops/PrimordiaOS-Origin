@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PrimordiaSwarm — Outbound Intelligence Command Center</title>
+  <meta name="description" content="Autonomous B2B Manufacturing Outbound Engine & Multi-Touch Sequence Studio">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand-badge">
+        <span class="pulse-indicator"></span>
+        <span class="brand-title">PRIMORDIA<strong>SWARM</strong></span>
+      </div>
+      <span class="header-divider"></span>
+      <span class="system-status" id="transport-status">
+        <span class="status-dot"></span>
+        <span id="transport-label">Loading Transport...</span>
+      </span>
+    </div>
+    <div class="header-right">
+      <div class="sender-pill" id="sender-pill">
+        <span class="sender-icon">✉️</span>
+        <span id="sender-display">Shane &lt;contact@primordialorigin.com&gt;</span>
+      </div>
+      <button class="btn btn-hunter" id="btn-open-hunter">
+        <span class="btn-icon">🎯</span> Shop Hunter
+      </button>
+      <button class="btn btn-crm" id="btn-open-crm-sync">
+        <span class="btn-icon">⚡</span> Sync CRM
+      </button>
+      <button class="btn btn-enrich" id="btn-open-enrich">
+        <span class="btn-icon">🌐</span> Scrape URL
+      </button>
+      <button class="btn btn-primary" id="btn-open-batch-dispatch">
+        <span class="btn-icon">🚀</span> Batch Send All
+      </button>
+      <button class="btn btn-secondary" id="btn-test-email">
+        <span class="btn-icon">📨</span> Send Test
+      </button>
+      <button class="btn btn-secondary" id="btn-smtp-settings">
+        <span class="btn-icon">⚙️</span> SMTP Config
+      </button>
+      <button class="btn btn-primary" id="btn-add-prospect">
+        <span class="btn-icon">+</span> Add Manual
+      </button>
+      <div class="export-dropdown">
+        <button class="btn btn-accent" id="btn-export-menu">
+          <span class="btn-icon">📥</span> Export
+        </button>
+        <div class="dropdown-content" id="export-dropdown-content">
+          <a href="/api/export/csv" download="primordia_outbound_leads.csv">Download CSV (Apollo/Lemlist)</a>
+          <a href="/api/export/json" download="primordia_campaign_export.json">Download JSON (CRM API)</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Metrics Summary Banner -->
+  <section class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-label">Target Accounts</div>
+      <div class="metric-value" id="stat-total-accounts">0</div>
+      <div class="metric-subtext">Active Pipeline</div>
+    </div>
+    <div class="metric-card p1-card">
+      <div class="metric-label">P1: Head Crash Prevention</div>
+      <div class="metric-value" id="stat-p1-count">0</div>
+      <div class="metric-subtext">Laser / Plasma Slat Bed</div>
+    </div>
+    <div class="metric-card p2-card">
+      <div class="metric-label">P2: Yield & Thermal Control</div>
+      <div class="metric-value" id="stat-p2-count">0</div>
+      <div class="metric-subtext">Aerospace / Titanium / Inconel</div>
+    </div>
+    <div class="metric-card p3-card">
+      <div class="metric-label">P3: Unified Stack & Copilots</div>
+      <div class="metric-value" id="stat-p3-count">0</div>
+      <div class="metric-subtext">Multi-Axis CNC & Robotic Weld</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Avg Swarm Confidence</div>
+      <div class="metric-value text-emerald" id="stat-avg-confidence">0%</div>
+      <div class="metric-subtext">Multi-Factor Weighted Fit</div>
+    </div>
+  </section>
+
+  <!-- Main Content Layout -->
+  <main class="main-layout">
+    <!-- Left Column: Filter & Prospect List -->
+    <aside class="prospects-sidebar">
+      <div class="sidebar-header">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" placeholder="Search companies, machines, alloys...">
+        </div>
+        <div class="persona-filter-pills">
+          <button class="filter-pill active" data-filter="ALL">All</button>
+          <button class="filter-pill" data-filter="P1">P1 (Laser)</button>
+          <button class="filter-pill" data-filter="P2">P2 (Alloy)</button>
+          <button class="filter-pill" data-filter="P3">P3 (CNC/Weld)</button>
+        </div>
+      </div>
+      <div class="prospects-list" id="prospects-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </aside>
+
+    <!-- Right Column: Campaign Studio & Sequence Inspector -->
+    <section class="campaign-studio" id="campaign-studio">
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">🎯</div>
+        <h3>Select a target prospect to inspect AI classification and 4-touch sequences</h3>
+      </div>
+
+      <div class="studio-content" id="studio-content" style="display: none;">
+        <!-- Prospect Meta Card -->
+        <div class="dossier-card">
+          <div class="dossier-header">
+            <div>
+              <div class="dossier-tags">
+                <span class="badge" id="dossier-persona-badge">P1</span>
+                <span class="badge badge-confidence" id="dossier-confidence-badge">95% Match</span>
+                <span class="badge badge-region" id="dossier-region-badge">US</span>
+              </div>
+              <h2 class="dossier-company" id="dossier-company-name">Atlas Laser Fab</h2>
+              <div class="dossier-contact" id="dossier-contact-info">John Vance • Lead Laser Programmer</div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+              <div class="dossier-roi-box">
+                <div class="roi-label">ESTIMATED ANNUAL ROI</div>
+                <div class="roi-value" id="dossier-roi-value">~$48,000</div>
+              </div>
+              <a id="dossier-demo-link" href="#" target="_blank" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px;">
+                <span>🎮</span> View 3D Sim Demo
+              </a>
+            </div>
+          </div>
+
+          <div class="dossier-grid">
+            <div class="dossier-col">
+              <span class="col-title">Equipped Machinery</span>
+              <div class="tag-cloud" id="dossier-machines"></div>
+            </div>
+            <div class="dossier-col">
+              <span class="col-title">Target Materials</span>
+              <div class="tag-cloud" id="dossier-materials"></div>
+            </div>
+            <div class="dossier-col span-2">
+              <span class="col-title">AI Classification Rationale & Score Vector</span>
+              <p class="rationale-text" id="dossier-rationale"></p>
+              <div class="score-pills" id="dossier-scores"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4-Touch Sequence Tabs -->
+        <div class="sequence-container">
+          <div class="sequence-nav" id="sequence-tabs">
+            <button class="seq-tab active" data-step="1">
+              <span class="tab-step">TOUCH 1</span>
+              <span class="tab-title">Initial Value Hook</span>
+              <span class="tab-delay">Day 0</span>
+            </button>
+            <button class="seq-tab" data-step="2">
+              <span class="tab-step">TOUCH 2</span>
+              <span class="tab-title">Simulation Teardown</span>
+              <span class="tab-delay">+3 Days</span>
+            </button>
+            <button class="seq-tab" data-step="3">
+              <span class="tab-step">TOUCH 3</span>
+              <span class="tab-title">Peer ROI Math</span>
+              <span class="tab-delay">+7 Days</span>
+            </button>
+            <button class="seq-tab" data-step="4">
+              <span class="tab-step">TOUCH 4</span>
+              <span class="tab-title">CAM Checklist Close</span>
+              <span class="tab-delay">+12 Days</span>
+            </button>
+          </div>
+
+          <!-- Email Preview Box -->
+          <div class="email-preview-card">
+            <div class="email-meta-bar">
+              <div class="meta-field">
+                <span class="meta-label">FROM:</span>
+                <span class="meta-val" id="email-from">Shane &lt;contact@primordialorigin.com&gt;</span>
+              </div>
+              <div class="meta-field">
+                <span class="meta-label">TO:</span>
+                <span class="meta-val" id="email-to">jvance@atlaslaserfab.com</span>
+              </div>
+              <div class="meta-field">
+                <span class="meta-label">SUBJECT:</span>
+                <span class="meta-val highlight" id="email-subject">Preventing head crashes...</span>
+              </div>
+            </div>
+
+            <div class="email-body-pane" id="email-body-text"></div>
+
+            <div class="email-action-bar">
+              <button class="btn btn-secondary" id="btn-copy-email">📋 Copy Email</button>
+              <button class="btn btn-primary" id="btn-dispatch-touch">🚀 Dispatch Touch to Recipient</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Autonomous Shop Hunter Modal -->
+  <div class="modal-overlay" id="modal-shop-hunter">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🎯 Autonomous Shop Hunter Swarm</h3>
+        <button class="btn-close" id="btn-close-hunter-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Unleash the autonomous scraper swarm across regional manufacturing directories. PrimordiaSwarm will discover machine shops, crawl their equipment lists, classify their personas, build 3D simulation demo pages, and sync them to Apollo.</p>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="select-hunt-capability">Manufacturing Process / Capability</label>
+            <select id="select-hunt-capability">
+              <option value="all">All Capabilities (Balanced Swarm)</option>
+              <option value="laser">P1: Laser &amp; Plasma Cutting (Slat Bed / Collision Focus)</option>
+              <option value="aerospace">P2: Aerospace &amp; Superalloys (Titanium / Inconel / Yield Focus)</option>
+              <option value="cnc_weld">P3: Multi-Axis CNC &amp; Robotic Weld (Unified Stack Focus)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="select-hunt-region">Target Manufacturing Hub</label>
+            <select id="select-hunt-region">
+              <option value="all">Nationwide (All Hubs)</option>
+              <option value="midwest">Midwest (Ohio, Michigan, Indiana, Wisconsin)</option>
+              <option value="west">West Coast (California, Washington, Oregon)</option>
+              <option value="texas">Texas &amp; Gulf Coast (Houston, Austin, Dallas)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="select-hunt-count">Number of Shops to Ingest</label>
+            <select id="select-hunt-count">
+              <option value="3">3 Shops (Quick Strike)</option>
+              <option value="5" selected>5 Shops (Standard Run)</option>
+              <option value="10">10 Shops (Deep Pipeline)</option>
+            </select>
+          </div>
+          <div class="form-group" style="justify-content: center;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 18px;">
+              <input type="checkbox" id="check-auto-apollo" checked style="width: auto;">
+              <span>Auto-Push Leads to Apollo.io</span>
+            </label>
+          </div>
+        </div>
+
+        <div id="hunter-stream-box" style="display: none; padding: 12px; background: var(--bg-inset); border-radius: var(--radius-sm); font-size: 13px; max-height: 160px; overflow-y: auto;">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-hunter">Cancel</button>
+        <button type="button" class="btn btn-hunter" id="btn-submit-hunter">🚀 Unleash Shop Hunter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1-Click CRM Sync Modal -->
+  <div class="modal-overlay" id="modal-crm-sync">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>⚡ 1-Click CRM & Outbound Platform Push</h3>
+        <button class="btn-close" id="btn-close-crm-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Instantly push all 12 target campaigns (with custom variables for machines, alloys, and touches) directly to your outbound engine.</p>
+        <div class="form-group">
+          <label for="select-crm-provider">Target Platform</label>
+          <select id="select-crm-provider">
+            <option value="instantly">Instantly.ai (Cold Email Pipeline)</option>
+            <option value="lemlist">Lemlist (Multichannel Sequences)</option>
+            <option value="apollo">Apollo.io (Sales Intelligence)</option>
+            <option value="hubspot">HubSpot CRM (Deal Pipeline)</option>
+            <option value="webhook">Custom Webhook (Zapier / Make / n8n)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="input-crm-api-key">API Key / Token (Optional for Sandbox Test)</label>
+          <input type="password" id="input-crm-api-key" placeholder="Enter API key or leave blank for instant sandbox sync">
+        </div>
+        <div id="crm-sync-status-box" style="display: none; padding: 12px; background: var(--bg-inset); border-radius: var(--radius-sm); font-size: 13px;">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-crm">Cancel</button>
+        <button type="button" class="btn btn-crm" id="btn-submit-crm-sync">🚀 Push All 12 Leads</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- URL Scraping & Enrichment Modal -->
+  <div class="modal-overlay" id="modal-enrich">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🌐 Autonomous Web Scraper & URL Enrichment</h3>
+        <button class="btn-close" id="btn-close-enrich-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Enter any CNC machining, laser cutting, or aerospace fabrication website URL. PrimordiaSwarm will autonomously crawl their equipment list, extract materials and certifications, classify the account, and generate a bespoke campaign.</p>
+        <div class="form-group">
+          <label for="input-enrich-url">Website URL *</label>
+          <input type="text" id="input-enrich-url" placeholder="e.g. https://www.titanprecisionfab.com or laserfab.com">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="input-enrich-contact">Contact First Name (Optional)</label>
+            <input type="text" id="input-enrich-contact" placeholder="e.g. Marcus">
+          </div>
+          <div class="form-group">
+            <label for="input-enrich-role">Custom Job Title (Optional)</label>
+            <input type="text" id="input-enrich-role" placeholder="e.g. VP of Manufacturing">
+          </div>
+        </div>
+        <div id="enrich-loader" style="display: none; padding: 12px; background: var(--bg-inset); border-radius: var(--radius-sm); font-size: 13px; color: #38bdf8;">
+          <span class="pulse-indicator" style="display: inline-block; margin-right: 6px;"></span> Crawling equipment list, materials, and capabilities pages...
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-enrich">Cancel</button>
+        <button type="button" class="btn btn-enrich" id="btn-submit-enrich">🕷️ Crawl & Ingest</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Prospect Modal -->
+  <div class="modal-overlay" id="modal-add-prospect">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>➕ Add Target Manufacturing Account Manually</h3>
+        <button class="btn-close" id="btn-close-add-modal">&times;</button>
+      </div>
+      <form id="form-add-prospect" class="modal-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="input-company">Company Name *</label>
+            <input type="text" id="input-company" required placeholder="e.g. Titan Laser Works">
+          </div>
+          <div class="form-group">
+            <label for="input-role">Job Title / Role *</label>
+            <input type="text" id="input-role" required placeholder="e.g. Lead CAM Engineer">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="input-firstname">First Name</label>
+            <input type="text" id="input-firstname" placeholder="e.g. Robert">
+          </div>
+          <div class="form-group">
+            <label for="input-lastname">Last Name</label>
+            <input type="text" id="input-lastname" placeholder="e.g. Miller">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="input-email">Email Address</label>
+            <input type="email" id="input-email" placeholder="e.g. rmiller@titanlaser.com">
+          </div>
+          <div class="form-group">
+            <label for="input-size">Shop Size (Employees)</label>
+            <input type="number" id="input-size" placeholder="e.g. 65">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="input-machines">Machinery (comma-separated)</label>
+          <input type="text" id="input-machines" placeholder="e.g. Trumpf TruLaser 5030, Bystronic 12kW, Haas VF-4">
+        </div>
+        <div class="form-group">
+          <label for="input-materials">Materials Handled (comma-separated)</label>
+          <input type="text" id="input-materials" placeholder="e.g. Ti-6Al-4V, 316L, 1018 Cold Roll, Inconel">
+        </div>
+        <div class="form-group">
+          <label for="input-pain">Specific Pain Trigger</label>
+          <input type="text" id="input-pain" placeholder="e.g. Slug tip-ups destroying laser heads on night shift">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-add">Cancel</button>
+          <button type="submit" class="btn btn-primary">Ingest & Run Swarm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Batch Dispatch Modal -->
+  <div class="modal-overlay" id="modal-batch-dispatch">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🚀 Batch Dispatch Campaign Swarm</h3>
+        <button class="btn-close" id="btn-close-batch-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Send personalized manufacturing sequences to all active target accounts from <strong>Shane &lt;contact@primordialorigin.com&gt;</strong> without using third-party tools.</p>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="select-batch-touch">Select Outreach Touch</label>
+            <select id="select-batch-touch">
+              <option value="1">Touch 1: Initial Value Hook (Day 0)</option>
+              <option value="2">Touch 2: 3D Simulation Teardown (Day 3)</option>
+              <option value="3">Touch 3: Peer Economic ROI Model (Day 7)</option>
+              <option value="4">Touch 4: CAM Checklist Close (Day 12)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="select-batch-throttle">Deliverability Throttle Delay</label>
+            <select id="select-batch-throttle">
+              <option value="800">Fast (0.8s between emails)</option>
+              <option value="2000" selected>Standard (2.0s between emails)</option>
+              <option value="5000">Ultra-Safe (5.0s between emails)</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="batch-progress-box" style="display: none; padding: 14px; background: var(--bg-inset); border-radius: var(--radius-sm); font-size: 13px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span id="batch-progress-label">Dispatching campaign emails...</span>
+            <span id="batch-progress-count" style="font-family: var(--font-mono); color: #38BDF8;">0 / 15</span>
+          </div>
+          <div style="height: 6px; background: var(--border-subtle); border-radius: 3px; overflow: hidden;">
+            <div id="batch-progress-bar" style="width: 0%; height: 100%; background: #10B981; transition: width 0.2s;"></div>
+          </div>
+          <div id="batch-log-stream" style="margin-top: 10px; max-height: 120px; overflow-y: auto; font-size: 11px; color: var(--text-secondary); font-family: var(--font-mono);">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-batch">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-submit-batch-dispatch">🚀 Dispatch All 15 Emails</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test Email Modal -->
+  <div class="modal-overlay" id="modal-test-email">
+    <div class="modal-card modal-sm">
+      <div class="modal-header">
+        <h3>⚡ Dispatch Live Test Email</h3>
+        <button class="btn-close" id="btn-close-test-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Send a verified test email from <strong>Shane &lt;contact@primordialorigin.com&gt;</strong> to verify your outbound pipeline.</p>
+        <div class="form-group">
+          <label for="input-test-email">Destination Email Address *</label>
+          <input type="email" id="input-test-email" required placeholder="your.name@gmail.com">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-test">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-send-test-submit">Dispatch Test</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SMTP Settings Modal -->
+  <div class="modal-overlay" id="modal-smtp">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>⚙️ SMTP & Mail Server Configuration</h3>
+        <button class="btn-close" id="btn-close-smtp-modal">&times;</button>
+      </div>
+      <form id="form-smtp" class="modal-form">
+        <div class="form-group">
+          <label for="select-provider">Transport Mode</label>
+          <select id="select-provider">
+            <option value="smtp">Live SMTP Server (Recommended)</option>
+            <option value="sandbox">Sandbox / Simulation Mode (Safe Dry Run)</option>
+          </select>
+        </div>
+        <div id="smtp-fields">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="input-smtp-host">SMTP Host</label>
+              <input type="text" id="input-smtp-host" placeholder="mail.primordialorigin.com">
+            </div>
+            <div class="form-group">
+              <label for="input-smtp-port">Port</label>
+              <input type="number" id="input-smtp-port" placeholder="465">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="input-smtp-user">Username</label>
+              <input type="text" id="input-smtp-user" value="contact@primordialorigin.com">
+            </div>
+            <div class="form-group">
+              <label for="input-smtp-pass">Password / App Key</label>
+              <input type="password" id="input-smtp-pass" placeholder="••••••••••••">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-smtp">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Settings</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

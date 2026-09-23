@@ -1,0 +1,5 @@
+{
+  "name": "logging",
+  "entry": "./index.js",
+  "commands": ["start", "stop", "status", "log-demo"]
+}

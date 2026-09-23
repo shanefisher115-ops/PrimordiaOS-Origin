@@ -1,0 +1,4 @@
+[]if (-not (Test-Path .\data)) { New-Item -ItemType Directory -Path .\data }
+if (Test-Path .\datatasks.json) { Move-Item .\datatasks.json .\data\tasks.json -Force }
+if (-not (Test-Path .\data\tasks.json)) { '[]' | Out-File -Encoding utf8 .\data\tasks.json }
+

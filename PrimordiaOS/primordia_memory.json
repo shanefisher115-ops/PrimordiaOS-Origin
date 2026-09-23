@@ -1,0 +1,20 @@
+{
+  "user_profile": {
+    "name": "Shane",
+    "role": "Human Sovereign (Tier 0)",
+    "preferred_voice": "af_sarah",
+    "speed_multiplier": 1.05
+  },
+  "world_state": "STABLE",
+  "active_context": {
+    "project": "PrimordiaOS",
+    "theater_lut": "Cyberpunk Emerald (neon cyan/green, deep blacks)",
+    "unreal_bridge_status": "signal_dispatched:niagara_burst",
+    "last_action": "Subsystems initialized with Kokoro TTS and Voice Dictation"
+  },
+  "short_term_history": [],
+  "session_metadata": {
+    "total_turns": 10,
+    "last_active": "2026-09-07T13:43:29.024287+00:00"
+  }
+}

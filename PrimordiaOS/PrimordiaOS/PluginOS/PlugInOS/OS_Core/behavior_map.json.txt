@@ -1,0 +1,10 @@
+{
+  "targets": [
+    {
+      "id": "particleField",
+      "type": "visual",
+      "channel": "ui",
+      "maps": ["energy", "focus", "mood"]
+    }
+  ]
+}

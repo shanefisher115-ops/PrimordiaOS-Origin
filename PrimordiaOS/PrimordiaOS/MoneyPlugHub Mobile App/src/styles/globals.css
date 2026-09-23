@@ -1,0 +1,25 @@
+/* ── Fonts ───────────────────────────────────────────────────────────────── */
+@import './fonts.css';
+
+/* ── Tailwind v4 engine ──────────────────────────────────────────────────── */
+@import 'tailwindcss' source(none);
+@source '../**/*.{js,ts,jsx,tsx}';
+@import 'tw-animate-css';
+
+/* ── CSS custom properties  (auto-generated — run pnpm build:tokens) ─────── */
+@import './theme.css';
+
+/* ── Tailwind v4 @theme utilities  (auto-generated — run pnpm build:tokens) ─ */
+@import './tailwind.css';
+
+/* ── Bridge: map shadcn utility names to SD token vars ──────────────────── */
+/* Needed so @apply border-border, bg-background, text-foreground, etc. resolve */
+@theme {
+  --color-background: var(--semantic-color-background-primary);
+  --color-foreground: var(--semantic-color-text-primary);
+  --color-border:     var(--semantic-color-border-subtle);
+  --color-ring:       var(--semantic-color-accent-primary);
+}
+
+/* ── Base element styles & .dt-btn-* component classes ──────────────────── */
+@import './base.css';

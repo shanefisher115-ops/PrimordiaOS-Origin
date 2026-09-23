@@ -1,0 +1,36 @@
+<script>
+  const objects = [
+    { id: 'CAD_FILE_A', x: 0, y: 0, vx: 0, vy: 0 }
+  ];
+
+  Engine.onPriorityUpdate(({ fileId, priority }) => {
+    if (priority === 'high') {
+      Engine.onForce({ id: fileId, fx: 0, fy: -0.02 }); // upward float
+    }
+  });
+
+  Engine.onForce(({ id, fx, fy }) => {
+    const o = objects.find(o => o.id === id);
+    if (o) {
+      o.vx += fx;
+      o.vy += fy;
+    }
+  });
+
+  function step(dt) {
+    for (const o of objects) {
+      o.x += o.vx * dt;
+      o.y += o.vy * dt;
+    }
+    Engine.publishState({ ts: Date.now(), objects });
+  }
+
+  let last = performance.now();
+  function loop(now) {
+    const dt = (now - last) / 16.67;
+    last = now;
+    step(dt);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+</script>

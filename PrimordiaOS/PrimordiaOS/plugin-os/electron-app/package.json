@@ -1,0 +1,17 @@
+{
+    "name": "primordia-core-client",
+    "version": "1.0.0",
+    "description": "Desktop Interface for the Primordia Antigravity Core Cloud Project",
+    "main": "dist/main.js",
+    "scripts": {
+        "start": "electron ."
+    },
+    "dependencies": {
+        "axios": "^1.19.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.11.30",
+        "electron": "^30.5.1",
+        "typescript": "^5.9.3"
+    }
+}

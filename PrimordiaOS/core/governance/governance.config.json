@@ -1,0 +1,10 @@
+{
+  "maxCostPerAgentUSD": 5.00,
+  "maxCostPerRunUSD": 20.00,
+  "maxRequestsPerMinute": 60,
+  "enableKillSwitch": true,
+  "enableRateLimit": true,
+  "enableSafetyRules": true,
+  "enableMetrics": true,
+  "logGovernanceEvents": true
+}

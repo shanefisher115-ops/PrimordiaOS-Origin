@@ -1,0 +1,28 @@
+{
+  "activeOffer": {
+    "id": "off_01HXYZ_ORIGIN_ACCESS",
+    "decisionId": "off_01HXYZ_ORIGIN_ACCESS",
+    "ts": 1773412010000,
+    "timestampMs": 1773412010000,
+    "ruleTriggered": "RULE_HIGH_INTENT_SURGE_OFFER",
+    "action": "OFFER_DECISION",
+    "priority": 10,
+    "offerType": "DYNAMIC",
+    "price": 47,
+    "ctaText": "⚡ INSTANT ORIGIN ACCESS: High-Intent Surge Pass",
+    "cooldownKey": "OFFER_COOLDOWN_DYNAMIC",
+    "idempotencyKey": "a9c78f12d4b8e019",
+    "destinationUrl": "https://primordialorigin.com/access?offer=surge",
+    "reason": "High-intent surge detected (Link reqs: 4/min, Chat: 52/min). Deploying surge pass.",
+    "rationale": "High-intent surge detected (Link reqs: 4/min, Chat: 52/min). Deploying surge pass.",
+    "payload": {
+      "targetCtaId": "cta_dynamic_47",
+      "ctaLabel": "⚡ INSTANT ORIGIN ACCESS: High-Intent Surge Pass",
+      "targetUrl": "https://primordialorigin.com/access?offer=surge",
+      "price": 47,
+      "offerType": "DYNAMIC",
+      "cooldownKey": "OFFER_COOLDOWN_DYNAMIC"
+    }
+  },
+  "lastOfferTs": 1773412010000
+}

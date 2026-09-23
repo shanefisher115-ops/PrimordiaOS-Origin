@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⭐ Sovereign Cockpit v5 — PrimordiaOS</title>
+  <link rel="stylesheet" href="./styles.css" />
+
+  <!-- Importmap for Three.js and Addons -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- 3D WebGL Canvas Container -->
+  <div id="canvas-container"></div>
+
+  <!-- Cinematic Scanline and Cosmic Vignette Overlay -->
+  <div class="cinematic-overlay"></div>
+
+  <!-- Top Cosmic HUD Bar -->
+  <header id="hud-header">
+    <div class="hud-brand">
+      <div class="hud-logo-icon"></div>
+      <span class="hud-title">SOVEREIGN COCKPIT v5</span>
+      <span class="hud-badge">NODE 5055</span>
+    </div>
+
+    <div class="hud-metrics">
+      <div class="hud-metric-item">
+        <span>BRIDGE:</span>
+        <span id="metric-bridge" class="hud-metric-val">SYNC (3000)</span>
+      </div>
+      <div class="hud-metric-item">
+        <span>FPS:</span>
+        <span id="metric-fps" class="hud-metric-val">60</span>
+      </div>
+      <div class="hud-metric-item">
+        <span>ANTIGRAV:</span>
+        <span id="metric-antigrav" class="hud-metric-val">94/100</span>
+      </div>
+
+      <div class="realm-indicator">
+        <div class="realm-dot" id="realm-dot"></div>
+        <span id="realm-name">SOVEREIGNTY</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Bottom Controls Hint Bar -->
+  <footer id="hud-footer">
+    <div class="key-hint">
+      <kbd class="key-kbd">CLICK</kbd>
+      <span>Actuate Panel / Focus Terminal</span>
+    </div>
+    <div class="key-hint">
+      <kbd class="key-kbd">ENTER</kbd>
+      <span>Submit Command</span>
+    </div>
+    <div class="key-hint">
+      <kbd class="key-kbd">DRAG</kbd>
+      <span>Spatial Orbit</span>
+    </div>
+    <div class="key-hint">
+      <kbd class="key-kbd">RINGS</kbd>
+      <span>Realm Portals</span>
+    </div>
+  </footer>
+
+  <!-- WebXR VR Button Container -->
+  <div id="vr-button-container"></div>
+
+  <!-- Cockpit Main Orchestration Script -->
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

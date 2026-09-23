@@ -1,8 +1,0 @@
-{
-  "type": "POST_CYCLE",
-  "payload": {
-    "caption": "Generated caption",
-    "platforms": ["instagram", "youtube"],
-    "timestamp": 1721090000
-  }
-}

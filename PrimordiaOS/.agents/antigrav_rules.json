@@ -1,0 +1,110 @@
+{
+  "antigravVersion": "1.0.0",
+  "system": "PrimordiaOS",
+  "scope": {
+    "domains": [
+      "primordialorigin.com",
+      "api.primordialorigin.com",
+      "admin.primordialorigin.com",
+      "cockpit.primordialorigin.com"
+    ],
+    "surfaces": [
+      "dashboards",
+      "analytics_pages",
+      "agent_reports",
+      "automation_logs",
+      "funnel_views",
+      "rpm_epc_ctr_panels"
+    ]
+  },
+  "dataSources": {
+    "allowed": [
+      "supabase.primary",
+      "redirectController.click_logs",
+      "cpa.webhooks",
+      "make.scenario_outputs",
+      "zapier.scenario_outputs",
+      "primordia.agents.reports",
+      "server.healthchecks"
+    ],
+    "forbidden": [
+      "mock_data_arrays",
+      "hardcoded_numeric_literals_as_metrics",
+      "demo_values_in_production",
+      "simulated_estimates_without_source"
+    ]
+  },
+  "metrics": {
+    "requiredReal": [
+      "rpm",
+      "epc",
+      "ctr",
+      "clicks",
+      "impressions",
+      "conversions",
+      "revenue"
+    ],
+    "emptyStateRule": {
+      "onNoData": "SHOW_NO_DATA_STATE",
+      "forbiddenBehavior": [
+        "display_placeholder_numbers",
+        "display_simulated_metrics"
+      ]
+    }
+  },
+  "agents": {
+    "allowedAgents": [
+      "PostingAgent",
+      "ReferralAgent",
+      "AnalyticsAgent",
+      "OptimizationAgent",
+      "FunnelShaperAgent"
+    ],
+    "behaviorRules": [
+      "agents_must_use_real_logs_for_decisions",
+      "agents_must_not_optimize_on_simulated_metrics"
+    ]
+  },
+  "integrations": {
+    "make": {
+      "webhooks": [
+        "stanley_ai_trigger",
+        "primordia_automation_trigger"
+      ],
+      "rules": [
+        "make_scenarios_must_log_real_events",
+        "make_modules_must_not_use_mock_payloads_in_production"
+      ]
+    },
+    "stanley": {
+      "role": "funnel_optimizer_frontend",
+      "outputFormat": "JSON",
+      "requiredFields": [
+        "titles",
+        "ctas",
+        "pricing",
+        "product_order"
+      ],
+      "rules": [
+        "stanley_output_is_treated_as_suggestions_until_bound_to_real_data",
+        "final_metrics_must_be_calculated_from_supabase_and_logs"
+      ]
+    }
+  },
+  "enforcement": {
+    "checks": [
+      "scan_ui_for_hardcoded_numbers",
+      "verify_all_metrics_have_backing_queries",
+      "validate_all_automation_events_arelogged",
+      "ensure_all_agent_reports_reference_real_sources"
+    ],
+    "onViolation": {
+      "actions": [
+        "FLAG_COMPONENT_NON_COMPLIANT",
+        "BLOCK_RENDER_OF_FAKE_METRICS",
+        "LOG_VIOLATION_TO_ANTIGRAV_AUDIT",
+        "REQUIRE_REFRACTOR_BEFORE_DEPLOY"
+      ]
+    }
+  }
+}

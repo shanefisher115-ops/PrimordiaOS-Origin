@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PrimordiaOS Antigravity Cockpit HUD</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    .glow-cyan { text-shadow: 0 0 10px rgba(0, 240, 255, 0.7); }
+    .glow-purple { text-shadow: 0 0 10px rgba(187, 0, 255, 0.7); }
+    .glow-green { text-shadow: 0 0 10px rgba(0, 255, 136, 0.7); }
+    .radar-grid {
+      background-image: 
+        radial-gradient(circle, rgba(0, 240, 255, 0.15) 1px, transparent 1px),
+        linear-gradient(to right, rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+      background-size: 24px 24px, 24px 24px, 24px 24px;
+    }
+  </style>
+</head>
+<body class="bg-transparent text-[var(--foreground)] antialiased p-2">
+  <div class="bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)] rounded-2xl p-4 shadow-2xl max-w-5xl mx-auto space-y-4 font-mono text-xs">
+    
+    <!-- Top HUD Header -->
+    <header class="flex flex-wrap items-center justify-between border-b border-[var(--border)] pb-3 gap-2">
+      <div class="flex items-center gap-3">
+        <span class="w-3 h-3 rounded-full bg-cyan-400 animate-ping"></span>
+        <div>
+          <h1 class="text-sm font-black tracking-wider uppercase text-cyan-400 glow-cyan">
+            PRIMORDIAOS COCKPIT // ZENITH-01
+          </h1>
+          <p class="text-[10px] text-[var(--muted-foreground)]">
+            Captain: <span class="text-slate-200 font-bold">Shane</span> (Tier 0 Sovereign) | Realm: Primordial Origin
+          </p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+          ANTIGRAV: 96/100
+        </span>
+        <span class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px] font-bold">
+          SWARM: 64 ACTIVE
+        </span>
+        <button onclick="triggerBoot()" class="px-3 py-1 bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-extrabold rounded-lg hover:brightness-110 active:scale-95 transition-all text-[11px]">
+          ⚡ RE-IGNITE
+        </button>
+      </div>
+    </header>
+
+    <!-- 4 Flight Consoles Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      
+      <!-- Left Console: Systems & Reactor -->
+      <div class="bg-[var(--background)]/60 border border-[var(--border)] rounded-xl p-3 space-y-2">
+        <div class="flex justify-between items-center text-cyan-400 font-bold text-[11px] border-b border-[var(--border)] pb-1">
+          <span>LEFT CONSOLE: SYSTEMS</span>
+          <span class="text-emerald-400">NOMINAL</span>
+        </div>
+        <div class="space-y-1.5 pt-1">
+          <div>
+            <div class="flex justify-between text-[10px]">
+              <span>Propulsion Throttle</span>
+              <span id="prop-val" class="font-bold text-cyan-300">42%</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div id="prop-bar" class="h-full bg-cyan-400 rounded-full" style="width: 42%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-[10px]">
+              <span>Deflector Shields</span>
+              <span class="font-bold text-purple-300">35% (Harmonics 98.4%)</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-purple-400 rounded-full" style="width: 35%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-[10px]">
+              <span>Thermal Threshold</span>
+              <span class="font-bold text-amber-300">312 Kelvin</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-amber-400 rounded-full" style="width: 31%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center HUD: Helm Ring & Spatial Radar -->
+      <div class="bg-[var(--background)]/80 border border-cyan-500/30 rounded-xl p-3 radar-grid flex flex-col items-center justify-center relative overflow-hidden min-h-[140px]">
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40">
+          <div class="w-28 h-28 border border-cyan-400 rounded-full animate-spin" style="animation-duration: 20s"></div>
+          <div class="w-20 h-20 border border-purple-400 rounded-full absolute"></div>
+        </div>
+        <div class="z-10 text-center space-y-0.5">
+          <div class="text-[10px] uppercase tracking-widest text-slate-400">HELM COMPASS</div>
+          <div id="heading-display" class="text-xl font-black text-cyan-300 glow-cyan">342.5° NNW</div>
+          <div class="text-[10px] text-emerald-400">INERTIAL DAMPENERS: 100%</div>
+          <div class="text-[9px] text-slate-400">VECTOR: (0.0, 0.0, 124.5) c</div>
+        </div>
+      </div>
+
+      <!-- Right Console: Cartography & Navigation -->
+      <div class="bg-[var(--background)]/60 border border-[var(--border)] rounded-xl p-3 space-y-2">
+        <div class="flex justify-between items-center text-purple-400 font-bold text-[11px] border-b border-[var(--border)] pb-1">
+          <span>RIGHT CONSOLE: STELLAR</span>
+          <span class="text-cyan-400">WARP 1.0</span>
+        </div>
+        <div class="space-y-1 pt-1 text-[10px]">
+          <div class="flex justify-between">
+            <span class="text-[var(--muted-foreground)]">Coordinates:</span>
+            <span class="text-slate-200">Sector 07 // Substrate</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-[var(--muted-foreground)]">Target Waypoint:</span>
+            <span class="text-cyan-300 font-bold">Chamber of Origin</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-[var(--muted-foreground)]">Warp Lane Sync:</span>
+            <span class="text-emerald-400 font-bold">99.8% Locked</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-[var(--muted-foreground)]">Cluster Nodes:</span>
+            <span class="text-purple-300">node-alpha (4ms), node-beta (7ms)</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Agent Comms & Live Terminal Log -->
+    <div class="bg-black/70 border border-[var(--border)] rounded-xl p-3 space-y-2">
+      <div class="flex items-center justify-between text-[11px] text-slate-300 border-b border-slate-800 pb-1">
+        <span class="flex items-center gap-2 font-bold">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          COCKPIT AGENT BUS & TERMINAL
+        </span>
+        <span class="text-[10px] text-slate-500">120 FPS // MASTER SPINE</span>
+      </div>
+      
+      <div id="terminal-log" class="space-y-1 text-[10px] h-24 overflow-y-auto pr-1">
+        <div class="text-cyan-400">[BOOT] Signature startup complete: Cinematic warp, Relativistic physics, Realm gateway synced.</div>
+        <div class="text-slate-400">[PILOT] Auto-throttle stabilized at cruising velocity.</div>
+        <div class="text-purple-400">[NAVIGATOR] Course plotted to Chamber of Origin. Coordinates locked.</div>
+        <div class="text-emerald-400">[ENGINEER] Plasma reactors balanced at 100% equilibrium.</div>
+        <div class="text-amber-400">[TACTICIAN] Perimeter clear. Anti-collapse defenses nominal.</div>
+        <div class="text-cyan-300">[SWARM] 64 worker units allocated. Boids flocking cohesion: 0.96.</div>
+      </div>
+
+      <!-- Command Input -->
+      <div class="flex items-center gap-2 pt-1 border-t border-slate-800/80">
+        <span class="text-cyan-400 font-bold text-xs">READY &gt;_</span>
+        <input id="cmd-input" type="text" placeholder="Type 'status', 'warp', 'pulse', or 'inspect'..." 
+               class="flex-1 bg-transparent text-slate-200 border-none outline-none text-xs font-mono placeholder:text-slate-600" 
+               onkeydown="if(event.key==='Enter') executeCommand()" />
+        <button onclick="executeCommand()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] rounded font-semibold transition-all">
+          EXEC
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function addLog(text, color = 'text-slate-300') {
+      const log = document.getElementById('terminal-log');
+      const div = document.createElement('div');
+      div.className = color;
+      div.textContent = text;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function executeCommand() {
+      const input = document.getElementById('cmd-input');
+      const val = input.value.trim();
+      if (!val) return;
+      input.value = '';
+
+      addLog(`> ${val}`, 'text-slate-200 font-bold');
+      const cmd = val.toLowerCase();
+
+      if (cmd === 'status') {
+        addLog('[HUD] All 10 subsystems nominal. ANTIGRAV: 96/100. Relativistic velocity: 124.5c.', 'text-cyan-400');
+      } else if (cmd === 'warp') {
+        addLog('[CINEMATIC] Spooling hyperspace conduits... FOV distortion active.', 'text-purple-400');
+        document.getElementById('heading-display').textContent = '359.9° WARP';
+      } else if (cmd === 'pulse') {
+        addLog('[TELEMETRY] Heartbeat cadence pulse dispatched on Master EventBus.', 'text-emerald-400');
+      } else if (cmd === 'inspect') {
+        addLog('[EVOLUTION] HUDOptimizer, PhysicsTuner, VizGenerator, StyleEvolution armed with self-rewrite hooks.', 'text-amber-400');
+      } else if (cmd === 'boost' || cmd === 'phom') {
+        addLog('[PHOM] Igniting 11-Layer Real PHOM Build Plan via Node, SQLite, Make...', 'text-amber-300 font-bold');
+        fetch('/api/boost', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ directive: '/boost' }) })
+          .then(r => r.json())
+          .then(data => addLog(`[PHOM COMPLETE] Boost ID: ${data.data?.boost_id || data.data?.boostId || 'LIVE'} | Swarm active | Real MX verified.`, 'text-emerald-400 font-bold'))
+          .catch(e => addLog(`[PHOM NOTICE] ${e.message}`, 'text-amber-400'));
+      } else {
+        addLog(`[COMMAND] Instruction '${val}' broadcast to Tier 0 Sovereign EventBus.`, 'text-cyan-300');
+      }
+    }
+
+    function triggerBoot() {
+      addLog('[BOOT] Re-igniting 5-stage sovereign boot sequence...', 'text-cyan-400 font-bold');
+      setTimeout(() => addLog('[STAGE 1] Cinematic Warp Field & Shader Convergence...', 'text-purple-300'), 200);
+      setTimeout(() => addLog('[STAGE 2] Relativistic Physics Engine Synchronized.', 'text-cyan-300'), 400);
+      setTimeout(() => addLog('[STAGE 3] Sovereign Realm Gateway Anchored.', 'text-emerald-300'), 600);
+      setTimeout(() => addLog('[STAGE 4] Distributed Consensus Ledger Mounted.', 'text-amber-300'), 800);
+      setTimeout(() => addLog('[STAGE 5] 64-Agent Swarm Trails Synchronized. COCKPIT ONLINE.', 'text-emerald-400 font-bold'), 1000);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "id": "task-render-clip-001",
+  "agent": "renderTech",
+  "payload": {
+    "resolution": "1080x1920",
+    "fps": 30
+  }
+}

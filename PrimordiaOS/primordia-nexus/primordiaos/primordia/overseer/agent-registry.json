@@ -1,0 +1,18 @@
+{
+    "seedArchitect": "../cinematic/swarm/agents/seed-architect.js",
+    "unrealEngineer": "../cinematic/swarm/agents/unreal-engineer.js",
+    "cameraDirector": "../cinematic/swarm/agents/camera-director.js",
+    "atmosphereAlchemist": "../cinematic/swarm/agents/atmosphere.js",
+    "renderTech": "../cinematic/swarm/agents/render-tech.js",
+    "overlayDesigner": "../cinematic/swarm/agents/overlay.js",
+    "exporter": "../cinematic/swarm/agents/exporter.js",
+    "scheduler": "../cinematic/swarm/agents/scheduler.js",
+
+    "brandArchitect": "../frontpage/swarm/agents/brand.js",
+    "uiuxDesigner": "../frontpage/swarm/agents/uiux.js",
+    "frontendEngineer": "../frontpage/swarm/agents/frontend.js",
+    "shaderArtist": "../frontpage/swarm/agents/shader.js",
+    "contentWriter": "../frontpage/swarm/agents/writer.js",
+    "integrator": "../frontpage/swarm/agents/integrator.js",
+    "deployAgent": "../frontpage/swarm/agents/deploy.js"
+}

@@ -1,0 +1,6 @@
+{
+  "tickIntervalMs": 500,
+  "maxTicksPerSecond": 4,
+  "logEveryNTicks": 10,
+  "enabled": true
+}

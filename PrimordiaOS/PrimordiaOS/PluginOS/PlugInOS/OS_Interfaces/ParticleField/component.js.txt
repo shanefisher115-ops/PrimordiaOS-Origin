@@ -1,0 +1,17 @@
+// v0.1 Particle Field — core visual state generator
+
+function mapStateToParticleConfig(state) {
+  const baseCount = 150;
+
+  return {
+    particleCount: Math.round(baseCount + state.energy * 200),
+    speed: 0.3 + state.energy * 1.2,
+    directionality: 0.4 + state.focus * 0.5,
+    pulseStrength: state.intensity,
+    mood: state.mood
+  };
+}
+
+module.exports = {
+  mapStateToParticleConfig
+};

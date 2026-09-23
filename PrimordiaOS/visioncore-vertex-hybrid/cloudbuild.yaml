@@ -1,0 +1,63 @@
+# ==============================================================================
+# Google Cloud Build Pipeline for VisionCore x Vertex AI Hybrid Subsystem
+# Builds, tests, and deploys container to Google Cloud Run
+# ==============================================================================
+
+steps:
+  # Step 1: Build Docker container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '$_AR_HOSTNAME/$PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
+      - '-t'
+      - '$_AR_HOSTNAME/$PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:latest'
+      - '.'
+    id: 'build-image'
+
+  # Step 2: Push container image to Google Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '$_AR_HOSTNAME/$PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
+    id: 'push-sha-image'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '$_AR_HOSTNAME/$PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:latest'
+    id: 'push-latest-image'
+
+  # Step 3: Deploy service to Google Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '$_SERVICE_NAME'
+      - '--image=$_AR_HOSTNAME/$PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
+      - '--region=$_REGION'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=8080'
+      - '--memory=2Gi'
+      - '--cpu=2'
+      - '--min-instances=0'
+      - '--max-instances=10'
+      - '--set-env-vars=VERTEX_AI_PROJECT_ID=$PROJECT_ID,VERTEX_AI_LOCATION=$_VERTEX_LOCATION,VERTEX_AI_MODEL=$_VERTEX_MODEL'
+    id: 'deploy-cloud-run'
+
+images:
+  - '$_AR_HOSTNAME/$PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
+  - '$_AR_HOSTNAME/$PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:latest'
+
+substitutions:
+  _AR_HOSTNAME: 'us-central1-docker.pkg.dev'
+  _REPO_NAME: 'primordia-services'
+  _SERVICE_NAME: 'visioncore-vertex-hybrid'
+  _REGION: 'us-central1'
+  _VERTEX_LOCATION: 'us-central1'
+  _VERTEX_MODEL: 'gemini-1.5-pro'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

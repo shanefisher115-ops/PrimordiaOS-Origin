@@ -1,0 +1,6 @@
+module.exports = {
+  callAPI(endpoint, payload) {
+    console.log("[PlugInOS] API call:", endpoint, payload);
+    return { success: true };
+  }
+};

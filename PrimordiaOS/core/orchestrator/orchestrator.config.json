@@ -1,0 +1,9 @@
+{
+  "maxConcurrentAgents": 12,
+  "taskQueueScanIntervalMs": 1500,
+  "agentHealthIntervalMs": 4000,
+  "enableFaultTolerance": true,
+  "enableGovernance": true,
+  "enableMultiRealmRouting": true,
+  "logOrchestratorEvents": true
+}

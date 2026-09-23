@@ -1,0 +1,20 @@
+{
+  "name": "primordiaos-visioncore",
+  "version": "1.0.0",
+  "description": "PrimordiaOS VisionCore — evaluation and interpretation engine",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "NODE_ENV=development node index.js"
+  },
+  "dependencies": {
+    "cors": "2.8.5",
+    "express": "4.19.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Shane",
+  "license": "MIT"
+}

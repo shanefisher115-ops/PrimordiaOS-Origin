@@ -1,5 +1,0 @@
-AgentEnergy → float
-PulseWave → float
-MetricStream → float
-EvolutionBurst → float
-PostShockwave → float

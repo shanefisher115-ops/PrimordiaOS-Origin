@@ -1,0 +1,18 @@
+{
+  "acorns": {
+    "link": "YOUR_ACORNS_LINK",
+    "cta": "Get $20 when you start investing."
+  },
+  "swagbucks": {
+    "link": "YOUR_SWAGBUCKS_LINK",
+    "cta": "Earn rewards fast with simple tasks."
+  },
+  "rakuten": {
+    "link": "YOUR_RAKUTEN_LINK",
+    "cta": "Cashback on everything you buy."
+  },
+  "ibotta": {
+    "link": "YOUR_IBOTTA_LINK",
+    "cta": "Instant grocery cashback."
+  }
+}

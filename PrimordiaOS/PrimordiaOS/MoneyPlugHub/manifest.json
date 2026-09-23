@@ -1,0 +1,5 @@
+{
+  "name": "money-engine",
+  "entry": "./index.js",
+  "commands": ["start", "stop", "status"]
+}

@@ -1,0 +1,95 @@
+name: Jules PR Sentinel & Auto-Merger
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull Request Number to inspect and auto-merge"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  statuses: read
+  checks: read
+
+concurrency:
+  group: jules-pr-${{ github.event.pull_request.number || github.event.inputs.pr_number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit-and-merge:
+    name: ANTIGRAV Sovereign Audit & Auto-Merger
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout PR Head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+          fetch-depth: 0
+
+      - name: Fetch Base Branch
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref || 'main' }}:${{ github.event.pull_request.base.ref || 'main' }} || true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install Dependencies
+        run: |
+          npm ci || npm install --legacy-peer-deps
+
+      - name: Run Test Verification (if present)
+        run: |
+          npm test --if-present
+
+      - name: Run ANTIGRAV Sovereign Audit Gate
+        id: antigrav_gate
+        run: |
+          BASE_REF="origin/${{ github.event.pull_request.base.ref || 'main' }}"
+          node scripts/pr-audit-gate.js \
+            --base "$BASE_REF" \
+            --head HEAD \
+            --report pr-audit-report.md \
+            --threshold 70
+
+      - name: Post ANTIGRAV Report Comment on PR
+        if: always() && (github.event.pull_request.number || github.event.inputs.pr_number)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUM: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+        run: |
+          if [ -f pr-audit-report.md ]; then
+            gh pr comment "$PR_NUM" --body-file pr-audit-report.md || echo "Failed to post PR comment"
+          fi
+
+      - name: Approve and Squash-Merge PR
+        if: steps.antigrav_gate.outcome == 'success' && (github.event.pull_request.number || github.event.inputs.pr_number)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUM: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+        run: |
+          echo "Approving PR #$PR_NUM via AntigravGuardian Sentinel..."
+          gh pr review "$PR_NUM" --approve --body "🛡️ **Approved by AntigravGuardian**: Sovereignty score satisfied threshold (>= 70) with clean anti-collapse compliance." || true
+
+          echo "Squash-merging PR #$PR_NUM and deleting source branch..."
+          gh pr merge "$PR_NUM" --squash --delete-branch || gh pr merge "$PR_NUM" --squash --delete-branch --admin
+
+      - name: Veto PR on Audit Failure
+        if: steps.antigrav_gate.outcome == 'failure' && (github.event.pull_request.number || github.event.inputs.pr_number)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUM: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+        run: |
+          echo "Vetoing PR #$PR_NUM due to ANTIGRAV score failure..."
+          gh pr review "$PR_NUM" --request-changes --body "🛑 **Vetoed by AntigravGuardian**: This PR failed sovereignty validation (< 70). Please review the audit scorecard above to resolve collapse flags." || true
+          exit 1

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "dlq_1782483637778_79957b00df04e",
+    "taskId": "task_1782483637774_46143d9f1489f",
+    "reason": "Simulated failure",
+    "ts": "2026-06-26T14:20:37.778Z"
+  },
+  {
+    "id": "dlq_1782483703766_7d44d12ad029e",
+    "taskId": "task_1782483703765_bf42571c0a7798",
+    "reason": "Simulated failure",
+    "ts": "2026-06-26T14:21:43.767Z"
+  },
+  {
+    "id": "dlq_1782484970551_7a98ba75eabf88",
+    "taskId": "task_1782484970550_35a752bae31cf8",
+    "reason": "Simulated failure",
+    "ts": "2026-06-26T14:42:50.551Z"
+  }
+]

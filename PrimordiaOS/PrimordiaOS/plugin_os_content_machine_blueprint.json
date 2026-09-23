@@ -1,0 +1,69 @@
+{
+  "name": "Plug In OS: Content Machine (Notion -> Fliki -> Buffer)",
+  "description": "Automated pipeline for MoneyPlugHub. Converts Notion scripts to Fliki videos and queues them in Buffer.",
+  "flow": [
+    {
+      "id": 1,
+      "module": "notion:watchDatabaseItems",
+      "version": 1,
+      "parameters": {
+        "database_id": "YOUR_NOTION_DATABASE_ID",
+        "filter": {
+          "property": "Status",
+          "select": {
+            "equals": "Ready for Video"
+          }
+        }
+      },
+      "metadata": {
+        "designer": {
+          "x": 0,
+          "y": 0
+        },
+        "notes": "Watches the Plug In OS active dashboard for the specific trigger status."
+      }
+    },
+    {
+      "id": 2,
+      "module": "fliki:createVideo",
+      "version": 1,
+      "parameters": {
+        "script": "1.properties['Post Copy'].rich_text[0].plain_text",
+        "format": "portrait",
+        "aspect_ratio": "9:16",
+        "webhook_url": "YOUR_AUTOMATION_WEBHOOK_URL"
+      },
+      "metadata": {
+        "designer": {
+          "x": 300,
+          "y": 0
+        },
+        "notes": "Generates the faceless video asset. Requires a webhook to handle the rendering delay."
+      }
+    },
+    {
+      "id": 3,
+      "module": "buffer:createPost",
+      "version": 1,
+      "parameters": {
+        "profile_ids": [
+          "YOUR_BUFFER_INSTAGRAM_ID",
+          "YOUR_BUFFER_TIKTOK_ID"
+        ],
+        "text": "1.properties['Post Copy'].rich_text[0].plain_text",
+        "media": {
+          "video": "2.video_url"
+        },
+        "now": false,
+        "top": false
+      },
+      "metadata": {
+        "designer": {
+          "x": 600,
+          "y": 0
+        },
+        "notes": "Queues the final rendered video and copy across your integrated social channels."
+      }
+    }
+  ]
+}

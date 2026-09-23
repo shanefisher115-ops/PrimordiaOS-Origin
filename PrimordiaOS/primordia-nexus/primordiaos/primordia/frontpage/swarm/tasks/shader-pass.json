@@ -1,0 +1,8 @@
+{
+  "id": "task-shader-001",
+  "agent": "shaderArtist",
+  "payload": {
+    "type": "cosmic-gradient",
+    "intensity": "high"
+  }
+}

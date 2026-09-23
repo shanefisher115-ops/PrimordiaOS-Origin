@@ -1,0 +1,269 @@
+// src/realms/blogEngine/topics.ts
+
+import { BlogTopic, SovereignGlyph } from '../../contracts/types.js';
+
+export interface SovereignTopicDefinition {
+  readonly id: BlogTopic;
+  readonly displayName: string;
+  readonly realm: string;
+  readonly canonicalDescription: string;
+  readonly outlineSchema: readonly string[];
+  readonly glyphBindings: readonly SovereignGlyph[];
+  readonly sovereignConstraints: {
+    readonly minWordCount: number;
+    readonly maxWordCount: number;
+    readonly requiredTenet: string;
+    readonly antiCollapseSignature: string;
+    readonly humanSovereignVetoBound: boolean;
+  };
+  readonly tags: readonly string[];
+  readonly defaultCtaUrl: string;
+  readonly defaultCtaText: string;
+}
+
+export const SOVEREIGN_TOPICS: Record<BlogTopic, SovereignTopicDefinition> = {
+  PRIMORDIAOS_CORE: {
+    id: 'PRIMORDIAOS_CORE',
+    displayName: 'PrimordiaOS Sovereign Microkernel & Core Architecture',
+    realm: 'PrimordiaOS Realm',
+    canonicalDescription:
+      'The foundational substrate of sovereign desktop computing. Decoupled local Node daemon orchestrating SQLite WAL persistence, stateful actor spines, deterministic event busing, and headless execution.',
+    outlineSchema: [
+      'Architectural Decoupling: Electron Shell vs. Headless Microkernel',
+      'High-Friction Determinism: Resisting Silent Background Automation',
+      'SQLite WAL & Chained Audit Proof: The Merkle Ledger Foundation',
+      'System Invariants: State Continuity and Fail-Closed Recovery',
+    ],
+    glyphBindings: ['Seed', 'Gate', 'Clock'],
+    sovereignConstraints: {
+      minWordCount: 300,
+      maxWordCount: 2500,
+      requiredTenet: 'Local execution over cloud dependency; explicit verification over blind belief.',
+      antiCollapseSignature: 'PRIMORDIA_CORE_ANTI_COLLAPSE_INVARIANT',
+      humanSovereignVetoBound: true,
+    },
+    tags: ['primordiaos', 'microkernel', 'sovereign-os', 'architecture', 'sqlite-wal'],
+    defaultCtaUrl: 'https://primordialorigin.com/core',
+    defaultCtaText: 'Inspect PrimordiaOS Core Kernel',
+  },
+
+  PLUGIN_OS: {
+    id: 'PLUGIN_OS',
+    displayName: 'Plug-In OS: Modular Sovereign Expansion & Dynamic Substrates',
+    realm: 'Plug-In OS Realm',
+    canonicalDescription:
+      'Dynamic capability extension without kernel degradation. Isolated plugin execution vessels, sandboxed state spaces, and verifiable interface contracts designed to preserve sovereign integrity.',
+    outlineSchema: [
+      'Modular Substrates: Sandboxed Extension without Monolithic Sprawl',
+      'Contract-Enforced Boundaries: Strict I/O Validation',
+      'Hot-Pluggable Capability Grids: Seamless Realm Registration',
+      'The Antidote to Monolithic Bloat: Micro-Vessel Isolation',
+    ],
+    glyphBindings: ['Starflare', 'Spiral', 'Gate'],
+    sovereignConstraints: {
+      minWordCount: 300,
+      maxWordCount: 2500,
+      requiredTenet: 'Extensibility must never compromise root kernel isolation.',
+      antiCollapseSignature: 'PLUGIN_OS_SANDBOX_VERIFIED',
+      humanSovereignVetoBound: true,
+    },
+    tags: ['plugin-os', 'modularity', 'sandboxing', 'extensibility', 'sovereign-mesh'],
+    defaultCtaUrl: 'https://primordialorigin.com/plugins',
+    defaultCtaText: 'Explore Plug-In OS Ecosystem',
+  },
+
+  MONEYPLUGHUB: {
+    id: 'MONEYPLUGHUB',
+    displayName: 'MoneyPlugHub: Autonomous Economic Realization & Sovereign Finance',
+    realm: 'MoneyPlugHub Realm',
+    canonicalDescription:
+      'Autonomous value generation grounded in high-friction verification. Self-optimizing value exchange, dynamic tier elevation, anti-spam telemetry filtering, and transparent ledger settlements.',
+    outlineSchema: [
+      'Sovereign Cashflow Dynamics: Beyond Low-Friction Spam Automation',
+      'Demand-Velocity Responsive Pricing: Deterministic Floor and Ceiling Limits',
+      'Zero Fake Metrics: Binding Telemetry Directly to Cryptographic Audit Trails',
+      'Anti-Spam Governance: Rate-Limited Value Circulation',
+    ],
+    glyphBindings: ['Spiral', 'Clock', 'Seed'],
+    sovereignConstraints: {
+      minWordCount: 300,
+      maxWordCount: 2500,
+      requiredTenet: 'Economic velocity must remain anchored to verifiably delivered value.',
+      antiCollapseSignature: 'MONEYPLUG_ECONOMIC_LEDGER_HONESTY',
+      humanSovereignVetoBound: true,
+    },
+    tags: ['moneyplughub', 'sovereign-finance', 'economics', 'autonomous-revenue', 'telemetry'],
+    defaultCtaUrl: 'https://moneyplughub.com',
+    defaultCtaText: 'Access MoneyPlugHub Hub',
+  },
+
+  PRIMORDIAL_ORIGIN: {
+    id: 'PRIMORDIAL_ORIGIN',
+    displayName: 'Primordial Origin: Mythic Foundation & Archetypal Foundations',
+    realm: 'PrimordialOrigin Realm',
+    canonicalDescription:
+      'The foundational mythos and symbolic lineage of sovereign computation. Where primordial archetypes intersect with deterministic distributed systems to foster cognitive resilience and enduring digital culture.',
+    outlineSchema: [
+      'The Mythic Architecture: Archetypes as Distributed State Models',
+      'Lineage of the Five Glyphs: Starflare, Spiral, Seed, Clock, and Gate',
+      'High-Altitude Cognition: Rejecting Low-Entropy Cultural Boil-Down',
+      'The Eternal Ledger: Preserving Cultural Artifacts Across Technological Epochs',
+    ],
+    glyphBindings: ['Seed', 'Starflare', 'Gate'],
+    sovereignConstraints: {
+      minWordCount: 300,
+      maxWordCount: 2500,
+      requiredTenet: 'Mythos provides the cognitive scaffolding for structural anti-collapse.',
+      antiCollapseSignature: 'PRIMORDIAL_ORIGIN_MYTHIC_COHERENCE',
+      humanSovereignVetoBound: true,
+    },
+    tags: ['primordial-origin', 'mythos', 'archetypes', 'sovereignty', 'philosophy'],
+    defaultCtaUrl: 'https://primordialorigin.com',
+    defaultCtaText: 'Enter Primordial Origin',
+  },
+
+  IMMERSIVE_COMPUTATION: {
+    id: 'IMMERSIVE_COMPUTATION',
+    displayName: 'Immersive Computation: Niagara Telemetry & Spatial Synthesis',
+    realm: 'Immersive Computation Realm',
+    canonicalDescription:
+      'Real-time simulation coupling computational states with perceptual dynamics. High-throughput 60 FPS Niagara particle streams, volumetric telemetry feedback, and procedural shader manifestation.',
+    outlineSchema: [
+      'Perceptual State Projection: From Flat Text to Volumetric Manifestation',
+      'Niagara Particle Telemetry: Visualizing System State Density in Real-Time',
+      'Low-Latency IPC Bridges: Sub-16ms WebSocket Event Synchronization',
+      'Cognitive Grounding: Spatial Rendering as a Defense Against Cognitive Fatigue',
+    ],
+    glyphBindings: ['Starflare', 'Clock', 'Spiral'],
+    sovereignConstraints: {
+      minWordCount: 300,
+      maxWordCount: 2500,
+      requiredTenet: 'Visualization must accurately reflect state physics without synthetic illusions.',
+      antiCollapseSignature: 'IMMERSIVE_SIMULATION_FIDELITY',
+      humanSovereignVetoBound: true,
+    },
+    tags: ['immersive-computation', 'niagara', 'unreal-engine', 'spatial-ui', 'shaders'],
+    defaultCtaUrl: 'https://primordialorigin.com/immersive',
+    defaultCtaText: 'Initialize Immersive Stream',
+  },
+
+  CINEMATIC_PROTAGONIST_ENGINE: {
+    id: 'CINEMATIC_PROTAGONIST_ENGINE',
+    displayName: 'Cinematic Protagonist Engine: Narrative Agency & Sovereign Worldbuilding',
+    realm: 'Cinematic Protagonist Realm',
+    canonicalDescription:
+      'Autonomous narrative synthesis framing user interactions as sovereign agency. Constructing high-altitude arcs, dynamic conflict resolution, and philosophical tension to elevate human decision-making.',
+    outlineSchema: [
+      'The Protagonist Invariant: The User as Supreme Decision Authority',
+      'Narrative Friction: Why Conflict-Free Interfaces Induce Cognitive Collapse',
+      'Cinematic Color Gradients & LUTs: Atmosphere as an Information Carrier',
+      'Episodic Continuity: Maintaining Coherent Multi-Session World Arcs',
+    ],
+    glyphBindings: ['Starflare', 'Spiral', 'Gate'],
+    sovereignConstraints: {
+      minWordCount: 300,
+      maxWordCount: 2500,
+      requiredTenet: 'Never automate the protagonist out of the narrative crucible.',
+      antiCollapseSignature: 'CINEMATIC_AGENCY_PRESERVATION',
+      humanSovereignVetoBound: true,
+    },
+    tags: ['cinematic-engine', 'narrative', 'protagonist', 'storytelling', 'agency'],
+    defaultCtaUrl: 'https://primordialorigin.com/cinema',
+    defaultCtaText: 'Witness Cinematic World Engine',
+  },
+
+  SPATIAL_COMPUTATION_REALM: {
+    id: 'SPATIAL_COMPUTATION_REALM',
+    displayName: 'Spatial Computation Realm: Geometric Memory & Chamber Topology',
+    realm: 'Spatial Computation Realm',
+    canonicalDescription:
+      'Structuring human memory and system entities as discrete geometric chambers. 3D spatial indexing, contextual proximity retrieval, and topology-aware state traversal.',
+    outlineSchema: [
+      'Topological Memory Structures: Memory as a Navigable Coordinate Space',
+      'Proximity-Based Context Retrieval: Eliminating Flat Keyword Latency',
+      'Chamber Partitioning: Sovereign Walls Between Critical Data Domains',
+      'Spatial Resilience: Geometric Redundancy Across Vector Meshes',
+    ],
+    glyphBindings: ['Gate', 'Seed', 'Clock'],
+    sovereignConstraints: {
+      minWordCount: 300,
+      maxWordCount: 2500,
+      requiredTenet: 'Spatial organization must enforce strict context isolation.',
+      antiCollapseSignature: 'SPATIAL_TOPOLOGY_CHAMBER_ISOLATION',
+      humanSovereignVetoBound: true,
+    },
+    tags: ['spatial-computation', 'vector-memory', 'topology', 'chambers', 'geometry'],
+    defaultCtaUrl: 'https://primordialorigin.com/spatial',
+    defaultCtaText: 'Step into Spatial Chambers',
+  },
+
+  MULTI_REALM_OS_THEORY: {
+    id: 'MULTI_REALM_OS_THEORY',
+    displayName: 'Multi-Realm OS Theory: Federated Sovereign Topology & Distributed Coherence',
+    realm: 'Multi-Realm OS Realm',
+    canonicalDescription:
+      'Federated architecture for multi-realm computational substrates. Managing cross-realm synchronization, deterministic handshake protocols, and cryptographic state lineage across isolated spheres.',
+    outlineSchema: [
+      'The Multi-Realm Paradigm: Breaking the Centralized OS Monopoly',
+      'Cryptographic Lineage: Merkle Cross-Hashing Between Autonomous Spheres',
+      'Zero-Drift Synchronization: Deterministic State Propagation',
+      'Decoupled Sovereignty: Allowing Local Autonomy Without Global Fragmentation',
+    ],
+    glyphBindings: ['Spiral', 'Gate', 'Clock'],
+    sovereignConstraints: {
+      minWordCount: 300,
+      maxWordCount: 2500,
+      requiredTenet: 'Federation without loss of local boundary sovereignty.',
+      antiCollapseSignature: 'MULTI_REALM_TOPOLOGY_COHERENCE',
+      humanSovereignVetoBound: true,
+    },
+    tags: ['multi-realm', 'os-theory', 'federation', 'cryptography', 'topology'],
+    defaultCtaUrl: 'https://primordialorigin.com/topology',
+    defaultCtaText: 'Review Multi-Realm Blueprint',
+  },
+
+  ANTIGRAV_PHILOSOPHY: {
+    id: 'ANTIGRAV_PHILOSOPHY',
+    displayName: 'ANTIGRAV() Philosophy: High-Friction Sovereign Cognition & Anti-Collapse',
+    realm: 'Sovereignty Realm',
+    canonicalDescription:
+      'The core philosophical doctrine of PrimordiaOS. Opposing passive technological collapse, rejecting frictionless algorithmic sedation, and championing conscious, high-effort human self-determination.',
+    outlineSchema: [
+      'The Seduction of Frictionless Automation: Anatomy of Cognitive Collapse',
+      'The ANTIGRAV() Axiom: Cognitive Altitude Requires Intentional Resistance',
+      'Tier 0 Supremacy: The Inviolable Authority of the Human Sovereign',
+      'Auditing the Substrate: Why Every Change Demands Cryptographic Proof',
+    ],
+    glyphBindings: ['Gate', 'Starflare', 'Seed'],
+    sovereignConstraints: {
+      minWordCount: 300,
+      maxWordCount: 2500,
+      requiredTenet: 'Friction is the forge of sovereign intelligence; passive automation is systemic decay.',
+      antiCollapseSignature: 'ANTIGRAV_SOVEREIGN_COGNITIVE_SHIELD',
+      humanSovereignVetoBound: true,
+    },
+    tags: ['antigrav', 'sovereignty', 'anti-collapse', 'philosophy', 'cognitive-altitude'],
+    defaultCtaUrl: 'https://primordialorigin.com/antigrav',
+    defaultCtaText: 'Read ANTIGRAV Manifesto',
+  },
+};
+
+export const ALL_SOVEREIGN_TOPICS: readonly BlogTopic[] = [
+  'PRIMORDIAOS_CORE',
+  'PLUGIN_OS',
+  'MONEYPLUGHUB',
+  'PRIMORDIAL_ORIGIN',
+  'IMMERSIVE_COMPUTATION',
+  'CINEMATIC_PROTAGONIST_ENGINE',
+  'SPATIAL_COMPUTATION_REALM',
+  'MULTI_REALM_OS_THEORY',
+  'ANTIGRAV_PHILOSOPHY',
+] as const;
+
+export function getTopicDefinition(topic: BlogTopic): SovereignTopicDefinition {
+  const def = SOVEREIGN_TOPICS[topic];
+  if (!def) {
+    throw new Error(`Unrecognized sovereign blog topic: ${topic}`);
+  }
+  return def;
+}

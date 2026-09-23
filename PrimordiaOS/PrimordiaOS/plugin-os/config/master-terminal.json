@@ -1,0 +1,104 @@
+{
+  "state": {
+    "identity": {
+      "user_id": "architect-001",
+      "roles": [
+        "architect",
+        "operator",
+        "tester"
+      ],
+      "current_mode": "hub"
+    },
+    "context": {
+      "loop_depth": 3,
+      "active_mission": null,
+      "last_update": "2026-06-26T11:35:13.246Z"
+    }
+  },
+  "earning_engine": {
+    "programs": [
+      {
+        "program_id": "prog-001",
+        "name": "Swagbucks Referral",
+        "description": "Earn by inviting friends to Swagbucks.",
+        "status": "active",
+        "roi_score": 0,
+        "risk_level": "low",
+        "missions": [
+          "mission-001"
+        ]
+      }
+    ],
+    "referrals": {
+      "referral_link": "https://www.swagbucks.com/profile/r_235418044?rp=1",
+      "clicks": 0,
+      "signups": 0,
+      "earnings": 0
+    }
+  },
+  "missions": [
+    {
+      "mission_id": "mission-001",
+      "program_id": "prog-001",
+      "title": "Invite 5 friends to Swagbucks",
+      "steps": [
+        "Copy referral link",
+        "Share with 5 friends",
+        "Track signups"
+      ],
+      "status": "pending",
+      "completed_at": null
+    }
+  ],
+  "cockpit": {
+    "dashboard": {
+      "active_programs": [
+        "prog-001"
+      ],
+      "active_missions": [
+        "mission-001"
+      ],
+      "metrics": {
+        "total_earnings": 1.5,
+        "missions_completed": 0,
+        "referrals_sent": 3
+      }
+    },
+    "controls": {
+      "start_mission": "function(mission_id)",
+      "pause_program": "function(program_id)",
+      "switch_mode": "function(mode)"
+    }
+  },
+  "master_terminal": {
+    "commands": [
+      "runCycle",
+      "simulateFuture",
+      "updateState",
+      "logMetrics",
+      "deployProgram"
+    ],
+    "logs": [
+      {
+        "timestamp": "2026-06-26T07:50:17.338Z",
+        "event": "runCycle",
+        "details": "Cycle 1 executed"
+      },
+      {
+        "timestamp": "2026-06-26T08:26:51.237Z",
+        "event": "runCycle",
+        "details": "Cycle 2 executed"
+      },
+      {
+        "timestamp": "2026-06-26T11:35:13.247Z",
+        "event": "runCycle",
+        "details": "Cycle 3 executed"
+      }
+    ],
+    "heartbeat": {
+      "interval": 60,
+      "last_run": "2026-06-26T11:35:13.247Z",
+      "status": "healthy"
+    }
+  }
+}

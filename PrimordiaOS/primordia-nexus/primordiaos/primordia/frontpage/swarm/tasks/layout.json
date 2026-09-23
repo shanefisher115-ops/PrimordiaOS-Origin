@@ -1,0 +1,7 @@
+{
+  "id": "task-uiux-001",
+  "agent": "uiuxDesigner",
+  "payload": {
+    "sections": ["hero", "realms", "engine", "forge", "contact"]
+  }
+}

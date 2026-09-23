@@ -1,0 +1,6 @@
+{
+  "money-engine": {
+    "path": "./moneyplughub/index.js",
+    "commands": ["start", "stop", "status"]
+  }
+}

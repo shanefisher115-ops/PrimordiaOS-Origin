@@ -1,0 +1,17 @@
+{
+  "servers": [
+    {
+      "id": "antigravity-mcp-bundle",
+      "name": "Antigravity MCP Bundle",
+      "description": "Unified MCP tools: filesystem, logs, HTTP, SQLite",
+      "binary": "node",
+      "args": [
+        "/absolute/path/to/antigravity-mcp-bundle/dist/index.js"
+      ],
+      "env": {
+        "ANTIGRAVITY_LOG_DIR": "/absolute/path/to/your/logs",
+        "ANTIGRAVITY_MCP_DB": "/absolute/path/to/mcp.db"
+      }
+    }
+  ]
+}

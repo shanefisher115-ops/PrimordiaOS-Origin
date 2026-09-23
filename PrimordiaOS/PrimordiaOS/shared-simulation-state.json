@@ -1,0 +1,60 @@
+{
+  "status": "online",
+  "realms": {
+    "interface": {
+      "state": {
+        "status": "bound"
+      },
+      "nullState": {
+        "status": "spatial-null"
+      },
+      "antiState": {
+        "status": "spatial-anti"
+      }
+    },
+    "kernel": {
+      "state": {
+        "status": "running"
+      },
+      "nullState": {
+        "status": "causal-null"
+      },
+      "antiState": {
+        "status": "causal-anti"
+      }
+    },
+    "portal": {
+      "state": {
+        "status": "running"
+      },
+      "nullState": {
+        "status": "temporal-null"
+      },
+      "antiState": {
+        "status": "temporal-anti"
+      }
+    },
+    "world": {
+      "state": {
+        "status": "discovered"
+      },
+      "nullState": {
+        "status": "spatial-null"
+      },
+      "antiState": {
+        "status": "spatial-anti"
+      }
+    }
+  },
+  "telemetry": {
+    "spatial": {
+      "topologyScale": 1
+    },
+    "temporal": {
+      "timeOffsetNs": 0
+    },
+    "causal": {
+      "chainScale": 1
+    }
+  }
+}

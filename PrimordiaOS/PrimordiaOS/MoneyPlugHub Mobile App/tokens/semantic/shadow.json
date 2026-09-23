@@ -1,0 +1,12 @@
+{
+  "semantic": {
+    "shadow": {
+      "card": {
+        "value": "{primitive.shadow.card}"
+      },
+      "glow": {
+        "value": "{primitive.shadow.glow}"
+      }
+    }
+  }
+}

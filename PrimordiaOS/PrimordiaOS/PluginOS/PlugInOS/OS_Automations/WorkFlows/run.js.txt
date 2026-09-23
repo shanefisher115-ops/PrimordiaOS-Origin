@@ -1,0 +1,6 @@
+module.exports = {
+  runWorkflow(name, context) {
+    console.log("[PlugInOS] Running workflow:", name);
+    return { status: "completed", name, context };
+  }
+};

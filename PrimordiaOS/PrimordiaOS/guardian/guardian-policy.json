@@ -1,0 +1,20 @@
+{
+  "zero_drift": true,
+  "allow_autonomy_escalation": false,
+  "max_loop_depth": 100,
+  "max_error_rate": 0.01,
+  "allow_self_modification": false,
+  "allow_ai_actions": false,
+  "allow_external_commands": true,
+  "quarantine_on": {
+    "unauthorized_autonomy_change": true,
+    "unauthorized_module_load": true,
+    "unauthorized_file_write": true,
+    "unsafe_ai_suggestion": true
+  },
+  "safe_mode_triggers": {
+    "drift_detected": true,
+    "integrity_violation": true,
+    "repeated_high_severity_cases": true
+  }
+}

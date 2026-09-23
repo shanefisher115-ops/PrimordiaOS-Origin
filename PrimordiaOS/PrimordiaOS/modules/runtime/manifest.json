@@ -1,0 +1,5 @@
+{
+  "name": "runtime",
+  "entry": "./index.js",
+  "commands": ["start", "stop", "status", "enqueue", "drain"]
+}

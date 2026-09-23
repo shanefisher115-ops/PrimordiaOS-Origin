@@ -1,0 +1,27 @@
+// agent/engine.js
+export class AgentEngine {
+  constructor({ perception, reasoning, actions, memory }) {
+    this.perception = perception;
+    this.reasoning = reasoning;
+    this.actions = actions;
+    this.memory = memory;
+  }
+
+  async run(input) {
+    // 1. Perception (decoupled inputs)
+    const perceived = await this.perception.process(input);
+
+    // 2. Reasoning (stateless logic)
+    const decision = await this.reasoning.decide(perceived, this.memory);
+
+    // 3. Actions (modular execution)
+    const results = [];
+    for (const action of decision.actions) {
+      if (this.actions[action]) {
+        results.push(await this.actions[action](decision.payload, this.memory));
+      }
+    }
+
+    return results;
+  }
+}

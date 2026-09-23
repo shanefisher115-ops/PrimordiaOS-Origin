@@ -1,0 +1,7 @@
+{
+  "BALANCE_CHANGED": ["money", "clarity"],
+  "NEW_AFFILIATE_CONVERSION": ["money", "log"],
+  "TRAFFIC_SPIKE": ["traffic", "content"],
+  "TRAFFIC_DROP": ["reset"],
+  "ZERO_EARNINGS_TODAY": ["money", "reset"]
+}

@@ -1,0 +1,37 @@
+{
+  "name": "primordia-nexus",
+  "version": "1.0.0",
+  "description": "PrimordiaOS Nexus Runtime",
+  "type": "module",
+
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node nexus.js",
+    "mcp": "node browser-realm/mcp-server.js",
+    "primordia": "concurrently \"npm run dev\" \"npm run mcp\"",
+    "lint": "echo \"no lint configured\""
+  },
+
+  "dependencies": {
+    "ws": "^8.17.0",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "express": "^4.22.2",
+    "helmet": "^7.0.0",
+    "morgan": "^1.10.0",
+    "node-fetch": "^3.3.2"
+  },
+
+  "devDependencies": {
+    "concurrently": "^10.0.4",
+    "nodemon": "^3.0.1"
+  },
+
+  "bin": {
+    "primordia": "primordiaos/cli.js"
+  },
+
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

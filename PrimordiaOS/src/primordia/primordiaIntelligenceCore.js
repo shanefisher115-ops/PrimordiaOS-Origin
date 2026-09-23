@@ -1,0 +1,20 @@
+// Primordia Intelligence Core
+// Reasoning, projection, and multi-realm cognition.
+export class PrimordiaIntelligenceCore {
+    async reason(input) {
+        // TODO: plug in LLMs, heuristics, planners, narrative engines, etc.
+        return {
+            realm: input.realm,
+            decision: "noop",
+            details: { received: input },
+        };
+    }
+    async project(input) {
+        // TODO: horizon projections, scenario simulation.
+        return {
+            realm: input.realm,
+            decision: "projection",
+            details: { received: input },
+        };
+    }
+}

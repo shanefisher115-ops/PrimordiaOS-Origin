@@ -1,0 +1,59 @@
+{
+  "$schema": "https://primordiaorigin.com/schemas/realm-kernel-v2.json",
+  "realm_id": "realm_physics_simulator",
+  "name": "Primordial Physical Continuum",
+  "version": "2.4.0",
+  "directive_mode": "Cosmic Law & Mathematical Verification",
+  "runtime_architecture": {
+    "engine": "Unreal Engine 5.8",
+    "compute_pipeline": "RDG / DirectCompute SM6",
+    "frequency_hz": 60,
+    "grid_resolution": [64, 64, 64]
+  },
+  "field_exposures": [
+    {
+      "name": "QuantumProbabilityDensity",
+      "type": "scalar_field_3d",
+      "format": "R32_FLOAT",
+      "niagara_binding": "Niagara.DataInterface.VolumeSampler"
+    },
+    {
+      "name": "NavierStokesVelocityVector",
+      "type": "vector_field_3d",
+      "format": "RGBA32_FLOAT",
+      "niagara_binding": "Niagara.DataInterface.VectorField"
+    },
+    {
+      "name": "KerrSpacetimeCurvature",
+      "type": "tensor_field_3d",
+      "format": "RGBA32_FLOAT",
+      "niagara_binding": "Niagara.DataInterface.MetricTensor"
+    }
+  ],
+  "identity_hooks": {
+    "agent_architect": {
+      "binds_to": "KerrBlackHoleParams.Mass",
+      "dynamic_range": [10.0, 1000.0],
+      "telemetry_source": "signalcore.insight_weight"
+    },
+    "agent_visioncore": {
+      "binds_to": "QuantumParams.potential_scale",
+      "dynamic_range": [0.1, 5.0],
+      "telemetry_source": "visioncore.composition_entropy"
+    },
+    "agent_moneyplughub": {
+      "binds_to": "ChaosParams.amplitude",
+      "dynamic_range": [0.0, 10.0],
+      "telemetry_source": "moneyplughub.omega_velocity"
+    },
+    "agent_osmium": {
+      "binds_to": "FluidParams.viscosity",
+      "dynamic_range": [0.0001, 0.05],
+      "telemetry_source": "osmium.ledger_entropy"
+    }
+  },
+  "preservation_rules": {
+    "end_of_cycle": "Osmium_Preservation_Sync",
+    "transmutation_protocol": "PrimordiaFlow_Bifurcation"
+  }
+}

@@ -1,0 +1,5 @@
+{"eventId":"ev_01HXYZ1","sequence":1041,"platform":"tiktok_live","type":"VIEWER_JOIN","timestampMs":1773412000100,"payload":{"userId":"u_9921","username":"cybernaut"}}
+{"eventId":"ev_01HXYZ2","sequence":1042,"platform":"tiktok_live","type":"CHAT_MESSAGE","timestampMs":1773412002340,"payload":{"userId":"u_4412","username":"solon","text":"where is the link for the origin pass?","intent":"LINK_REQUEST"}}
+{"eventId":"ev_01HXYZ3","sequence":1043,"platform":"tiktok_live","type":"CHAT_MESSAGE","timestampMs":1773412003110,"payload":{"userId":"u_8819","username":"matrix_builder","text":"how do I get access right now?","intent":"ACCESS_QUERY"}}
+{"eventId":"ev_01HXYZ4","sequence":1044,"platform":"tiktok_live","type":"GIFT_DONATION","timestampMs":1773412005800,"payload":{"userId":"u_1120","username":"whale_backer","giftName":"Universe Galaxy","giftValueCoins":150}}
+{"eventId":"ev_01HXYZ5","sequence":1045,"platform":"origin_web","type":"FUNNEL_CLICK","timestampMs":1773412009220,"payload":{"targetUrl":"https://primordialorigin.com/access?src=stream_surge"}}

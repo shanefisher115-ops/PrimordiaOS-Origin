@@ -1,0 +1,41 @@
+window.primordial.on('ui-update', (data) => {
+
+  if (data.realmLoad !== undefined)
+    document.getElementById("realm-load").textContent = `Load: ${data.realmLoad}%`;
+
+  if (data.focus !== undefined)
+    document.getElementById("cognition-focus").textContent = `Focus: ${data.focus}`;
+
+  if (data.tension !== undefined)
+    document.getElementById("tension").textContent = `Tension: ${data.tension}%`;
+
+  if (data.mode !== undefined)
+    document.getElementById("kernel-mode").textContent = `Mode: ${data.mode}`;
+
+  if (data.external !== undefined)
+    document.getElementById("external-status").textContent = data.external;
+
+  if (data.lastTelemetry !== undefined)
+    document.getElementById("memory-last").textContent = `Last: ${JSON.stringify(data.lastTelemetry)}`;
+
+  // Agent outputs
+  if (data.sim !== undefined)
+    document.getElementById("sim-output").textContent = JSON.stringify(data.sim);
+
+  if (data.realm !== undefined)
+    document.getElementById("realm-output").textContent = JSON.stringify(data.realm);
+
+  if (data.cognition !== undefined)
+    document.getElementById("cognition-output").textContent = JSON.stringify(data.cognition);
+
+  if (data.antigravity !== undefined)
+    document.getElementById("antigravity-output").textContent = JSON.stringify(data.antigravity);
+
+  // Mode history
+  if (data.modeHistory !== undefined)
+    document.getElementById("mode-log").textContent = JSON.stringify(data.modeHistory);
+
+  // Tick
+  if (data.tick !== undefined)
+    document.getElementById("tick-count").textContent = `Tick: ${data.tick}`;
+});

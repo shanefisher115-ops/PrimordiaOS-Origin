@@ -1,0 +1,6 @@
+module.exports = {
+  runTask(task) {
+    console.log("[PlugInOS] Running task:", task.name);
+    return { status: "completed", task };
+  }
+};

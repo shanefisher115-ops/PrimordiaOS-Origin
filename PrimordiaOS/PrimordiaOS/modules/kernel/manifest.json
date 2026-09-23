@@ -1,0 +1,5 @@
+{
+  "name": "kernel",
+  "entry": "./index.js",
+  "commands": ["start", "stop", "status"]
+}

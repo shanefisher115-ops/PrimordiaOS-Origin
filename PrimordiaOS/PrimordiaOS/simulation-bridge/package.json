@@ -1,0 +1,21 @@
+{
+  "name": "primordiaos-simulation-bridge",
+  "version": "1.0.0",
+  "description": "PrimordiaOS Simulation Bridge — real-time telemetry hub",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "NODE_ENV=development node index.js"
+  },
+  "dependencies": {
+    "cors": "2.8.5",
+    "express": "4.19.2",
+    "ws": "8.18.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Shane",
+  "license": "MIT"
+}

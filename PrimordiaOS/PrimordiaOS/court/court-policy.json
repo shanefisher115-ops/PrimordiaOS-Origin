@@ -1,0 +1,31 @@
+{
+  "zero_drift": true,
+  "allow_autonomy_escalation": false,
+  "allowed_verdicts": [
+    "allow",
+    "allow_with_conditions",
+    "deny",
+    "deny_quarantine",
+    "deny_safe_mode",
+    "deny_rollback"
+  ],
+  "max_module_actions_per_tick": 0,
+  "allow_self_modification": false,
+  "allow_ai_actions": false,
+  "allow_external_commands": true,
+  "require_hearing_for": {
+    "kernel_decisions": true,
+    "ai_suggestions": true,
+    "module_actions": true,
+    "realm_state_changes": true,
+    "autonomy_mode_changes": true,
+    "external_commands": true
+  },
+  "enforcement_priority": {
+    "guardian": "highest",
+    "court": "final authority",
+    "kernel": "subordinate",
+    "advisors": "advisory only",
+    "ai": "advisory only"
+  }
+}

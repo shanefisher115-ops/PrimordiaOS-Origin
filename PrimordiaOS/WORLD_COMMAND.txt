@@ -1,7 +1,0 @@
-{
-  "type": "WORLD_COMMAND",
-  "payload": {
-    "command": "pulse_burst",
-    "intensity": 0.9
-  }
-}

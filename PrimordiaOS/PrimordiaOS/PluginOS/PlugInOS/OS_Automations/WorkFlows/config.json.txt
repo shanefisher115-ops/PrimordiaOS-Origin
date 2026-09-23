@@ -1,0 +1,7 @@
+{
+  "version": "0.1",
+  "enabled": true,
+  "workflows": {
+    "highEnergyRoutine": ["generateContent", "runTask"]
+  }
+}

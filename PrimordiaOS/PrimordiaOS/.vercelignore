@@ -1,0 +1,10 @@
+﻿# Vercel Deployment Shield
+.obsidian/
+vault/04 - System/Attachments/
+vault/**/*.png
+vault/**/*.jpg
+vault/**/*.mp4
+vault/**/*.pdf
+.env.local
+*.log
+node_modules/

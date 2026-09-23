@@ -1,0 +1,10 @@
+{
+  "maxRetries": 3,
+  "retryDelayMs": 2000,
+  "agentHeartbeatIntervalMs": 5000,
+  "agentDeathTimeoutMs": 15000,
+  "enableContextCompaction": true,
+  "enableRollback": true,
+  "rollbackDepth": 5,
+  "logFaultEvents": true
+}

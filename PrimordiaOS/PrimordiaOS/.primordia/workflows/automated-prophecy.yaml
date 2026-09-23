@@ -1,0 +1,10 @@
+name: "Automated Prophecy Oracle Cycle"
+version: "1.0.0"
+trigger:
+  event: "loop"
+  loop_name: "ProphecyLoop"
+  interval_seconds: 5
+steps:
+  - name: "Evaluate Oracle Prediction"
+    command: "Invoke-PrimordialProphecy"
+    default_query: "Harmonic convergence across all 8 chambers."

@@ -1,0 +1,78 @@
+steps:
+  # Step 1: Install dependencies and perform TypeScript typecheck
+  - name: 'node:20-alpine'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        npm install
+        npm run typecheck
+    dir: 'sovereign-cockpit'
+    id: 'typecheck-validation'
+
+  # Step 2: Build Docker image with multi-stage caching
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${COMMIT_SHA}'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:latest'
+      - '-f'
+      - 'sovereign-cockpit/Dockerfile'
+      - 'sovereign-cockpit'
+    id: 'docker-build'
+
+  # Step 3: Push Docker image to Google Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}'
+    id: 'docker-push'
+
+  # Step 4: Deploy Sovereign Cockpit container to Google Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${COMMIT_SHA}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '1Gi'
+      - '--cpu'
+      - '1'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '5'
+      - '--set-env-vars'
+      - 'NODE_ENV=production,UNREAL_BRIDGE_URL=${_UNREAL_BRIDGE_URL},VISIONCORE_URL=${_VISIONCORE_URL},MONEYPLUGHUB_URL=${_MONEYPLUGHUB_URL}'
+      - '--update-secrets'
+      - 'PRIMORDIAOS_KEY=PRIMORDIAOS_KEY:latest'
+    id: 'cloud-run-deploy'
+
+substitutions:
+  _REGION: 'us-central1'
+  _REPO_NAME: 'primordiaos-artifacts'
+  _IMAGE_NAME: 'sovereign-cockpit'
+  _SERVICE_NAME: 'sovereign-cockpit'
+  _UNREAL_BRIDGE_URL: 'ws://unreal-bridge.internal:3000/ws/unreal'
+  _VISIONCORE_URL: 'http://visioncore.internal:5055/vision'
+  _MONEYPLUGHUB_URL: 'http://moneyplughub.internal:3001/telemetry'
+
+images:
+  - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:${COMMIT_SHA}'
+  - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_IMAGE_NAME}:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

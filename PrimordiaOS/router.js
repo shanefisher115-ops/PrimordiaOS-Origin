@@ -1,13 +1,23 @@
-import { generateCaption } from "./ai.ts";
-import { postToX } from "./modules/post-x.ts";
-import { postToInstagram } from "./modules/post-instagram.ts";
-import { postToYouTube } from "./modules/post-youtube.ts";
-export async function autopostRouter(payload) {
-    const caption = await generateCaption(payload);
-    await Promise.all([
-        postToX(caption),
-        postToInstagram(caption),
-        postToYouTube(caption),
-    ]);
-    return caption;
-}
+import { autopostRouter } from "./autopost.ts";
+export default {
+    async fetch(request, env, ctx) {
+        const url = new URL(request.url);
+        const path = url.pathname;
+        if (request.method === "POST" && path === "/autopost") {
+            try {
+                const payload = await request.json();
+                const caption = await autopostRouter(payload);
+                return new Response(JSON.stringify({ caption }), {
+                    headers: { "Content-Type": "application/json" },
+                });
+            }
+            catch (err) {
+                return new Response(JSON.stringify({ error: err.message }), {
+                    status: 500,
+                    headers: { "Content-Type": "application/json" },
+                });
+            }
+        }
+        return new Response("PrimordiaOS autopost worker online");
+    }
+};

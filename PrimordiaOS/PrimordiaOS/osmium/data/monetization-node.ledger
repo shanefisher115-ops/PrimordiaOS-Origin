@@ -1,0 +1,1 @@
+{"timestamp":"2026-08-04T01:26:01.020Z","title":"Monetization Node Activation","origin":"igniteMonetizationNode","intent":"monetization-node-activate","data":{"loop_depth":1,"safety_guards":true,"promotion_rules":"default","referral_engine":true,"simulation_mode":"closed-loop","priority":"high","trigger":"manual"}}

@@ -1,0 +1,19 @@
+// v0.1 State-to-Motion Mapper — combines all visual engines
+
+const { mapStateToParticleConfig } = require('../ParticleField/component');
+const { generateFlow } = require('../FlowEngine/component');
+const { generatePulse } = require('../PulseEngine/component');
+const { generateSurge } = require('../SurgeEngine/component');
+
+function mapStateToMotion(state) {
+  return {
+    particles: mapStateToParticleConfig(state),
+    flow: generateFlow(state),
+    pulse: generatePulse(state),
+    surge: generateSurge(state)
+  };
+}
+
+module.exports = {
+  mapStateToMotion
+};

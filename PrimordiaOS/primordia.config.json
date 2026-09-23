@@ -1,0 +1,23 @@
+{
+  "name": "PrimordiaOS",
+  "mode": "LIVE",
+  "realms": {
+    "live": true,
+    "monetization": true,
+    "amo": true,
+    "analytics": true
+  },
+  "unreal": {
+    "enabled": true,
+    "wsUrl": "ws://localhost:8081",
+    "telemetryEnabled": true
+  },
+  "moneyplughub": {
+    "enabled": true,
+    "rotationIntervalMs": 180000
+  },
+  "amo": {
+    "enabled": true,
+    "loopIntervalMs": 8000
+  }
+}

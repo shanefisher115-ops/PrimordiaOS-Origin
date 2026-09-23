@@ -1,0 +1,44 @@
+body {
+  background: radial-gradient(circle at center, #0a0a0f, #000000);
+  color: #e0e0ff;
+  font-family: 'Consolas', monospace;
+  margin: 0;
+  overflow: hidden;
+}
+
+#cockpit {
+  display: flex;
+  justify-content: space-around;
+  padding: 40px;
+}
+
+.panel {
+  width: 28%;
+  height: 300px;
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border: 2px solid #4e00c2;
+  box-shadow: 0 0 25px #4e00c2;
+  border-radius: 12px;
+  padding: 20px;
+  transition: 0.3s ease;
+}
+
+.panel:hover {
+  box-shadow: 0 0 40px #7a00ff;
+  transform: scale(1.03);
+}
+
+.metric {
+  margin-top: 20px;
+  font-size: 22px;
+  color: #b8aaff;
+}
+
+#footer {
+  position: fixed;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  color: #a0a0ff;
+  font-size: 18px;
+}

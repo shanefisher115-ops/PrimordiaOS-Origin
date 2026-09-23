@@ -1,0 +1,51 @@
+{
+  "name": "primordiaos-frontend",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+
+  },
+  "dependencies": {
+    "next": "14.2.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+
+    "@swc/helpers": "^0.5.2",
+
+    "typescript": "^5.6.3",
+
+    "tailwindcss": "^3.4.10",
+    "postcss": "^8.4.31",
+    "autoprefixer": "^10.4.20",
+
+    "@types/react": "^18.3.3",
+    "@types/node": "^20.11.30",
+
+    "clsx": "^2.1.0",
+
+    "uuid": "^9.0.1",
+
+    "zustand": "^4.5.2",
+
+    "three": "^0.164.0",
+
+    "framer-motion": "^11.0.17",
+
+    "primordia-runtime": "file:../src/primordia/runtime",
+    "primordia-engines": "file:../src/primordia/engines",
+    "primordia-guards": "file:../src/primordia/guards",
+    "primordia-realms": "file:../src/primordia/realms",
+    "primordia-ui": "file:../src/primordia/ui"
+  },
+  "devDependencies": {
+    "@types/uuid": "^9.0.7",
+    "@types/three": "^0.164.0",
+    "@types/zustand": "^4.0.0"
+  }
+}

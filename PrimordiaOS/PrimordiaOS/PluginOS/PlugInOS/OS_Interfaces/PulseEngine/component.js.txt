@@ -1,0 +1,13 @@
+// v0.1 Pulse Engine — rhythmic intensity bursts
+
+function generatePulse(state) {
+  return {
+    pulseRate: 0.5 + state.energy * 1.5,
+    pulseStrength: state.intensity,
+    pulseSharpness: state.focus
+  };
+}
+
+module.exports = {
+  generatePulse
+};

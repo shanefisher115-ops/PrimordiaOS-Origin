@@ -1,0 +1,43 @@
+﻿{
+  "$schema": "https://primordiaorigin.com/schemas/realm-kernel-v2.json",
+  "realm_id": "realm_mission_hub",
+  "name": "Mission Hub Realm",
+  "version": "1.0.0",
+  "directive_mode": "Gamified Workflow & Affiliate Intelligence",
+  "runtime_architecture": {
+    "engine": "PrimordiaOS Core",
+    "compute_pipeline": "Node/TypeScript AMO",
+    "frequency_hz": 30,
+    "grid_resolution": [16, 16, 1]
+  },
+  "field_exposures": [
+    {
+      "name": "MissionProgressVector",
+      "type": "vector_field_2d",
+      "format": "RGBA32_FLOAT",
+      "niagara_binding": "MoneyPlugHub.MissionProgress"
+    },
+    {
+      "name": "RewardEntropyScalar",
+      "type": "scalar_field_2d",
+      "format": "R32_FLOAT",
+      "niagara_binding": "AMO.RewardEntropy"
+    }
+  ],
+  "identity_hooks": {
+    "agent_moneyplughub": {
+      "binds_to": "MissionParams.velocity",
+      "dynamic_range": [0.0, 1.0],
+      "telemetry_source": "moneyplughub.mission_activity"
+    },
+    "agent_amo": {
+      "binds_to": "RewardParams.intensity",
+      "dynamic_range": [0.0, 10.0],
+      "telemetry_source": "amo.reward_flux"
+    }
+  },
+  "preservation_rules": {
+    "end_of_cycle": "MissionHub_Persistence_Sync",
+    "transmutation_protocol": "PrimordiaFlow_MissionEvolution"
+  }
+}

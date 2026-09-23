@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  background: #05030d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(39, 216, 255, 0.16), transparent 30rem),
+    radial-gradient(circle at 10% 25%, rgba(255, 56, 92, 0.13), transparent 24rem),
+    linear-gradient(180deg, #05030d 0%, #09051a 48%, #03020a 100%);
+  color: #f9fbff;
+}
+
+::selection {
+  background: rgba(248, 215, 123, 0.35);
+  color: #ffffff;
+}
+
+.cosmic-noise {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: radial-gradient(circle at center, black, transparent 76%);
+}
+
+.hex-grid {
+  background:
+    linear-gradient(30deg, rgba(39, 216, 255, 0.1) 12%, transparent 12.5%, transparent 87%, rgba(39, 216, 255, 0.1) 87.5%, rgba(39, 216, 255, 0.1)),
+    linear-gradient(150deg, rgba(39, 216, 255, 0.1) 12%, transparent 12.5%, transparent 87%, rgba(39, 216, 255, 0.1) 87.5%, rgba(39, 216, 255, 0.1)),
+    linear-gradient(30deg, rgba(39, 216, 255, 0.1) 12%, transparent 12.5%, transparent 87%, rgba(39, 216, 255, 0.1) 87.5%, rgba(39, 216, 255, 0.1)),
+    linear-gradient(150deg, rgba(39, 216, 255, 0.1) 12%, transparent 12.5%, transparent 87%, rgba(39, 216, 255, 0.1) 87.5%, rgba(39, 216, 255, 0.1)),
+    linear-gradient(60deg, rgba(248, 215, 123, 0.08) 25%, transparent 25.5%, transparent 75%, rgba(248, 215, 123, 0.08) 75%, rgba(248, 215, 123, 0.08)),
+    linear-gradient(60deg, rgba(248, 215, 123, 0.08) 25%, transparent 25.5%, transparent 75%, rgba(248, 215, 123, 0.08) 75%, rgba(248, 215, 123, 0.08));
+  background-position: 0 0, 0 0, 32px 56px, 32px 56px, 0 0, 32px 56px;
+  background-size: 64px 112px;
+}
+
+.text-balance {
+  text-wrap: balance;
+}

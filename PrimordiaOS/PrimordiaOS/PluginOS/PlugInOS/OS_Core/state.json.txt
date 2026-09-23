@@ -1,0 +1,13 @@
+{
+  "version": "0.1.0",
+  "status": "idle",
+  "energy": 0.3,
+  "focus": 0.0,
+  "lastUpdate": null,
+  "mood": "baseline",
+  "streams": {
+    "dataActivity": 0,
+    "tasksInQueue": 0,
+    "signals": 0
+  }
+}

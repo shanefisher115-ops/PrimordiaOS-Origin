@@ -1,0 +1,15 @@
+{
+  "semantic": {
+    "radius": {
+      "card": {
+        "value": "{primitive.radius.lg}"
+      },
+      "button": {
+        "value": "{primitive.radius.full}"
+      },
+      "input": {
+        "value": "{primitive.radius.md}"
+      }
+    }
+  }
+}

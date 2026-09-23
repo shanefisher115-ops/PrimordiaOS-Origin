@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "declaration": true
+  },
+  "include": [
+    "src/contracts/types.ts",
+    "src/telemetry/telemetryCollector.ts",
+    "src/ingest/tiktokLiveAdapter.ts",
+    "src/kernel/economicKernel.ts",
+    "src/kernel/offerEngine.ts",
+    "src/kernel/guardrails.ts",
+    "src/agents/funnelAgent.ts",
+    "src/execution/executionBridge.ts",
+    "src/phase2-orchestrator.ts",
+    "src/phase3-orchestrator.ts"
+  ]
+}

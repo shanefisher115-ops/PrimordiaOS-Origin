@@ -1,13 +1,13 @@
-import { CONFIG } from "../config.ts";
-import { assertPlatformIdentity } from "../identity.ts";
-export async function postToX(caption) {
+import { CONFIG } from "../config";
+import { assertPlatformIdentity } from "../identity";
+export async function postToLinkedin(caption) {
     assertPlatformIdentity("linkedin");
-    await fetch("https://api.twitter.com/2/tweets", {
+    await fetch("https://api.linkedin.com/v2/ugcPosts", {
         method: "POST",
         headers: {
-            Authorization: `Bearer ${CONFIG.X_TOKEN}`,
+            Authorization: `Bearer ${CONFIG.LINKEDIN_TOKEN || ''}`,
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ text: caption }),
+        body: JSON.stringify({ author: "urn:li:person:me", specificContent: { "com.linkedin.ugc.ShareContent": { shareCommentary: { text: caption } } } }),
     });
 }

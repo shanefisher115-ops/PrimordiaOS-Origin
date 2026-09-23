@@ -1,0 +1,39 @@
+{
+  "name": "sovereign-cockpit",
+  "version": "1.0.0",
+  "description": "Sovereign Cockpit subsystem for PrimordiaOS — Multi-Realm Telemetry, CRT Simulation & Holographic HUD",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "node -e \"try { fs.rmSync('dist', { recursive: true, force: true }); } catch {}\""
+  },
+  "keywords": [
+    "primordiaos",
+    "sovereign-cockpit",
+    "telemetry",
+    "crt-simulation",
+    "holographic",
+    "unreal-bridge",
+    "cloud-run"
+  ],
+  "author": "PrimordiaOS Autonomous Swarm",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.12.0",
+    "@types/ws": "^8.5.10",
+    "typescript": "^5.4.0"
+  }
+}

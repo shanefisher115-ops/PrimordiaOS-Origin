@@ -1,0 +1,49 @@
+{
+  "traceId": "trace_1789028658740_313f952a",
+  "taskId": "task_1789028658739_65782477",
+  "idempotencyKey": "idem_b8e98358fca6790750892e92",
+  "loopDepth": 0,
+  "retryCount": 0,
+  "status": "SUCCESS",
+  "startTime": "2026-09-10T08:24:18.740Z",
+  "endTime": "2026-09-10T08:24:18.748Z",
+  "durationMs": 8,
+  "steps": [
+    {
+      "stepNumber": 1,
+      "name": "Execute loop iteration (depth: 0, retriesLeft: 3)",
+      "target": "osmium",
+      "timestamp": "2026-09-10T08:24:18.741Z",
+      "durationMs": 0,
+      "success": true,
+      "details": {
+        "depth": 0,
+        "retriesAttempted": 0
+      }
+    },
+    {
+      "stepNumber": 2,
+      "name": "Route to osmium:record_tx",
+      "target": "osmium",
+      "timestamp": "2026-09-10T08:24:18.748Z",
+      "durationMs": 7,
+      "success": true,
+      "details": {
+        "resultOutput": {
+          "success": true,
+          "entryId": "task_1789028658739_65782477",
+          "transactionHash": "8455675cdd29a9ec5154b46ca21e6c1d6d03290f99a35dce72e9945881b15800",
+          "blockHeight": 1001,
+          "durationMs": 6,
+          "timestamp": "2026-09-10T08:24:18.741Z",
+          "verified": true
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "target": "osmium",
+    "action": "record_tx",
+    "priority": "normal"
+  }
+}

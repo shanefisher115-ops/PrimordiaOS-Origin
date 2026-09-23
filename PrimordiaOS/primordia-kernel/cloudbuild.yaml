@@ -1,0 +1,57 @@
+# ==============================================================================
+# Google Cloud Build Pipeline - PrimordiaOS Kernel Subsystem
+# ==============================================================================
+
+steps:
+  # 1. Build Container Image via Docker
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '$_LOCATION-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA'
+      - '-t'
+      - '$_LOCATION-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:latest'
+      - '.'
+    dir: 'primordia-kernel'
+    id: 'build-image'
+
+  # 2. Push Container Image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '$_LOCATION-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME'
+    id: 'push-image'
+
+  # 3. Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '$_SERVICE_NAME'
+      - '--image=$_LOCATION-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA'
+      - '--region=$_LOCATION'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=8080'
+      - '--memory=1Gi'
+      - '--cpu=1'
+      - '--concurrency=80'
+      - '--min-instances=0'
+      - '--max-instances=10'
+      - '--set-env-vars=PRIMORDIAOS_KEY=${_PRIMORDIAOS_KEY},REALM_REGISTRY_PATH=/app/realms.json,KERNEL_CONFIG_PATH=/app/state.json'
+    id: 'deploy-cloud-run'
+
+substitutions:
+  _LOCATION: 'us-central1'
+  _REPOSITORY: 'primordia-services'
+  _SERVICE_NAME: 'primordia-kernel'
+  _PRIMORDIAOS_KEY: 'PRIM-SOVEREIGN-MASTER-PROD'
+
+images:
+  - '$_LOCATION-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA'
+  - '$_LOCATION-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

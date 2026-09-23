@@ -1,0 +1,145 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "name": "Primordia Ontology",
+  "version": "1.0.0",
+  "description": "Ontological classification schema for all PrimordiaOS entities, realms, modules, agents, and pipelines.",
+  "sovereignty_hierarchy": {
+    "tier_0": {
+      "name": "Human Sovereign",
+      "entity": "Shane",
+      "authority": "Absolute",
+      "powers": ["Veto", "Approval", "Sovereignty Rule Evolution", "Realm Authorization"]
+    },
+    "tier_1": {
+      "name": "Primordia Sovereignty Kernel",
+      "authority": "Supreme",
+      "powers": ["Spine Routing", "State Bus", "Event Broker", "ANTIGRAV Engine"]
+    },
+    "tier_2": {
+      "name": "Guardian Agents",
+      "authority": "High",
+      "powers": ["ANTIGRAV Auditing", "Policy Enforcement", "Collapse Prevention", "Veto Domain Agents"]
+    },
+    "tier_3": {
+      "name": "Domain Agents",
+      "authority": "Medium",
+      "powers": ["Realm Building", "Loop Engineering", "Infra Navigation", "Lexicon Scribing"]
+    },
+    "tier_4": {
+      "name": "Utility Agents",
+      "authority": "Low",
+      "powers": ["Execution", "Testing", "Doc Weaving", "UI Probing"]
+    }
+  },
+  "realms": {
+    "local_realm": {
+      "name": "Local Realm",
+      "slug": "local",
+      "substrate": "Workstation & Local Compute",
+      "vessels": ["Windows Workstation", "Termux Mobile", "Node Kernel Runtime"],
+      "default_port": 3000,
+      "protocol": "IPC / Local TCP / EventSource",
+      "altitude": "Ground State / Substrate Root",
+      "patterns": ["kernel", "local", "workstation", "termux", "cli", "interfaces", "hud", "dashboard"]
+    },
+    "cloud_realm": {
+      "name": "Cloud Realm",
+      "slug": "cloud",
+      "substrate": "Distributed Edge & Cloud Compute",
+      "vessels": ["Cloudflare AI Gateway", "Cloudflare Workers", "Google Cloud Shell", "Cloud Run"],
+      "default_port": 443,
+      "protocol": "HTTPS / Edge Fetch / AI Gateway API",
+      "altitude": "Stratosphere / Global Mesh",
+      "patterns": ["cloudflare", "worker", "cloudrun", "cloud", "fly.toml", "wrangler", "gateway"]
+    },
+    "simulation_realm": {
+      "name": "Simulation Realm",
+      "slug": "simulation",
+      "substrate": "Real-time 3D Virtual & Physics Space",
+      "vessels": ["Unreal Engine 5", "Niagara Particle System", "Physics Kernel", "Pixel Stream"],
+      "default_port": 17800,
+      "protocol": "WebSocket (ws://localhost:17800)",
+      "altitude": "Hyper-Dimensional Visualization",
+      "patterns": ["unreal", "niagara", "physics", "simulation", "pixelstream", "worldbuilder", "17800"]
+    },
+    "economic_realm": {
+      "name": "Economic Realm",
+      "slug": "economy",
+      "substrate": "Autonomous Monetization & Value Routing",
+      "vessels": ["MoneyPlugHub API Engine", "Affiliate Conduits", "Social Posting Loops", "Transaction Router"],
+      "default_port": 3001,
+      "protocol": "REST API / Webhooks / Tunnel (https://moneyplughub.com)",
+      "altitude": "Syntropic Value Engine",
+      "patterns": ["moneyplug", "economy", "affiliate", "posting", "tiktok", "autopost", "syndicate", "3001"]
+    },
+    "identity_realm": {
+      "name": "Identity Realm",
+      "slug": "identity",
+      "substrate": "Cryptographic Ledger & Cognitive Memory",
+      "vessels": ["Osmium Ledger", "Memory Ledger", "Cryptographic Signatures", "Sovereign Profile"],
+      "default_port": 3000,
+      "protocol": "Cryptographic Hash Chain / Append-Only Ledger",
+      "altitude": "Causal / Immutable Core",
+      "patterns": ["ledger", "osmium", "identity", "signature", "profile", "hash"]
+    }
+  },
+  "categories": {
+    "kernel": {
+      "description": "Kernel core state bus, orchestrator, and event broker",
+      "patterns": ["kernel", "spine", "bus", "state", "orchestrator", "bootstrap"]
+    },
+    "agents": {
+      "description": "Sovereignty-governed agents and guardian auditors",
+      "patterns": ["agent", "guardian", "antigrav", "scribe", "navigator", "engineer"]
+    },
+    "realms": {
+      "description": "Realm adapters and continuous substrate interfaces",
+      "patterns": ["realms", "adapter", "substrate"]
+    },
+    "pipelines": {
+      "description": "Integrated execution pipelines",
+      "patterns": ["pipeline", "pipelines"]
+    },
+    "simulation": {
+      "description": "Virtual physics and particle simulation engines",
+      "patterns": ["simulation", "unreal", "niagara", "physics", "vfx"]
+    },
+    "identity": {
+      "description": "Cryptographic ledgers and sovereign identity",
+      "patterns": ["identity", "osmium", "ledger", "signature"]
+    },
+    "economy": {
+      "description": "Monetization and autonomous value engines",
+      "patterns": ["economy", "moneyplug", "affiliate", "loop", "syndicate"]
+    },
+    "interfaces": {
+      "description": "User cockpit, live HUD, REST and WebSocket endpoints",
+      "patterns": ["interface", "interfaces", "hud", "dashboard", "cli", "rest"]
+    },
+    "vessels": {
+      "description": "Host execution containers and runtime wrappers",
+      "patterns": ["vessel", "vessels", "termux", "workstation"]
+    },
+    "config": {
+      "description": "Configurations, ontology, and module registries",
+      "patterns": ["config", "ontology", "registry", "realm-map"]
+    },
+    "docs": {
+      "description": "Architecture, ontology, and API documentation",
+      "patterns": ["doc", "docs", "architecture", "readme", "guide"]
+    },
+    "deprecated": {
+      "description": "Archived or superseded legacy artifacts",
+      "patterns": ["archive", "backup", "legacy", "old", "tmp"]
+    }
+  },
+  "modalities": [
+    "compute",
+    "event_stream",
+    "visual_particles",
+    "voice_audio",
+    "monetary_value",
+    "immutable_ledger",
+    "edge_routing"
+  ]
+}

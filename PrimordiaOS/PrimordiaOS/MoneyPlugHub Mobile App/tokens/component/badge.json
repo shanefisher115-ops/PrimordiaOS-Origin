@@ -1,0 +1,18 @@
+{
+  "component": {
+    "badge": {
+      "background": {
+        "value": "{semantic.color.background-card}"
+      },
+      "icon-color": {
+        "value": "{semantic.color.accent-primary}"
+      },
+      "text-color": {
+        "value": "{semantic.color.text-primary}"
+      },
+      "radius": {
+        "value": "{primitive.radius.md}"
+      }
+    }
+  }
+}

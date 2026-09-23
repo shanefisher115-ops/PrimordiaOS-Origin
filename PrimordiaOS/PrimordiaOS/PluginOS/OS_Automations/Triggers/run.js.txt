@@ -1,0 +1,11 @@
+module.exports = {
+  checkTriggers(state) {
+    const events = [];
+
+    if (state.energy > 0.8) {
+      events.push("onHighActivity");
+    }
+
+    return events;
+  }
+};

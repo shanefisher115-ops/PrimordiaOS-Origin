@@ -1,0 +1,8 @@
+{
+  "id": "task-generate-seed-001",
+  "agent": "seedArchitect",
+  "payload": {
+    "worldTheme": "cosmic cathedral",
+    "complexity": "high"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "PrimordiaOS: Kernel",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build"
+    },
+    {
+      "label": "PrimordiaOS: Electron Shell",
+      "type": "shell",
+      "command": "npm run electron-dev",
+      "options": { "cwd": "${workspaceFolder}/electron-app" }
+    },
+    {
+      "label": "PrimordiaOS: Unreal Editor",
+      "type": "shell",
+      "command": "\"C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor.exe\" PrimordiaUnreal.uproject",
+      "options": { "cwd": "${workspaceFolder}/PrimordiaUnreal" }
+    },
+    {
+      "label": "PrimordiaOS: Cloud Workers",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder}/workers" }
+    },
+    {
+      "label": "PrimordiaOS: All Realms",
+      "dependsOn": [
+        "PrimordiaOS: Kernel",
+        "PrimordiaOS: Electron Shell",
+        "PrimordiaOS: Unreal Editor",
+        "PrimordiaOS: Cloud Workers"
+      ],
+      "group": "build"
+    }
+  ]
+}

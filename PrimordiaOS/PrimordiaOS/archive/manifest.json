@@ -1,0 +1,2707 @@
+{
+  "title": "PrimordiaOS Historical & Preserved Asset Manifest",
+  "archived_at": "2026-09-02T05:01:07.467Z",
+  "total_preserved": 540,
+  "assets": [
+    {
+      "path": ".claude/backups/.claude.json.backup.1786596672452",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": ".copilot/data.db.pre-update-backup-1.0.26-1784914183478",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": ".copilot/data.db.pre-update-backup-1.1.2-1786487171655",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": ".copilot/data.db.pre-update-backup-1.1.2-1786487171942",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": ".vscode/extensions/ms-dotnettools.csdevkit-3.20.199-win32-x64/media/open-folder-win.svg",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "consolidation-engine/archiver.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783299408630.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335111839.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335112070.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335112284.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335112485.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335112893.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335113120.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335113329.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335113694.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335114174.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335114392.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335114879.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335115265.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335115487.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335115782.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335116011.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335116706.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335116737.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335116910.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335117132.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335117410.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/backups/firestore_backup_virtual_1783335117832.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugIn-OS/primordial-origin/scripts/backup_firestore.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/abortcontroller.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/abs.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/abs.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/actualApply.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/actualApply.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/api.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/application.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/applyBind.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/applyBind.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/assert.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/async_hooks.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/balanced-pool.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/blob.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/bom-handling.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/browser.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/buffer.buffer.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/buffer.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/cache-interceptor.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/cache.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/charset.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/child_process.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/client-stats.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/client.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/cluster.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/common.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/connector.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/console.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/constants.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/consumers.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/content-type.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/cookies.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/core-js.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/crypto.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/dbcs-codec.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/dbcs-data.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/dgram.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/diagnostics-channel.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/diagnostics_channel.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/dispatcher.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/dispatcher1-wrapper.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/dns.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/domain.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/domexception.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/encoding.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/encoding.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/encodings.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/errors.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/esm.min.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/esm.min.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/eval.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/eval.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/events.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/eventsource.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/express.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/fetch.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/file.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/file.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/float16array.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/floor.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/floor.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/formdata-to-blob.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/formdata.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/FormData.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/formdata.min.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/from.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/from.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/fs.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/functionApply.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/functionApply.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/functionCall.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/functionCall.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/get-own-property-symbols.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/get.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/get.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/GetIntrinsic.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/global-dispatcher.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/global-origin.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/globals.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/globals.typedarray.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/gOPD.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/gOPD.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/h2c-client.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/handlers.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/header.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/http.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/http2.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/https.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/implementation.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/importmeta.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/index.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/index.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/index.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/index_20210527203842.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/inherits.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/inherits_browser.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/inspector.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/inspector.generated.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/interceptors.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/internal.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/ipaddr.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/ipaddr.js.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/ipaddr.min.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/isFinite.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/isFinite.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/isInteger.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/isInteger.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/isNaN.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/isNaN.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/isNegativeZero.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/isNegativeZero.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/isObject.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/isObject.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/iter.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/json.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/language.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.decorators.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.decorators.legacy.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.dom.asynciterable.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.dom.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.dom.iterable.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2015.collection.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2015.core.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2015.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2015.generator.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2015.iterable.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2015.promise.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2015.proxy.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2015.reflect.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2015.symbol.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2015.symbol.wellknown.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2016.array.include.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2016.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2016.full.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2016.intl.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2017.arraybuffer.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2017.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2017.date.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2017.full.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2017.intl.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2017.object.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2017.sharedmemory.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2017.string.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2017.typedarrays.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2018.asyncgenerator.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2018.asynciterable.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2018.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2018.full.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2018.intl.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2018.promise.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2018.regexp.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2019.array.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2019.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2019.full.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2019.intl.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2019.object.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2019.string.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2019.symbol.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2020.bigint.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2020.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2020.date.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2020.full.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2020.intl.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2020.number.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2020.promise.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2020.sharedmemory.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2020.string.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2020.symbol.wellknown.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2021.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2021.full.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2021.intl.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2021.promise.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2021.string.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2021.weakref.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2022.array.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2022.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2022.error.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2022.full.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2022.intl.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2022.object.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2022.regexp.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2022.string.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2023.array.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2023.collection.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2023.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2023.full.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2023.intl.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2024.arraybuffer.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2024.collection.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2024.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2024.full.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2024.object.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2024.promise.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2024.regexp.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2024.sharedmemory.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2024.string.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2025.collection.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2025.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2025.float16.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2025.full.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2025.intl.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2025.iterator.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2025.promise.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es2025.regexp.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es5.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.es6.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.esnext.array.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.esnext.collection.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.esnext.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.esnext.date.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.esnext.decorators.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.esnext.disposable.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.esnext.error.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.esnext.full.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.esnext.intl.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.esnext.sharedmemory.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.esnext.temporal.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.esnext.typedarrays.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/lib.scripthost.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/list.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/max.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/max.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/maxArrayLength.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/maxArrayLength.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/maxSafeInteger.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/maxSafeInteger.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/maxValue.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/maxValue.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/mediaType.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/merge-exports.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/messaging.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/mimeScore.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/min.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/min.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/mock-call-history.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/mock-client.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/mock-errors.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/mock-interceptor.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/mock-pool.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/mod.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/mod.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/module.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/navigator.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/net.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/node.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/Object.getPrototypeOf.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/Object.getPrototypeOf.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/os.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/package.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/patch.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/path.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/performance.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/perf_hooks.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/plugin-os.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/polyfill.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/ponyfill.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/pool-stats.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/pool.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/posix.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/pow.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/pow.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/process.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/promises.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/punycode.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/querystring.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/quic.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/range.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/range.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/raw.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/read.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/readable.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/readline.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/ref.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/ref.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/Reflect.getPrototypeOf.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/Reflect.getPrototypeOf.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/reflectApply.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/reflectApply.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/repl.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/reporters.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/request.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/RequireObjectCoercible.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/RequireObjectCoercible.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/response.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/retry-handler.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/round-robin-pool.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/round.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/round.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/sbcs-codec.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/sbcs-data-generated.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/sbcs-data.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/sea.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/set.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/set.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/shams.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/shams.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/sign.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/sign.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/sqlite.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/storage.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/stream.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/streams.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/streams.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/strict.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/string_decoder.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/syntax.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/syntax.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/test.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/tests.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/text.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/timers.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/tls.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/ToObject.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/ToObject.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/trace_events.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/tsconfig.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/tsserverlibrary.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/tty.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/type.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/type.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/types.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/typescript.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/uri.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/uri.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/url.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/urlencoded.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/utf16.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/utf32.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/utf7.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/util.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/utility.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/utils.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/v8.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/view.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/vm.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/wasi.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/web.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/webidl.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/websocket.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/win32.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/.pluginos_backup_20260630-162507/zlib.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/New folder/CASH FLOW",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PlugInOS/New folder/New Text Document.txt",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS/archive/manifest.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS/archive/README.md",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS/Automation/Scripts/New Compressed (zipped) Folder.zip",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS/Git/mingw64/bin/git-upload-archive.exe",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS/Git/usr/bin/backup",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS/Git/usr/bin/fold.exe",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS/obsidian vault/10 - Archive/deprecated.md.md",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS/PluginOS/New folder/CASH FLOW",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS/PluginOS/New folder/New Text Document.txt",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS/PluginOS/PlugInOS/New folder/CASH FLOW",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS/PluginOS/PlugInOS/New folder/New Text Document.txt",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS/PluginOS/PlugInOS 1/.pluginos_backup_20260630-162507/abortcontroller.d.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS/primordiaos-obsidian-scaffold.ps1",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/# PRIMORDIAL OS — GOD MASTER TERMIN.txt",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/generate_tokens.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/googleConnector.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/lib/cockpitLogger.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/lib/constitution.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/lib/governance.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/lib/hotSwapEngine.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/lib/notion.config.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/lib/notion.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/lib/orchestrator.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/master-terminal.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/New Compressed (zipped) Folder.zip",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/os.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/OSlogin.ps1",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/package-lock.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/package.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/plugin-os.ps1",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/plugin-os.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/PlugInOS/Automations.txt",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/PlugInOS/Bonuses.txt",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/PlugInOS/conetent os zip.zip",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/PlugInOS/Content-Packs.txt",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/PlugInOS/index.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/PlugInOS/Plug-in-os.html.txt",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/PlugInOS/Referral-Hub.txt",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/PlugInOS/start-here.txt",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/plugins/pluginLoader.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/ReferralTracker.ps1",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/server.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/src/plugin-os.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/stream-launcher.bat",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PlugInOS/tsconfig.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordia-codex-integration/architecture/codex-capability-map.md",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordia-codex-integration/architecture/deployment.md",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordia-codex-integration/architecture/monetization.md",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordia-codex-integration/architecture/system-overview.md",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordia-codex-integration/architecture/zero-trust-flow.md",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordia-codex-integration/deployment/docker-compose.yml",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordia-codex-integration/deployment/ecosystem.config.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordia-codex-integration/deployment/healthcheck.sh",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordia-codex-integration/deployment/nginx.conf",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordia-redirect-engine/data/offers.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordia-redirect-engine/Dockerfile",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordia-redirect-engine/package-lock.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordia-redirect-engine/package.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordia-redirect-engine/server.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordia-webhook/index.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordiaflow/generator_loop.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordiaflow/vision_loop.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial/sovereignty/enforcer.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial/sovereignty/hierarchy.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/.dockerignore",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/.gcloudignore",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/api/governance.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/api/metrics.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/api/tasks.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783299408630.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335111839.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335112070.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335112284.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335112485.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335112893.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335113120.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335113329.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335113694.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335114174.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335114392.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335114879.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335115265.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335115487.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335115782.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335116011.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335116706.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335116737.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335116910.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335117132.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335117410.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/backups/firestore_backup_virtual_1783335117832.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/Dockerfile",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/infra/train_pipeline.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/package-lock.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/package.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/public/landing.css",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/public/landing.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/public/legal.html",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/public/origin.html",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/public/player.css",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/public/player.html",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/public/player.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/public/style.css",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/scripts/backup_firestore.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/scripts/seed_content_engine.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/primordial-origin/server.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/.env",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/cli/primordia.config.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/cli/primordia.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/modules/money_profile.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/package-lock.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/package.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/primordia.cmd",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/primordia.ps1",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/script.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/server.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/shell/main.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/shell/package-lock.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/shell/package.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/shell/renderer.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/shell/style.css",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/style.css",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v10-shell/main.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v10-shell/package-lock.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v10-shell/package.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v10-shell/renderer.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v10-shell/style.css",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v14-holo/main.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v14-holo/package-lock.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v14-holo/package.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v14-holo/renderer.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v14-holo/style.css",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v15-multiwindow/main.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v15-multiwindow/package-lock.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v15-multiwindow/package.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v15-multiwindow/renderer.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v15-multiwindow/style.css",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v16-simviewport/main.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v16-simviewport/package-lock.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v16-simviewport/package.json",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v16-simviewport/renderer.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Archive/legacy/PrimordialOS/v16-simviewport/style.css",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "PrimordiaOS_Master/.codex/.tmp/plugins/README.md",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "science-skills/skills/alphafold_database_fetch_and_analyze/references/citation.bib",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "science-skills/skills/alphafold_database_fetch_and_analyze/scripts/analyze_pae.py",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "science-skills/skills/alphafold_database_fetch_and_analyze/scripts/analyze_plddt.py",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "science-skills/skills/alphafold_database_fetch_and_analyze/scripts/fetch_structure.py",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "science-skills/skills/alphafold_database_fetch_and_analyze/SKILL.md",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "science-skills/skills/foldseek_structural_search/references/citation.bib",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "science-skills/skills/foldseek_structural_search/scripts/search.py",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "science-skills/skills/foldseek_structural_search/SKILL.md",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "scratch/cleanup_old_instances.ps1",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "shell_backup/BootSequence.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "shell_backup/GlobalNarrator.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "shell_backup/GlobalPulse.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "shell_backup/GlobalTimeline.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "shell_backup/index.js",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "shell_backup/PrimordiaShell.jsx",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "shell_backup/RealmManager.jsx",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "shell_backup/styles/shell.css",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "tmp_cf_add_domain.py",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "tmp_cf_check.py",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "tmp_cf_pages.py",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "tmp_cf_pages_domains.py",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "tmp_cf_verify_domain.py",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "tmp_cf_zone_dns.py",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "tmp_check_cf.py",
+      "sizeBytes": 0,
+      "classification": "archive"
+    },
+    {
+      "path": "vertex-placeholder.ts",
+      "sizeBytes": 0,
+      "classification": "archive"
+    }
+  ]
+}

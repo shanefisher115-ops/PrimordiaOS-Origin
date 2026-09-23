@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Primordial OmniScience — Meta-Agent Console</title>
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: black;
+      color: #00ffea;
+      font-family: Consolas, monospace;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #omniscience-output {
+      flex: 1;
+      padding: 10px;
+      white-space: pre-wrap;
+      overflow-y: auto;
+    }
+
+    #omniscience-input {
+      width: 100%;
+      background: #111;
+      color: #00ffea;
+      border: none;
+      padding: 10px;
+      font-family: inherit;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="omniscience-output">
+    Primordial OmniScience online.
+    Ask anything.
+  </div>
+
+  <input id="omniscience-input" placeholder="> " autofocus />
+
+  <script src="renderer.js"></script>
+</body>
+</html>

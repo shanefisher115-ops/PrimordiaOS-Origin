@@ -1,0 +1,81 @@
+{
+  "document": {
+    "id": "figma_primordiaos_master",
+    "name": "PrimordiaOS Core UI & MoneyPlugHub Storefront",
+    "version": "4.2.0",
+    "lastModified": "2026-09-01T18:00:00Z",
+    "children": [
+      {
+        "id": "frame_01_dashboard",
+        "name": "Screen_01_SovereignDashboard",
+        "type": "FRAME",
+        "bounds": { "x": 0, "y": 0, "width": 1290, "height": 2796 },
+        "backgroundColor": "#07090E",
+        "components": [
+          { "id": "cmp_status_bar", "name": "StatusBar_Mythic", "type": "COMPONENT" },
+          { "id": "cmp_sigil_header", "name": "Header_RealmSigil_Primordia", "type": "COMPONENT" },
+          { "id": "cmp_metric_orb", "name": "Visual_CognitiveAltitude_Orb", "type": "COMPONENT" },
+          { "id": "cmp_agent_stream", "name": "List_ActiveAgentStreams", "type": "COMPONENT" },
+          { "id": "cmp_action_forge", "name": "Button_IgniteSubstrateForge", "type": "COMPONENT" }
+        ],
+        "exportSettings": [
+          { "format": "PNG", "suffix": "@3x", "constraint": { "type": "SCALE", "value": 3 } }
+        ]
+      },
+      {
+        "id": "frame_02_moneyplughub",
+        "name": "Screen_02_MoneyPlugHub_Syndicate",
+        "type": "FRAME",
+        "bounds": { "x": 1400, "y": 0, "width": 1290, "height": 2796 },
+        "backgroundColor": "#0D111A",
+        "components": [
+          { "id": "cmp_wallet_card", "name": "Card_AffiliateRevenueVault", "type": "COMPONENT" },
+          { "id": "cmp_loop_visualizer", "name": "Visual_AutonomousLoopGraph", "type": "COMPONENT" },
+          { "id": "cmp_instant_payout", "name": "Button_TriggerSyndicatePayout", "type": "COMPONENT" }
+        ],
+        "exportSettings": [
+          { "format": "PNG", "suffix": "@3x", "constraint": { "type": "SCALE", "value": 3 } }
+        ]
+      },
+      {
+        "id": "frame_03_antigrav_guardian",
+        "name": "Screen_03_Antigrav_CognitiveShield",
+        "type": "FRAME",
+        "bounds": { "x": 2800, "y": 0, "width": 1290, "height": 2796 },
+        "backgroundColor": "#07090E",
+        "components": [
+          { "id": "cmp_score_gauge", "name": "Gauge_AntigravScore_98", "type": "COMPONENT" },
+          { "id": "cmp_friction_matrix", "name": "Matrix_AntiCollapseFriction", "type": "COMPONENT" },
+          { "id": "cmp_veto_terminal", "name": "Terminal_GuardianAuditLog", "type": "COMPONENT" }
+        ],
+        "exportSettings": [
+          { "format": "PNG", "suffix": "@3x", "constraint": { "type": "SCALE", "value": 3 } }
+        ]
+      },
+      {
+        "id": "frame_04_desktop_control_room",
+        "name": "Screen_04_WindowsStore_CommandDeck",
+        "type": "FRAME",
+        "bounds": { "x": 0, "y": 3000, "width": 3840, "height": 2160 },
+        "backgroundColor": "#05070B",
+        "components": [
+          { "id": "cmp_multi_realm_matrix", "name": "Grid_ActiveRealms_Continuum", "type": "COMPONENT" },
+          { "id": "cmp_telemetry_flow", "name": "Graph_QuantumProbabilityDensity", "type": "COMPONENT" }
+        ],
+        "exportSettings": [
+          { "format": "PNG", "suffix": "_4k", "constraint": { "type": "SCALE", "value": 1 } }
+        ]
+      },
+      {
+        "id": "frame_05_master_icon",
+        "name": "Master_App_Icon_Sigil",
+        "type": "FRAME",
+        "bounds": { "x": 4000, "y": 3000, "width": 1024, "height": 1024 },
+        "backgroundColor": "#07090E",
+        "components": [
+          { "id": "cmp_master_sigil", "name": "Vector_SovereignPrimordiaSigil", "type": "COMPONENT" }
+        ]
+      }
+    ]
+  }
+}

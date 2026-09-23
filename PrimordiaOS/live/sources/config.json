@@ -1,0 +1,20 @@
+{
+  "affiliate_stats": {
+    "type": "api",
+    "poll_interval_seconds": 600,
+    "endpoint": "https://api.example.com/affiliate/today",
+    "enabled": true
+  },
+  "traffic_stats": {
+    "type": "api",
+    "poll_interval_seconds": 120,
+    "endpoint": "https://api.example.com/traffic/today",
+    "enabled": true
+  },
+  "bank_balance": {
+    "type": "api",
+    "poll_interval_seconds": 300,
+    "endpoint": "https://api.example.com/bank/balance",
+    "enabled": true
+  }
+}

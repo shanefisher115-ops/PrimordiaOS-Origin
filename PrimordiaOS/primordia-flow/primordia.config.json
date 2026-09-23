@@ -1,0 +1,29 @@
+{
+  "mode": "real",
+
+  "dataSources": {
+    "apollo": {
+      "enabled": true,
+      "apiKey": "G8UrCoN9LL8-wTkwap3drw",
+      "endpoints": {
+        "peopleMatch": "https://api.apollo.io/v1/people/match",
+        "peopleBulkMatch": "https://api.apollo.io/v1/people/bulk_match",
+        "peopleShow": "https://api.apollo.io/v1/people/show",
+
+        "contactsSearch": "https://api.apollo.io/v1/contacts/search",
+        "contactsShow": "https://api.apollo.io/v1/contacts/show",
+
+        "orgSearch": "https://api.apollo.io/v1/organizations/search",
+        "orgShow": "https://api.apollo.io/v1/organizations/show",
+        "orgEnrich": "https://api.apollo.io/v1/organizations/enrich",
+
+        "mixedPeople": "https://api.apollo.io/v1/mixed_people/api_search",
+        "mixedCompanies": "https://api.apollo.io/v1/mixed_companies/search",
+
+        "newsSearch": "https://api.apollo.io/v1/news_articles/search",
+
+        "webhookResult": "https://api.apollo.io/v1/webhook_result/show"
+      }
+    }
+  }
+}

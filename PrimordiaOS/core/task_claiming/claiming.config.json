@@ -1,0 +1,6 @@
+{
+  "claimTimeoutMs": 8000,
+  "maxClaimAttempts": 5,
+  "claimRetryDelayMs": 300,
+  "logClaimEvents": true
+}

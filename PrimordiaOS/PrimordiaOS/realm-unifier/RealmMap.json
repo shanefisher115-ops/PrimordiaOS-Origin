@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "PrimordiaOS Unified Realm Map",
+  "version": "1.0.0",
+  "sovereign": "Shane (Tier 0)",
+  "worldState": "STABLE",
+  "originLawId": "PRIMORDIAL_ORIGIN_LAW_001",
+  "lastUpdated": "2026-09-10T14:45:00.000Z",
+  "realms": [
+    {
+      "id": "node_kernel",
+      "displayName": "PrimordiaOS Sovereign Node Kernel",
+      "category": "core",
+      "endpoints": {
+        "http": "http://localhost:3000",
+        "ws": "ws://localhost:17800",
+        "eventServer": "ws://localhost:17800"
+      },
+      "protocol": "HTTP/1.1 + WebSocket",
+      "status": "ONLINE",
+      "health": "HEALTHY",
+      "tokenAuth": true,
+      "capabilities": [
+        "masterplane_routing",
+        "dag_microkernel_supervisor",
+        "merkle_audit_logger",
+        "sovereign_terminal_exec",
+        "license_verification"
+      ],
+      "telemetryKeys": [
+        "cpu_percent",
+        "ram_percent",
+        "disk_mutations",
+        "active_clients",
+        "uptime_sec"
+      ]
+    },
+    {
+      "id": "unreal_simulation",
+      "displayName": "Unreal Engine 5.4 Sovereign Simulation Realm",
+      "category": "simulation",
+      "endpoints": {
+        "ws": "ws://localhost:17800",
+        "httpSignal": "http://localhost:3000/api/unreal/signal",
+        "stateCheck": "http://localhost:3000/api/unreal/state"
+      },
+      "protocol": "WebSocket + JSON-RPC",
+      "status": "BOUND",
+      "health": "HEALTHY",
+      "tokenAuth": true,
+      "capabilities": [
+        "niagara_particle_bursts",
+        "sovereign_pawn_tracking",
+        "spatial_collision_detection",
+        "60fps_simulation_telemetry",
+        "lut_color_grading"
+      ],
+      "telemetryKeys": [
+        "fps",
+        "frametime_ms",
+        "gpu_render_ms",
+        "active_particles",
+        "active_pawns",
+        "draw_calls"
+      ]
+    },
+    {
+      "id": "antigravity_pipeline",
+      "displayName": "Google Antigravity Agent Pipeline",
+      "category": "orchestration",
+      "endpoints": {
+        "http": "http://localhost:8082",
+        "health": "http://localhost:8082/health",
+        "pipelines": "http://localhost:8082/pipelines"
+      },
+      "protocol": "HTTP/REST",
+      "status": "BOUND",
+      "health": "HEALTHY",
+      "tokenAuth": true,
+      "capabilities": [
+        "dag_pipeline_execution",
+        "multi_agent_routing",
+        "idempotent_task_execution",
+        "safety_quarantine_enforcement"
+      ],
+      "telemetryKeys": [
+        "active_runs",
+        "registered_pipelines",
+        "quarantined_count",
+        "friction_score"
+      ]
+    },
+    {
+      "id": "visioncore",
+      "displayName": "VisionCore Perceptual & Cognitive Subsystem",
+      "category": "cognition",
+      "endpoints": {
+        "http": "http://localhost:8080",
+        "health": "http://localhost:8080/health",
+        "process": "http://localhost:8080/api/visioncore/process",
+        "styles": "http://localhost:8080/api/visioncore/styles"
+      },
+      "protocol": "HTTP/REST + JSON Stream",
+      "status": "BOUND",
+      "health": "HEALTHY",
+      "tokenAuth": false,
+      "capabilities": [
+        "cognitive_graph_synthesis",
+        "attention_weight_distribution",
+        "perceptual_node_clustering",
+        "style_memory_projection"
+      ],
+      "telemetryKeys": [
+        "node_count",
+        "edge_count",
+        "average_attention",
+        "active_anomalies"
+      ]
+    },
+    {
+      "id": "spatial_memory",
+      "displayName": "Spatial Memory Engine",
+      "category": "memory",
+      "endpoints": {
+        "http": "http://localhost:8080",
+        "health": "http://localhost:8080/healthz",
+        "query": "http://localhost:8080/api/query",
+        "sync": "http://localhost:8080/api/sync"
+      },
+      "protocol": "HTTP/REST + WAL SQLite",
+      "status": "BOUND",
+      "health": "HEALTHY",
+      "tokenAuth": true,
+      "capabilities": [
+        "3d_vector_spatial_indexing",
+        "temporal_burst_clustering",
+        "cross_realm_context_sync",
+        "episodic_snapshot_persistence"
+      ],
+      "telemetryKeys": [
+        "total_nodes",
+        "total_edges",
+        "spatial_clusters",
+        "temporal_clusters"
+      ]
+    },
+    {
+      "id": "agent_swarms",
+      "displayName": "Autonomous Sovereign Agent Swarms",
+      "category": "agents",
+      "endpoints": {
+        "swarmState": "http://localhost:3000/api/swarm/state",
+        "concurrencyTick": "local://masterplane/concurrency"
+      },
+      "protocol": "In-Memory EventBus + Async Promise Queue",
+      "status": "ACTIVE",
+      "health": "HEALTHY",
+      "tokenAuth": true,
+      "capabilities": [
+        "moneyplughub_autonomous_loop",
+        "faceless_media_production",
+        "notion_sync_bridge",
+        "cad_architect_generation"
+      ],
+      "telemetryKeys": [
+        "active_swarms",
+        "tasks_completed",
+        "loop_depth",
+        "merkle_hashes_written"
+      ]
+    },
+    {
+      "id": "deployment_vessels",
+      "displayName": "Docker & Cloud Run Deployment Vessels",
+      "category": "infrastructure",
+      "endpoints": {
+        "cloudRunHealth": "/health",
+        "dockerSocket": "npipe:////./pipe/docker_engine"
+      },
+      "protocol": "Container Daemon & OCI Runtime",
+      "status": "READY",
+      "health": "HEALTHY",
+      "tokenAuth": true,
+      "capabilities": [
+        "serverless_cloud_run_scaling",
+        "container_health_probes",
+        "isolated_sandbox_execution",
+        "multi_tenant_segregation"
+      ],
+      "telemetryKeys": [
+        "container_instances",
+        "memory_utilization_mb",
+        "ingress_requests_sec"
+      ]
+    }
+  ],
+  "topologyBindings": [
+    {
+      "id": "bind_kernel_unreal",
+      "source": "node_kernel",
+      "target": "unreal_simulation",
+      "channel": "bi_directional_ws",
+      "bandwidth": "60hz_telemetry",
+      "latencyTargetMs": 16,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "bind_unreal_visioncore",
+      "source": "unreal_simulation",
+      "target": "visioncore",
+      "channel": "perceptual_node_pipeline",
+      "bandwidth": "event_driven",
+      "latencyTargetMs": 33,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "bind_unreal_spatial_memory",
+      "source": "unreal_simulation",
+      "target": "spatial_memory",
+      "channel": "spatial_vector_stream",
+      "bandwidth": "delta_compressed",
+      "latencyTargetMs": 50,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "bind_visioncore_antigravity",
+      "source": "visioncore",
+      "target": "antigravity_pipeline",
+      "channel": "directive_orchestration_bus",
+      "bandwidth": "rpc",
+      "latencyTargetMs": 100,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "bind_antigravity_swarms",
+      "source": "antigravity_pipeline",
+      "target": "agent_swarms",
+      "channel": "subagent_dispatch_queue",
+      "bandwidth": "fifo_promise_queue",
+      "latencyTargetMs": 25,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "bind_swarms_vessels",
+      "source": "agent_swarms",
+      "target": "deployment_vessels",
+      "channel": "container_task_lifecycle",
+      "bandwidth": "job_scheduler",
+      "latencyTargetMs": 250,
+      "status": "ACTIVE"
+    }
+  ],
+  "subagents": [
+    {
+      "name": "RealmBinder",
+      "role": "Realm Connectivity Mapper",
+      "tier": 3,
+      "state": "ACTIVE",
+      "lastAudit": "2026-09-10T14:45:00.000Z"
+    },
+    {
+      "name": "TelemetryWeaver",
+      "role": "Bidirectional Stream Harmonizer",
+      "tier": 3,
+      "state": "ACTIVE",
+      "lastAudit": "2026-09-10T14:45:00.000Z"
+    },
+    {
+      "name": "SovereignGovernor",
+      "role": "Origin Law & Safety Enforcer",
+      "tier": 2,
+      "state": "ACTIVE",
+      "lastAudit": "2026-09-10T14:45:00.000Z"
+    }
+  ],
+  "governance": {
+    "sovereigntyTier": "Tier 0 (Shane)",
+    "originLawCompliance": "VERIFIED_COMPLIANT",
+    "antigravityFrictionScore": 88,
+    "collapseRisk": "NONE",
+    "activeCircuitBreakers": 0
+  }
+}

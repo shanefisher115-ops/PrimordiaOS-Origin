@@ -1,0 +1,7 @@
+{
+  "maxMessageSizeKB": 256,
+  "enableBroadcast": true,
+  "enableSharedMemory": true,
+  "enableRPC": true,
+  "logCommEvents": true
+}

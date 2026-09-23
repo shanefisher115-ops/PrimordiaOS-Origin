@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Primordial Cockpit</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div id="cockpit">
+    <header id="topbar">
+      <h1 id="primordial-core">PRIMORDIAL ORIGIN</h1>
+      <div id="status-bar">
+        <span id="god-status">🟢 ENGINE LINKED</span>
+      </div>
+    </header>
+
+    <main id="grid">
+      <div class="column left">
+        <section>
+          <h2>Simulation Objects</h2>
+          <div id="objects-list"></div>
+        </section>
+        <div id="viewport">
+          <div id="obj-CAD_FILE_A" class="obj core"></div>
+        </div>
+
+        <section>
+          <h2>Engine Control</h2>
+          <div class="button-row">
+            <button onclick="resetPhysics()">Reset Positions</button>
+            <button onclick="boostSatellite()">Boost Satellite</button>
+          </div>
+        </section>
+      </div>
+
+      <div class="column right">
+        <section>
+          <h2>Viewport</h2>
+          <div id="viewport">
+            <div id="obj-core" class="obj core"></div>
+            <div id="obj-satellite" class="obj satellite"></div>
+          </div>
+        </section>
+
+        <section>
+          <h2>Engine State</h2>
+          <pre id="engine-state"></pre>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,96 @@
+# ============================================================
+# PRIMORDIAL ORIGIN — COSMIC BOOT SEQUENCE (MASTER FILE)
+# Autonomous Startup Script v1.0 — Built for Shane
+# ============================================================
+
+Write-Host ""
+Write-Host "==============================================" -ForegroundColor Magenta
+Write-Host "        PRIMORDIAL ORIGIN — BOOTING           " -ForegroundColor Yellow
+Write-Host "==============================================" -ForegroundColor Magenta
+Write-Host ""
+
+# ------------------------------------------------------------
+# 1. Jump to PrimordialOS directory
+# ------------------------------------------------------------
+
+$AppPath = "C:\PlugInOS\electron-app"
+
+Write-Host "→ Navigating to PrimordialOS directory..." -ForegroundColor Cyan
+Set-Location $AppPath
+
+if (!(Test-Path "$AppPath\package.json")) {
+    Write-Host "✖ ERROR: package.json not found in $AppPath" -ForegroundColor Red
+    Write-Host "✖ You are not inside the correct app folder." -ForegroundColor Red
+    exit
+}
+
+Write-Host "✓ Directory verified." -ForegroundColor Green
+
+# ------------------------------------------------------------
+# 2. Kill old Electron + Node processes
+# ------------------------------------------------------------
+
+Write-Host "→ Clearing old Electron/Node processes..." -ForegroundColor Cyan
+
+Get-Process "electron" -ErrorAction SilentlyContinue | Stop-Process -Force
+Get-Process "node" -ErrorAction SilentlyContinue | Stop-Process -Force
+
+Write-Host "✓ Process cleanup complete." -ForegroundColor Green
+
+# ------------------------------------------------------------
+# 3. Log startup event
+# ------------------------------------------------------------
+
+$LogPath = "$AppPath\data\start-log.txt"
+"BOOT: $(Get-Date)" | Out-File -FilePath $LogPath -Append
+
+Write-Host "→ Startup logged." -ForegroundColor Cyan
+
+# ------------------------------------------------------------
+# 4. Launch Primordial Origin cockpit
+# ------------------------------------------------------------
+
+Write-Host "→ Launching Primordial Origin cosmic cockpit..." -ForegroundColor Cyan
+
+npm start
+
+Write-Host ""
+Write-Host "✓ Cockpit launched." -ForegroundColor Green
+Write-Host ""
+
+# ------------------------------------------------------------
+# 5. Cosmic Core Pulse Initialization
+# ------------------------------------------------------------
+
+Write-Host "→ Initializing Primordial Core pulse..." -ForegroundColor Cyan
+Start-Sleep -Seconds 2
+Write-Host "⚡ Primordial Core synchronized." -ForegroundColor Magenta
+
+# ------------------------------------------------------------
+# 6. God Agent Initialization
+# ------------------------------------------------------------
+
+Write-Host "→ Initializing God Agent..." -ForegroundColor Cyan
+
+$Snapshot = @{
+    ts = (Get-Date).ToString()
+    status = "PrimordialOS Boot Complete"
+    agent = "GodAgent"
+}
+
+$SnapshotJson = $Snapshot | ConvertTo-Json -Depth 5
+$GodLog = "$AppPath\data\god-agent.log"
+
+"BOOT_SNAPSHOT $SnapshotJson" | Out-File -FilePath $GodLog -Append
+
+Write-Host "✓ God Agent initialized." -ForegroundColor Green
+
+# ------------------------------------------------------------
+# 7. Final Cosmic Banner
+# ------------------------------------------------------------
+
+Write-Host ""
+Write-Host "==============================================" -ForegroundColor Magenta
+Write-Host "     PRIMORDIAL ORIGIN IS NOW FULLY ACTIVE     " -ForegroundColor Yellow
+Write-Host "==============================================" -ForegroundColor Magenta
+Write-Host ""

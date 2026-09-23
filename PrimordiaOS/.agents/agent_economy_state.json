@@ -1,0 +1,44 @@
+{
+  "creation": {
+    "credits": 50,
+    "influence": 1,
+    "totalEarned": 0,
+    "totalSpent": 0,
+    "lastActive": "2026-07-14T13:20:36.626Z"
+  },
+  "research": {
+    "credits": 50,
+    "influence": 0.7000000000000001,
+    "totalEarned": 0,
+    "totalSpent": 0,
+    "lastActive": "2026-07-14T14:01:38.563Z"
+  },
+  "code": {
+    "credits": 56,
+    "influence": 1.9000000000000001,
+    "totalEarned": 6,
+    "totalSpent": 0,
+    "lastActive": "2026-07-14T14:01:38.560Z"
+  },
+  "persona": {
+    "credits": 50,
+    "influence": 1,
+    "totalEarned": 0,
+    "totalSpent": 0,
+    "lastActive": "2026-07-14T13:20:36.626Z"
+  },
+  "debate": {
+    "credits": 50,
+    "influence": 0.7000000000000001,
+    "totalEarned": 0,
+    "totalSpent": 0,
+    "lastActive": "2026-07-14T14:01:38.570Z"
+  },
+  "healing": {
+    "credits": 50,
+    "influence": 1,
+    "totalEarned": 0,
+    "totalSpent": 0,
+    "lastActive": "2026-07-14T13:20:36.626Z"
+  }
+}

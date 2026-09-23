@@ -1,0 +1,8 @@
+{
+  "id": "task-camera-motion-001",
+  "agent": "cameraDirector",
+  "payload": {
+    "style": "slow-dolly-forward",
+    "duration": 12
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "PrimordiaOS Sovereign Realm Manifest",
+  "version": "1.0.0",
+  "sovereign": "Shane (Tier 0)",
+  "realms": [
+    {
+      "id": "conversation",
+      "display_name": "Conversation Realm",
+      "icon": "💬",
+      "priority": 1,
+      "accent_color": "#00f0ff",
+      "description": "Full-duplex cognitive communication loop with real-time thought streaming and speech.",
+      "telemetry_keys": [
+        "total_turns",
+        "streaming_active",
+        "last_user_prompt",
+        "last_os_reply",
+        "token_usage"
+      ],
+      "actions": [
+        "send_message",
+        "clear_thread",
+        "trigger_voice"
+      ]
+    },
+    {
+      "id": "worldstate",
+      "display_name": "World-State Realm",
+      "icon": "🌐",
+      "priority": 2,
+      "accent_color": "#00ff88",
+      "description": "Dynamic substrate equilibrium engine tracking STABLE, FLUX, and CHARGED states.",
+      "telemetry_keys": [
+        "state",
+        "cpu_percent",
+        "ram_percent",
+        "disk_mutations",
+        "voice_modulation"
+      ],
+      "actions": [
+        "force_stable",
+        "refresh_telemetry"
+      ]
+    },
+    {
+      "id": "tools",
+      "display_name": "Subsystem Tools Realm",
+      "icon": "⚙️",
+      "priority": 3,
+      "accent_color": "#bb00ff",
+      "description": "Autonomous actuator hooks for Unreal Engine Niagara pulses, MovieForge LUTs, and shell.",
+      "telemetry_keys": [
+        "recent_tools",
+        "active_tool",
+        "unreal_bridge_status",
+        "movieforge_grade"
+      ],
+      "actions": [
+        "niagara_burst",
+        "movieforge_imperial",
+        "movieforge_emerald",
+        "exec_shell"
+      ]
+    },
+    {
+      "id": "vision",
+      "display_name": "Multimodal Vision Realm",
+      "icon": "👁️",
+      "priority": 4,
+      "accent_color": "#00e5ff",
+      "description": "Visual sensory perception inspecting local screenshots, images, and documents via from_file.",
+      "telemetry_keys": [
+        "recent_attachments",
+        "last_image_mime",
+        "vision_status"
+      ],
+      "actions": [
+        "attach_file",
+        "inspect_scene"
+      ]
+    },
+    {
+      "id": "audio",
+      "display_name": "Kokoro Neural Audio Realm",
+      "icon": "🔊",
+      "priority": 5,
+      "accent_color": "#ffaa00",
+      "description": "Local Kokoro ONNX neural speech synthesis daemon streaming 24kHz audio in real time.",
+      "telemetry_keys": [
+        "voice",
+        "speed",
+        "sample_rate",
+        "daemon_status",
+        "last_spoken_sentence"
+      ],
+      "actions": [
+        "test_speech",
+        "set_voice",
+        "restart_daemon"
+      ]
+    },
+    {
+      "id": "memory",
+      "display_name": "Sovereign Memory Realm",
+      "icon": "🧠",
+      "priority": 6,
+      "accent_color": "#ff007f",
+      "description": "Persistent short/long-term cognitive memory continuity stored in primordia_memory.json.",
+      "telemetry_keys": [
+        "total_turns",
+        "user_profile",
+        "active_context",
+        "short_term_history",
+        "total_tokens_spent"
+      ],
+      "actions": [
+        "flush_context",
+        "pin_context"
+      ]
+    },
+    {
+      "id": "autonomy",
+      "display_name": "Autonomy Watchdog Realm",
+      "icon": "⚡",
+      "priority": 7,
+      "accent_color": "#ffff00",
+      "description": "Continuous background trigger scheduler, lifecycle hooks, and stateful session persistence.",
+      "telemetry_keys": [
+        "watchdog_status",
+        "heartbeat_interval_sec",
+        "session_id",
+        "last_trigger_event"
+      ],
+      "actions": [
+        "trigger_watchdog",
+        "audit_session"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "sectorKey": "0,0",
+  "coordinates": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "seed": 0,
+  "resonanceProfile": "RES_FREQ_0",
+  "synthesizedAt": "2026-09-18T06:04:11.744Z",
+  "architectureTier": "PRIME_LATTICE"
+}

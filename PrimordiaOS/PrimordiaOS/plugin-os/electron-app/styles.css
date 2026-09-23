@@ -1,0 +1,130 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #1b1b3a 0%, #050510 55%, #000000 100%);
+  color: #f5f5ff;
+}
+
+#cockpit {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 24px 40px;
+}
+
+#topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+#primordial-core {
+  text-align: left;
+  font-size: 28px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #f7e9ff;
+  text-shadow: 0 0 18px #7f3cff;
+  filter: drop-shadow(0 0 40px #7f3cff);
+}
+
+#status-bar {
+  font-size: 14px;
+  color: #00ff9a;
+  text-shadow: 0 0 8px #00ff9a;
+}
+
+#grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+section {
+  background: rgba(10, 10, 30, 0.9);
+  border-radius: 12px;
+  border: 1px solid rgba(140, 120, 255, 0.35);
+  padding: 16px 18px 18px;
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.6);
+}
+
+section h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #e4dcff;
+}
+
+.button-row {
+  margin-top: 8px;
+}
+
+button {
+  margin-right: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  border-radius: 999px;
+  border: 1px solid rgba(180, 160, 255, 0.8);
+  background: linear-gradient(135deg, #2a1b4f, #4b2f7f);
+  color: #fdf7ff;
+  cursor: pointer;
+}
+
+button:hover {
+  background: linear-gradient(135deg, #3a245f, #5b3f9f);
+  border-color: #ffd86b;
+}
+
+#viewport {
+  position: relative;
+  width: 400px;
+  height: 400px;
+  margin: 0 auto;
+  background: radial-gradient(circle, #120b2a 0%, #050510 70%);
+  border-radius: 12px;
+  border: 1px solid rgba(200, 180, 255, 0.4);
+  overflow: hidden;
+}
+
+.obj {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+.obj.core {
+  background: #ffd86b;
+  box-shadow: 0 0 18px #ffd86b;
+}
+
+.obj.satellite {
+  background: #7f3cff;
+  box-shadow: 0 0 14px #7f3cff;
+}
+
+#engine-state {
+  font-family: "JetBrains Mono", "Consolas", monospace;
+  font-size: 11px;
+  background: rgba(5, 5, 20, 0.95);
+  border-radius: 8px;
+  padding: 8px;
+  max-height: 200px;
+  overflow: auto;
+}
+
+.obj-row {
+  font-size: 12px;
+  margin-bottom: 4px;
+}

@@ -1,0 +1,31 @@
+PLUG‑IN OS REFERRAL HUB
+
+These are the apps included in your referral system:
+- Acorns
+- Rakuten
+- Ibotta
+- Upside
+- Swagbucks
+- InboxDollars
+- Capital One Shopping
+
+-----------------------------------
+HOW TO REPLACE REFERRAL LINKS
+-----------------------------------
+1. Open each app
+2. Go to “Refer a Friend”
+3. Copy your referral link
+4. Paste it into your dashboard
+5. Update your automations
+6. Done — your system now earns for YOU
+
+-----------------------------------
+YOUR LINKS (ADD THEM HERE)
+-----------------------------------
+Acorns:
+Rakuten:
+Ibotta:
+Upside:
+Swagbucks:
+InboxDollars:
+Capital One Shopping:

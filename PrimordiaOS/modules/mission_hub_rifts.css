@@ -1,0 +1,27 @@
+.rifts-container {
+  padding: 24px;
+  color: #f8fafc;
+  background: #030308;
+}
+
+.rifts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.rift-card {
+  background: #111;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #333;
+}
+
+.rift-card.unstable {
+  border-color: #e11d48;
+}
+
+.rift-card.collapsed {
+  border-color: #9333ea;
+  opacity: 0.6;
+}

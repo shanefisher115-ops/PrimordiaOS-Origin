@@ -1,0 +1,17 @@
+{
+  "provider": "smtp",
+  "smtp": {
+    "host": "smtp.gmail.com",
+    "port": 465,
+    "secure": true,
+    "auth": {
+      "user": "shane.fisher115@gmail.com",
+      "pass": "vymz vqmf mail vlgu"
+    }
+  },
+  "defaults": {
+    "fromEmail": "contact@primordialorigin.com",
+    "fromName": "Shane",
+    "replyTo": "contact@primordialorigin.com"
+  }
+}

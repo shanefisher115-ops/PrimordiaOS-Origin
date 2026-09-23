@@ -1,0 +1,24 @@
+{
+  "primitive": {
+    "font-size": {
+      "xs": {
+        "value": "12px"
+      },
+      "sm": {
+        "value": "14px"
+      },
+      "md": {
+        "value": "16px"
+      },
+      "lg": {
+        "value": "18px"
+      },
+      "xl": {
+        "value": "24px"
+      },
+      "xxl": {
+        "value": "28px"
+      }
+    }
+  }
+}

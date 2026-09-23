@@ -1,0 +1,23 @@
+{
+  "name": "primordiaos-backend",
+  "version": "1.0.0",
+  "description": "PrimordiaOS Canonical Core Engine, Kernel & Event Bus",
+  "main": "src/core/index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "node src/kernel/index.js",
+    "dev": "ts-node src/kernel/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "axios": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
+  }
+}

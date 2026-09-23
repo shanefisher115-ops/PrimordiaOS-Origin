@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Primordia Kinematics Simulation & ROI Suite</title>
+  <meta name="description" content="Interactive 3D Rapid Collision Envelope Simulation and Scrap Yield Optimization Model">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/demo.css">
+</head>
+<body>
+  <!-- Top Navigation -->
+  <header class="demo-header">
+    <div class="header-container">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <span class="brand-text">PRIMORDIA<strong>SIM</strong></span>
+      </div>
+      <div class="exclusive-badge">
+        <span class="lock-icon">🔒</span>
+        <span>Prepared Exclusively for <strong id="company-name-header">Target Account</strong></span>
+      </div>
+      <a href="#benchmark" class="btn btn-primary">Book 15-Min File Run</a>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="demo-hero">
+    <div class="container">
+      <div class="hero-tags">
+        <span class="tag tag-persona" id="hero-persona-tag">P2 — Aerospace Yield & Thermal Control</span>
+        <span class="tag tag-match" id="hero-match-tag">95% Kinematic Fit</span>
+      </div>
+      <h1 class="hero-title" id="hero-title">Kinematics & Thermal Simulation for <span class="highlight" id="hero-company">SpaceX</span></h1>
+      <p class="hero-subtitle" id="hero-subtitle">
+        Custom toolpath simulation and scrap yield teardown across <span id="hero-machines">Trumpf 3D Laser & Hermle 5-Axis</span> running <span id="hero-materials">Ti-6Al-4V & Inconel</span>.
+      </p>
+    </div>
+  </section>
+
+  <!-- Main Grid: 3D Simulation & Telemetry -->
+  <section class="sim-section">
+    <div class="container sim-grid">
+      <!-- 3D Simulation Canvas Box -->
+      <div class="sim-viewport-card">
+        <div class="viewport-header">
+          <div class="viewport-title">
+            <span class="live-dot"></span>
+            <span>REAL-TIME 3D TOOLPATH & RAPID COLLISION ENVELOPE</span>
+          </div>
+          <div class="viewport-controls">
+            <button class="ctrl-btn active" id="btn-toggle-envelope">Collision Envelope: ON</button>
+            <button class="ctrl-btn active" id="btn-toggle-thermal">Thermal Gradient: ON</button>
+            <button class="ctrl-btn" id="btn-pause-sim">Pause</button>
+          </div>
+        </div>
+
+        <div class="canvas-container">
+          <canvas id="simCanvas" width="800" height="450"></canvas>
+          <div class="canvas-overlay-hud">
+            <div class="hud-item">RAPID VELOCITY: <span class="hud-val" id="hud-speed">115 m/min</span></div>
+            <div class="hud-item">CLEARANCE: <span class="hud-val text-green" id="hud-clearance">&gt;14.2 mm</span></div>
+            <div class="hud-item">SLUG TILT: <span class="hud-val text-green" id="hud-tilt">0.00° (Nano-Joint Locked)</span></div>
+            <div class="hud-item">VECTORS MONITORED: <span class="hud-val">52,400</span></div>
+          </div>
+        </div>
+
+        <div class="viewport-footer">
+          <span class="footer-label">Active Kinematic Model:</span>
+          <span class="footer-val" id="active-kinematic-model">Trumpf TruLaser Cell 7040 / 15kW / Slat-Bed Matrix</span>
+        </div>
+      </div>
+
+      <!-- Live ROI & Scrap Calculator -->
+      <div class="calculator-card">
+        <div class="calc-header">
+          <h3>⚡ Interactive ROI & Scrap Yield Calculator</h3>
+          <p>Adjust parameters to calculate bottom-line annual impact for <span id="calc-company-name">Your Shop</span>.</p>
+        </div>
+
+        <div class="calc-inputs">
+          <div class="input-group">
+            <div class="input-label-row">
+              <label for="slider-sheets">Monthly Sheet Volume</label>
+              <span class="slider-val" id="val-sheets">85 sheets/mo</span>
+            </div>
+            <input type="range" id="slider-sheets" min="10" max="500" value="85" step="5">
+          </div>
+
+          <div class="input-group">
+            <div class="input-label-row">
+              <label for="slider-cost">Avg Material Cost per Sheet</label>
+              <span class="slider-val" id="val-cost">$1,200/sheet</span>
+            </div>
+            <input type="range" id="slider-cost" min="100" max="3000" value="1200" step="50">
+          </div>
+
+          <div class="input-group">
+            <div class="input-label-row">
+              <label for="slider-crashes">Annual Collision Incidents (Avoided)</label>
+              <span class="slider-val" id="val-crashes">2 incidents/yr</span>
+            </div>
+            <input type="range" id="slider-crashes" min="0" max="6" value="2" step="1">
+          </div>
+        </div>
+
+        <div class="calc-results-grid">
+          <div class="result-box">
+            <div class="res-label">ANNUAL SCRAP RECLAIMED</div>
+            <div class="res-val" id="res-scrap-savings">$153,000</div>
+            <div class="res-sub">MaxRects Yield Boost (&gt;91%)</div>
+          </div>
+          <div class="result-box">
+            <div class="res-label">AVOIDED HEAD CRASH LOSS</div>
+            <div class="res-val" id="res-downtime-savings">$36,000</div>
+            <div class="res-sub">Laser Head &amp; Downtime Saved</div>
+          </div>
+          <div class="result-box total-box">
+            <div class="res-label">TOTAL ANNUAL PROJECTED VALUE</div>
+            <div class="res-val text-emerald" id="res-total-roi">$189,000</div>
+            <div class="res-sub">Direct Shop-Floor Bottom-Line Impact</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Technical Feature Teardown -->
+  <section class="features-section">
+    <div class="container">
+      <h2 class="section-title">Built Specifically for Your Machine Stack</h2>
+      <div class="features-grid" id="features-grid">
+        <div class="feature-card">
+          <div class="feat-icon">📐</div>
+          <h3>Automated Collision Envelope Verification</h3>
+          <p>Calculates slat-bed pitch and tool vectors across rapid traverse moves, enforcing &gt;12.5mm vertical clearance to eliminate optical head impact.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feat-icon">🔥</div>
+          <h3>Thermal TSP & Rosenthal Heat Sequencing</h3>
+          <p>Algorithmically sequences cut vectors to distribute thermal heat signatures evenly across the plate, preventing distortion and HAZ micro-cracking.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feat-icon">🧩</div>
+          <h3>Unified Post-Processing & Metallurgy Copilots</h3>
+          <p>Zero-install cloud suite that heals CAD geometry, optimizes kerf compensation (G41/G42), and outputs machine-ready code for your controllers.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section" id="benchmark">
+    <div class="container cta-box">
+      <h2>Test Primordia on One of Your Real Parts</h2>
+      <p>Send us a sample DXF, STEP, or part geometry from your active production queue. We will run a 15-minute kinematic simulation and return the optimized toolpaths and nesting yield comparison.</p>
+      <div class="cta-action">
+        <a href="mailto:contact@primordialorigin.com?subject=Primordia%20Kinematics%20Benchmark%20Request" class="btn btn-primary btn-lg">
+          ✉️ Request 15-Minute Benchmark (contact@primordialorigin.com)
+        </a>
+      </div>
+      <div class="cta-footnote">
+        Direct engineer-to-engineer review • No credit card or software installation required.
+      </div>
+    </div>
+  </section>
+
+  <footer class="demo-footer">
+    <div class="container">
+      <p>© 2026 Primordia Systems • <a href="mailto:contact@primordialorigin.com">contact@primordialorigin.com</a> • Autonomous Manufacturing Intelligence</p>
+    </div>
+  </footer>
+
+  <script src="/demo.js"></script>
+</body>
+</html>

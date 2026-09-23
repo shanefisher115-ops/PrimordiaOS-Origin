@@ -1,0 +1,23 @@
+name: "Swarm Brain Neural Sync"
+version: "1.0.0"
+trigger:
+  event: "agent_mutation"
+personas:
+  - name: "Liam"
+    role: "Strategist"
+    vector: "Strategy-Alpha"
+  - name: "Rachel"
+    role: "Explainer"
+    vector: "Semantic-Harmonic"
+  - name: "Adam"
+    role: "Architect"
+    vector: "Architecture-Matrix"
+  - name: "Antoni"
+    role: "Optimizer"
+    vector: "Telemetry-Optimizer"
+  - name: "Josh"
+    role: "Motivator"
+    vector: "Resonance-Amplifier"
+steps:
+  - name: "Synchronize Cognitive Tensors"
+    command: "Boot-SwarmBrain"

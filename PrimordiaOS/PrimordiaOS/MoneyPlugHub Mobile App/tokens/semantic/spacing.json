@@ -1,0 +1,15 @@
+{
+  "semantic": {
+    "spacing": {
+      "layout-padding": {
+        "value": "{primitive.spacing.md}"
+      },
+      "section-gap": {
+        "value": "{primitive.spacing.lg}"
+      },
+      "stack-gap": {
+        "value": "{primitive.spacing.sm}"
+      }
+    }
+  }
+}

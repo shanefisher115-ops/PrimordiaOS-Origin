@@ -1,0 +1,99 @@
+/* Base element styles — survives Style Dictionary regeneration of theme.css */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+}
+
+/* Component utility classes driven by design tokens */
+@layer components {
+  .dt-btn-primary {
+    background: var(--component-button-primary-background);
+    color: var(--component-button-primary-text-color);
+    border-radius: var(--component-button-primary-radius);
+    box-shadow: var(--component-button-primary-shadow);
+    padding-inline: var(--component-button-primary-padding);
+    padding-block: var(--semantic-spacing-stack-gap);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: var(--semantic-typography-body);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--primitive-spacing-xs);
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    &:active { transform: scale(0.96); opacity: 0.9; }
+  }
+
+  .dt-btn-secondary {
+    background: var(--component-button-secondary-background);
+    color: var(--component-button-secondary-text-color);
+    border-radius: var(--component-button-secondary-radius);
+    border: 1px solid var(--component-button-secondary-border-color);
+    padding-inline: var(--semantic-spacing-layout-padding);
+    padding-block: var(--semantic-spacing-stack-gap);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: var(--semantic-typography-body);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--primitive-spacing-xs);
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    &:active { transform: scale(0.96); opacity: 0.9; }
+  }
+}

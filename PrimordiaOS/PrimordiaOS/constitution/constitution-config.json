@@ -1,0 +1,33 @@
+{
+  "sign_policies": [
+    "../court/court-policy.json",
+    "../guardian/guardian-policy.json",
+    "../autonomy/autonomy-policy.json",
+    "../advisory-council/council-policy.json"
+  ],
+  "sign_core_realms": [
+    "../kernel/kernel-engine.cjs",
+    "../court/court-engine.cjs",
+    "../guardian/guardian-engine.cjs",
+    "../autonomy/autonomy-engine.cjs",
+    "../advisory-council/advisory-engine.cjs"
+  ],
+  "sign_logs": [
+    "../court/logs.jsonl",
+    "../guardian/logs.jsonl",
+    "../autonomy/logs.jsonl",
+    "../advisory-council/logs.jsonl"
+  ],
+  "enforcement_rules": {
+    "on_signature_mismatch": {
+      "quarantine_source": true,
+      "force_safe_mode": true,
+      "notify_court": true,
+      "notify_guardian": true
+    },
+    "on_unsigned_change": {
+      "block_execution": true,
+      "require_manual_resign": true
+    }
+  }
+}

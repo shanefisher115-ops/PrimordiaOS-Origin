@@ -1,0 +1,19 @@
+PLUG‑IN OS DASHBOARD (NOTION)
+
+Click this link to open your dashboard:
+[PASTE YOUR NOTION SHARE LINK HERE]
+
+HOW TO USE:
+- Click "Duplicate" in the top right
+- Add it to your workspace
+- Follow the instructions inside the dashboard
+
+SECTIONS INCLUDED:
+- Home
+- Daily Ops
+- Content Engine
+- Referral Hub
+- Automation Control
+- Posting Calendar
+- Analytics
+- Monetization Paths

@@ -1,0 +1,5 @@
+{
+  "version": "0.1",
+  "enabled": true,
+  "triggers": ["onStart", "onTick", "onHighActivity"]
+}

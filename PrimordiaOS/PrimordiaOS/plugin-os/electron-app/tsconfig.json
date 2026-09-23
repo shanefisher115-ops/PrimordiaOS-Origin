@@ -1,0 +1,11 @@
+﻿{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "outDir": "dist",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": false
+  },
+  "include": ["main.ts", "preload.ts"]
+}

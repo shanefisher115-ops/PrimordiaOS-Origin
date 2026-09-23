@@ -1,0 +1,531 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "PrimordiaOS Unified Realm Map",
+  "version": "1.0.0",
+  "sovereign": "Shane (Tier 0)",
+  "worldState": "STABLE",
+  "originLawId": "PRIMORDIAL_ORIGIN_LAW_001",
+  "lastUpdated": "2026-09-12T04:15:00.000Z",
+  "realms": [
+    {
+      "id": "node_kernel",
+      "displayName": "PrimordiaOS Sovereign Node Kernel",
+      "category": "core",
+      "endpoints": {
+        "http": "http://localhost:3000",
+        "ws": "ws://localhost:17800",
+        "ipc": "ws://localhost:3010"
+      },
+      "protocol": "HTTP/1.1 + WebSocket",
+      "status": "BOUND",
+      "health": "WARNING",
+      "tokenAuth": true,
+      "capabilities": [
+        "masterplane_routing",
+        "dag_microkernel_supervisor",
+        "merkle_audit_logger",
+        "sovereign_terminal_exec"
+      ],
+      "telemetryKeys": [
+        "cpu_percent",
+        "ram_percent",
+        "disk_mutations",
+        "active_clients",
+        "uptime_sec"
+      ]
+    },
+    {
+      "id": "unreal_simulation",
+      "displayName": "Unreal Engine 5.4 Sovereign Simulation Realm",
+      "category": "simulation",
+      "endpoints": {
+        "ws": "ws://localhost:17800",
+        "httpSignal": "http://localhost:3000/api/unreal/signal",
+        "stateCheck": "http://localhost:3000/api/unreal/state"
+      },
+      "protocol": "WebSocket + JSON-RPC",
+      "status": "BOUND",
+      "health": "WARNING",
+      "tokenAuth": true,
+      "capabilities": [
+        "niagara_particle_bursts",
+        "sovereign_pawn_tracking",
+        "spatial_collision_detection",
+        "60fps_simulation_telemetry"
+      ],
+      "telemetryKeys": [
+        "fps",
+        "frametime_ms",
+        "gpu_render_ms",
+        "active_particles",
+        "active_pawns",
+        "draw_calls"
+      ]
+    },
+    {
+      "id": "antigravity_pipeline",
+      "displayName": "Google Antigravity Agent Pipeline",
+      "category": "orchestration",
+      "endpoints": {
+        "http": "http://localhost:8082",
+        "health": "http://localhost:8082/health",
+        "pipelines": "http://localhost:8082/pipelines"
+      },
+      "protocol": "HTTP/REST",
+      "status": "BOUND",
+      "health": "WARNING",
+      "tokenAuth": true,
+      "capabilities": [
+        "dag_pipeline_execution",
+        "multi_agent_routing",
+        "idempotent_task_execution",
+        "safety_quarantine_enforcement"
+      ],
+      "telemetryKeys": [
+        "active_runs",
+        "registered_pipelines",
+        "quarantined_count",
+        "friction_score"
+      ]
+    },
+    {
+      "id": "visioncore",
+      "displayName": "VisionCore Perceptual & Cognitive Subsystem",
+      "category": "cognition",
+      "endpoints": {
+        "http": "http://localhost:8080",
+        "health": "http://localhost:8080/health",
+        "process": "http://localhost:8080/api/visioncore/process"
+      },
+      "protocol": "HTTP/REST + JSON Stream",
+      "status": "BOUND",
+      "health": "WARNING",
+      "tokenAuth": false,
+      "capabilities": [
+        "cognitive_graph_synthesis",
+        "attention_weight_distribution",
+        "perceptual_node_clustering",
+        "style_memory_projection"
+      ],
+      "telemetryKeys": [
+        "node_count",
+        "edge_count",
+        "average_attention",
+        "active_anomalies"
+      ]
+    },
+    {
+      "id": "spatial_memory",
+      "displayName": "Spatial Memory Engine",
+      "category": "memory",
+      "endpoints": {
+        "http": "http://localhost:8080",
+        "health": "http://localhost:8080/healthz",
+        "query": "http://localhost:8080/api/query"
+      },
+      "protocol": "HTTP/REST + WAL SQLite",
+      "status": "BOUND",
+      "health": "WARNING",
+      "tokenAuth": true,
+      "capabilities": [
+        "3d_vector_spatial_indexing",
+        "temporal_burst_clustering",
+        "cross_realm_context_sync",
+        "episodic_snapshot_persistence"
+      ],
+      "telemetryKeys": [
+        "total_nodes",
+        "total_edges",
+        "spatial_clusters",
+        "temporal_clusters"
+      ]
+    },
+    {
+      "id": "agent_swarms",
+      "displayName": "Autonomous Sovereign Agent Swarms",
+      "category": "agents",
+      "endpoints": {
+        "swarmState": "http://localhost:3000/api/swarm/state",
+        "concurrencyTick": "local://masterplane/concurrency"
+      },
+      "protocol": "In-Memory EventBus + Async Promise Queue",
+      "status": "ACTIVE",
+      "health": "HEALTHY",
+      "tokenAuth": true,
+      "capabilities": [
+        "moneyplughub_autonomous_loop",
+        "faceless_media_production",
+        "notion_sync_bridge",
+        "cad_architect_generation"
+      ],
+      "telemetryKeys": [
+        "active_swarms",
+        "tasks_completed",
+        "loop_depth",
+        "merkle_hashes_written"
+      ]
+    },
+    {
+      "id": "deployment_vessels",
+      "displayName": "Docker & Cloud Run Deployment Vessels",
+      "category": "infrastructure",
+      "endpoints": {
+        "cloudRunHealth": "/health",
+        "dockerSocket": "npipe:////./pipe/docker_engine"
+      },
+      "protocol": "Container Daemon & OCI Runtime",
+      "status": "READY",
+      "health": "HEALTHY",
+      "tokenAuth": true,
+      "capabilities": [
+        "serverless_cloud_run_scaling",
+        "container_health_probes",
+        "isolated_sandbox_execution",
+        "multi_tenant_segregation"
+      ],
+      "telemetryKeys": [
+        "container_instances",
+        "memory_utilization_mb",
+        "ingress_requests_sec"
+      ]
+    },
+    {
+      "id": "offer_engine",
+      "displayName": "PrimordiaOS Autonomous Offer Engine Realm",
+      "category": "revenue_orchestration",
+      "endpoints": {
+        "http": "http://localhost:3000/api/offer/state",
+        "ws": "ws://localhost:17800"
+      },
+      "protocol": "Deterministic State Machine",
+      "status": "BOUND",
+      "health": "OPTIMAL",
+      "tokenAuth": true,
+      "capabilities": [
+        "deterministic_rule_engine",
+        "sovereign_guardrail_gating",
+        "sha256_lineage_chaining",
+        "funnel_cta_mutation",
+        "append_only_audit"
+      ],
+      "telemetryKeys": [
+        "active_offer_id",
+        "offer_price",
+        "offer_type",
+        "state_hash",
+        "cooldown_remaining_sec"
+      ],
+      "bindings": [
+        "Economic Realm",
+        "Telemetry Realm",
+        "Funnel Realm",
+        "Audit Realm",
+        "Sovereignty Realm"
+      ]
+    },
+    {
+      "id": "blog_engine",
+      "displayName": "PrimordiaOS Autonomous Blog Engine Realm",
+      "category": "autonomous_publishing",
+      "endpoints": {
+        "http": "http://localhost:3000/api/blog/index",
+        "ws": "ws://localhost:17800"
+      },
+      "protocol": "Deterministic State Machine",
+      "status": "BOUND",
+      "health": "OPTIMAL",
+      "tokenAuth": true,
+      "capabilities": [
+        "deterministic_pure_generator",
+        "sovereign_guardrail_gating",
+        "anti_collapse_recursion_guard",
+        "sha256_audit_lineage",
+        "multi_channel_funnel_broadcast",
+        "autonomous_disk_publishing"
+      ],
+      "telemetryKeys": [
+        "active_topic",
+        "total_published",
+        "last_published_ts",
+        "audit_hash",
+        "cooldown_remaining_sec"
+      ],
+      "bindings": [
+        "PrimordiaOS Realm",
+        "Plug-In OS Realm",
+        "MoneyPlugHub Realm",
+        "PrimordialOrigin Realm",
+        "Immersive Computation Realm",
+        "Cinematic Protagonist Realm",
+        "Spatial Computation Realm",
+        "Multi-Realm OS Realm",
+        "Sovereignty Realm"
+      ]
+    },
+    {
+      "id": "narrative_engine",
+      "displayName": "PrimordiaOS Immersive Narrative Engine Realm",
+      "category": "narrative_synthesis",
+      "endpoints": {
+        "http": "http://localhost:3000/api/narrative/episode",
+        "ws": "ws://localhost:17800"
+      },
+      "protocol": "Deterministic State Machine",
+      "status": "BOUND",
+      "health": "OPTIMAL",
+      "tokenAuth": true,
+      "capabilities": [
+        "deterministic_pure_synthesis",
+        "protagonist_crucible_framing",
+        "sovereign_guardrail_gating",
+        "sha256_audit_lineage",
+        "multi_channel_funnel_broadcast",
+        "blog_engine_chronicle_binding"
+      ],
+      "telemetryKeys": [
+        "active_episode_id",
+        "protagonist_id",
+        "realm_focus",
+        "word_count",
+        "audit_hash",
+        "cooldown_remaining_sec"
+      ],
+      "bindings": [
+        "Telemetry Stream",
+        "Economic Kernel",
+        "Offer Engine",
+        "Funnel Agent",
+        "Merkle Audit Logger",
+        "Sovereign Core"
+      ]
+    },
+    {
+      "id": "multi_agent_matrix",
+      "displayName": "PrimordiaOS Autonomous Multi-Agent Matrix Realm",
+      "category": "multi_agent_civilization",
+      "endpoints": {
+        "http": "http://localhost:3000/api/swarm/state",
+        "ws": "ws://localhost:17800"
+      },
+      "protocol": "Signed Local EventBus + Task Pipeline",
+      "status": "BOUND",
+      "health": "OPTIMAL",
+      "tokenAuth": true,
+      "capabilities": [
+        "swarm_coordinator_dispatch",
+        "cross_realm_execution",
+        "autonomous_microservice_synthesis",
+        "zero_downtime_deploy_matrix",
+        "fail_closed_rollback",
+        "sha256_audit_lineage"
+      ],
+      "telemetryKeys": [
+        "active_agents",
+        "pending_tasks",
+        "completed_tasks",
+        "system_entropy",
+        "antigrav_score"
+      ],
+      "bindings": [
+        "Swarm Coordinator Realm",
+        "Cross-Realm Execution Realm",
+        "Microservice Forge Realm",
+        "Deploy Matrix Realm",
+        "Audit Ledger Realm",
+        "Sovereignty Realm"
+      ]
+    },
+    {
+      "id": "moneyplughub_realm",
+      "displayName": "MoneyPlugHub Holographic Autonomous Realm",
+      "category": "autonomous_monetization_canopy",
+      "endpoints": {
+        "publicEdge": "https://moneyplughub.com",
+        "localEngine": "http://localhost:3001",
+        "dualPortKernel": "http://localhost:3000",
+        "latencyTelemetry": "https://moneyplughub.com/api/telemetry/latency",
+        "health": "https://moneyplughub.com/api/health",
+        "swarmBridge": "http://localhost:3001/api/swarm/state",
+        "vaultSignal": "http://localhost:3001/api/vault/signal"
+      },
+      "protocol": "HTTPS/QUIC Cloudflare Tunnel + Express Sub-60ms Engine + Solfeggio WebAudio",
+      "status": "LIVE",
+      "health": "OPTIMAL",
+      "tokenAuth": true,
+      "capabilities": [
+        "holographic_cockpit_canopy",
+        "sub60ms_performance_engine",
+        "phom_sovereign_outreach",
+        "living_wealth_vault",
+        "sigil_forge_studio",
+        "solfeggio_528hz_synthesizer",
+        "psh_sovereign_terminal",
+        "realtime_telemetry_hud"
+      ],
+      "telemetryKeys": [
+        "compute_ms",
+        "frame_budget_ms",
+        "edge_latency_ms",
+        "vault_tier",
+        "active_swarms",
+        "sla_status"
+      ],
+      "bindings": [
+        "PrimordiaOS Node Kernel",
+        "Cloudflare Edge Quic Realm",
+        "Autonomous Agent Swarms",
+        "Living Wealth Vault",
+        "Sovereignty Realm"
+      ]
+    }
+  ],
+  "topologyBindings": [
+    {
+      "id": "bind_kernel_multi_agent_matrix",
+      "source": "node_kernel",
+      "target": "multi_agent_matrix",
+      "channel": "deterministic_swarm_pipeline",
+      "bandwidth": "event_stream",
+      "latencyTargetMs": 10,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "bind_kernel_narrative_engine",
+      "source": "node_kernel",
+      "target": "narrative_engine",
+      "channel": "deterministic_narrative_pipeline",
+      "bandwidth": "tick_sync",
+      "latencyTargetMs": 10,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "bind_kernel_blog_engine",
+      "source": "node_kernel",
+      "target": "blog_engine",
+      "channel": "autonomous_publishing_pipeline",
+      "bandwidth": "tick_sync",
+      "latencyTargetMs": 10,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "bind_kernel_offer_engine",
+      "source": "node_kernel",
+      "target": "offer_engine",
+      "channel": "deterministic_tick_pipeline",
+      "bandwidth": "tick_sync",
+      "latencyTargetMs": 10,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "bind_kernel_unreal",
+      "source": "node_kernel",
+      "target": "unreal_simulation",
+      "channel": "bi_directional_ws",
+      "bandwidth": "60hz_telemetry",
+      "latencyTargetMs": 16,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "bind_unreal_visioncore",
+      "source": "unreal_simulation",
+      "target": "visioncore",
+      "channel": "perceptual_node_pipeline",
+      "bandwidth": "event_driven",
+      "latencyTargetMs": 33,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "bind_unreal_spatial_memory",
+      "source": "unreal_simulation",
+      "target": "spatial_memory",
+      "channel": "spatial_vector_stream",
+      "bandwidth": "delta_compressed",
+      "latencyTargetMs": 50,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "bind_visioncore_antigravity",
+      "source": "visioncore",
+      "target": "antigravity_pipeline",
+      "channel": "directive_orchestration_bus",
+      "bandwidth": "rpc",
+      "latencyTargetMs": 100,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "bind_antigravity_swarms",
+      "source": "antigravity_pipeline",
+      "target": "agent_swarms",
+      "channel": "subagent_dispatch_queue",
+      "bandwidth": "fifo_promise_queue",
+      "latencyTargetMs": 25,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "bind_swarms_vessels",
+      "source": "agent_swarms",
+      "target": "deployment_vessels",
+      "channel": "container_task_lifecycle",
+      "bandwidth": "job_scheduler",
+      "latencyTargetMs": 250,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "bind_kernel_moneyplughub",
+      "source": "node_kernel",
+      "target": "moneyplughub_realm",
+      "channel": "dual_port_substrate_sync",
+      "bandwidth": "sub_60ms_telemetry",
+      "latencyTargetMs": 10,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "bind_moneyplughub_swarms",
+      "source": "moneyplughub_realm",
+      "target": "agent_swarms",
+      "channel": "swarm_cockpit_bus",
+      "bandwidth": "event_stream",
+      "latencyTargetMs": 15,
+      "status": "ACTIVE"
+    },
+    {
+      "id": "bind_moneyplughub_vessels",
+      "source": "moneyplughub_realm",
+      "target": "deployment_vessels",
+      "channel": "cloudflare_tunnel_quic",
+      "bandwidth": "edge_quic_multiplex",
+      "latencyTargetMs": 20,
+      "status": "ACTIVE"
+    }
+  ],
+  "subagents": [
+    {
+      "name": "RealmBinder",
+      "role": "Realm Connectivity Mapper",
+      "tier": 3,
+      "state": "ACTIVE",
+      "lastAudit": "2026-09-10T18:46:51.094Z"
+    },
+    {
+      "name": "TelemetryWeaver",
+      "role": "Bidirectional Stream Harmonizer",
+      "tier": 3,
+      "state": "ACTIVE",
+      "lastAudit": "2026-09-10T18:46:51.094Z"
+    },
+    {
+      "name": "SovereignGovernor",
+      "role": "Origin Law & Safety Enforcer",
+      "tier": 2,
+      "state": "ACTIVE",
+      "lastAudit": "2026-09-10T18:46:51.094Z"
+    }
+  ],
+  "governance": {
+    "sovereigntyTier": "Tier 0 (Shane)",
+    "originLawCompliance": "VERIFIED_COMPLIANT",
+    "antigravityFrictionScore": 96,
+    "collapseRisk": "NONE",
+    "activeCircuitBreakers": 0
+  }
+}

@@ -1,0 +1,61 @@
+# ==============================================================================
+# Google Cloud Build Pipeline: PrimordiaOS VisionCore Subsystem
+# Automated Build, Containerization, and Cloud Run Deployment
+# ==============================================================================
+
+steps:
+  # Step 1: Build Docker Container Image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-visioncore-image'
+    args:
+      - 'build'
+      - '-t'
+      - '$_AR_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/visioncore:$COMMIT_SHA'
+      - '-t'
+      - '$_AR_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/visioncore:latest'
+      - '-f'
+      - 'Dockerfile'
+      - '.'
+    dir: 'visioncore'
+
+  # Step 2: Push Image to Google Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-visioncore-image'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '$_AR_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/visioncore'
+
+  # Step 3: Deploy to Google Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-to-cloud-run'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '$_SERVICE_NAME'
+      - '--image=$_AR_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/visioncore:$COMMIT_SHA'
+      - '--region=$_DEPLOY_REGION'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=8080'
+      - '--memory=2Gi'
+      - '--cpu=2'
+      - '--min-instances=0'
+      - '--max-instances=10'
+      - '--set-env-vars=NODE_ENV=production,CONTAINER=true'
+
+substitutions:
+  _SERVICE_NAME: 'visioncore'
+  _DEPLOY_REGION: 'us-central1'
+  _AR_REGION: 'us-central1'
+  _AR_REPOSITORY: 'primordia'
+
+images:
+  - '$_AR_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/visioncore:$COMMIT_SHA'
+  - '$_AR_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/visioncore:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: '1200s'

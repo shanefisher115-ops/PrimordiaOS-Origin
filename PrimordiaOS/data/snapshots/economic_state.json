@@ -1,0 +1,32 @@
+{
+  "timestampMs": 1773412010000,
+  "microWindow": {
+    "windowDurationSec": 60,
+    "currentViewers": 142,
+    "chatVelocityPerMin": 52.0,
+    "giftCoinsPerMin": 150.0,
+    "shareVelocityPerMin": 8.0,
+    "linkRequestVelocityPerMin": 4.0,
+    "funnelImpressions": 84,
+    "funnelClicks": 19,
+    "conversions": 3,
+    "clickThroughRate": 0.226,
+    "conversionRate": 0.158
+  },
+  "macroWindow": {
+    "windowDurationSec": 300,
+    "currentViewers": 142,
+    "chatVelocityPerMin": 38.4,
+    "giftCoinsPerMin": 42.0,
+    "shareVelocityPerMin": 5.2,
+    "linkRequestVelocityPerMin": 1.6,
+    "funnelImpressions": 310,
+    "funnelClicks": 48,
+    "conversions": 7,
+    "clickThroughRate": 0.155,
+    "conversionRate": 0.146
+  },
+  "activeFunnelId": "primordia_default_funnel",
+  "currentCtaId": "cta_direct_link_surge",
+  "isSystemThrottled": false
+}

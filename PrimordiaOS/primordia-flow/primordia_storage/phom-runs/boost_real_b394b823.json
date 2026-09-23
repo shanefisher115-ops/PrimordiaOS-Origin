@@ -1,0 +1,2245 @@
+{
+  "success": true,
+  "boostId": "boost_real_b394b823",
+  "timestamp": 1789485070,
+  "durationMs": 9323,
+  "layersExecuted": 11,
+  "signalsProcessed": 22,
+  "prospectsDiscovered": 22,
+  "hotProspects": 0,
+  "personasSynthesized": 22,
+  "outboundGenerated": 22,
+  "postsDistributed": 22,
+  "graphStats": {
+    "nodesCount": 1672,
+    "edgesCount": 3336,
+    "prospectsCount": 206,
+    "signalsCount": 149
+  },
+  "pipelineRecords": [
+    {
+      "signal": {
+        "id": "hn_49713468",
+        "source": "hackernews",
+        "author": "Markoff",
+        "content": "Israeli Minister Threatens Filmmakers' Citizenship over Gaza Documentary (Live discussion on reutersconnect.com)",
+        "url": "https://www.reutersconnect.com/item/israeli-minister-threatens-filmmakers-citizenship-over-gaza-documentary/dGFnOnJldXRlcnMuY29tLDIwMjY6bmV3c21sX09XQ1ZNQzQ0NjcxMC1WSURFTw",
+        "timestamp": 1789483934,
+        "metadata": {
+          "domain": "reutersconnect.com",
+          "score": 30,
+          "commentsCount": 3,
+          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49713468"
+        }
+      },
+      "prospect": {
+        "id": "prosp_80adb8272a",
+        "email": "markoff@reutersconnect.com",
+        "name": "Markoff",
+        "domain": "reutersconnect.com",
+        "mxVerified": true,
+        "mxRecords": "inbound-smtp.us-east-1.amazonaws.com (pri 10), inbound-smtp.eu-west-1.amazonaws.com (pri 20)",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "TypeScript",
+            "Node.js"
+          ]
+        },
+        "confidenceScore": {
+          "score": 85,
+          "confidence": "verified",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 30,
+            "reputation": 15
+          }
+        }
+      },
+      "score": {
+        "heat": 52,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 30,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_6722afbf21",
+        "prospectId": "prosp_80adb8272a",
+        "tone": "technical",
+        "interests": [
+          "automation"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=reutersconnect.com"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi Markoff,\n\nSaw your work on automation at reutersconnect.com. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_cf445b06-a",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_cf445b06-a",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_7vnpktwr?domain=reutersconnect.com&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49712041",
+        "source": "hackernews",
+        "author": "mkurz",
+        "content": "Java 27 Released (Live discussion on mail.openjdk.org)",
+        "url": "https://mail.openjdk.org/archives/list/announce@openjdk.org/thread/ORGGLMN75HFEWP7YL3ZLGHLYHVIBJDYT/",
+        "timestamp": 1789478023,
+        "metadata": {
+          "domain": "mail.openjdk.org",
+          "score": 156,
+          "commentsCount": 116,
+          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49712041"
+        }
+      },
+      "prospect": {
+        "id": "prosp_29ac543a4f",
+        "email": "mkurz@mail.openjdk.org",
+        "name": "mkurz",
+        "domain": "mail.openjdk.org",
+        "mxVerified": false,
+        "mxRecords": "",
+        "enrichment": {
+          "industry": "Artificial Intelligence & Neural Compute",
+          "companySize": "51-200 employees",
+          "techStack": [
+            "PyTorch",
+            "CUDA"
+          ]
+        },
+        "confidenceScore": {
+          "score": 60,
+          "confidence": "medium",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 0,
+            "reputation": 20
+          }
+        }
+      },
+      "score": {
+        "heat": 47,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 25,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_f3ca906670",
+        "prospectId": "prosp_29ac543a4f",
+        "tone": "technical",
+        "interests": [
+          "AI"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=mail.openjdk.org"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi mkurz,\n\nSaw your work on AI at mail.openjdk.org. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_1f6c6522-a",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_1f6c6522-a",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_4resx5hz?domain=mail.openjdk.org&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49708431",
+        "source": "hackernews",
+        "author": "networked",
+        "content": "I can't stop thinking about Papua New Guinea (Live discussion on notnottalmud.substack.com)",
+        "url": "https://notnottalmud.substack.com/p/why-i-cant-stop-thinking-about-papua",
+        "timestamp": 1789452984,
+        "metadata": {
+          "domain": "notnottalmud.substack.com",
+          "score": 621,
+          "commentsCount": 264,
+          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49708431"
+        }
+      },
+      "prospect": {
+        "id": "prosp_a330557de0",
+        "email": "networked@notnottalmud.substack.com",
+        "name": "networked",
+        "domain": "notnottalmud.substack.com",
+        "mxVerified": false,
+        "mxRecords": "",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "TypeScript",
+            "Node.js"
+          ]
+        },
+        "confidenceScore": {
+          "score": 55,
+          "confidence": "medium",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 0,
+            "reputation": 15
+          }
+        }
+      },
+      "score": {
+        "heat": 52,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 30,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_c9a24f8a22",
+        "prospectId": "prosp_a330557de0",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=notnottalmud.substack.com"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi networked,\n\nSaw your work on AI at notnottalmud.substack.com. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_de16570a-4",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_de16570a-4",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_id3pxt0j?domain=notnottalmud.substack.com&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49712278",
+        "source": "hackernews",
+        "author": "bashtian",
+        "content": "Show HN: Capsule – Single-file web apps that save their data into SQLite (Live discussion on withcapsule.app)",
+        "url": "https://withcapsule.app/",
+        "timestamp": 1789479100,
+        "metadata": {
+          "domain": "withcapsule.app",
+          "score": 62,
+          "commentsCount": 21,
+          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49712278"
+        }
+      },
+      "prospect": {
+        "id": "prosp_5436a65c45",
+        "email": "bashtian@withcapsule.app",
+        "name": "bashtian",
+        "domain": "withcapsule.app",
+        "mxVerified": true,
+        "mxRecords": "eforward1.registrar-servers.com (pri 10), eforward2.registrar-servers.com (pri 10), eforward3.registrar-servers.com (pri 10), eforward4.registrar-servers.com (pri 15), eforward5.registrar-servers.com (pri 20)",
+        "enrichment": {
+          "industry": "Database & Storage Systems",
+          "companySize": "20-100 employees",
+          "techStack": [
+            "PostgreSQL",
+            "SQLite"
+          ]
+        },
+        "confidenceScore": {
+          "score": 70,
+          "confidence": "high",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 30,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 61,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 1,
+          "quorumScore": 35,
+          "intentLevel": "medium",
+          "matchedIntents": [
+            "sqlite"
+          ]
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 9,
+          "depthScore": 30,
+          "matchedKeywords": [
+            "sqlite"
+          ]
+        }
+      },
+      "persona": {
+        "id": "pers_9c28aa672c",
+        "prospectId": "prosp_5436a65c45",
+        "tone": "technical",
+        "interests": [
+          "database"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=withcapsule.app"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi bashtian,\n\nSaw your work on database at withcapsule.app. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_43690f7e-5",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_43690f7e-5",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_br74hla7?domain=withcapsule.app&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49712102",
+        "source": "hackernews",
+        "author": "bobili1234",
+        "content": "Show HN: Hacking a $20 4G wireless hotspot into a texting device (Live discussion on bkovac.github.io)",
+        "url": "https://bkovac.github.io/modem-thing/",
+        "timestamp": 1789478424,
+        "metadata": {
+          "domain": "bkovac.github.io",
+          "score": 50,
+          "commentsCount": 4,
+          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49712102",
+          "multiSourceDeduplicated": true,
+          "sources": [
+            "hackernews"
+          ],
+          "mergedContent": "Show HN: Hacking a $20 4G wireless hotspot into a texting device (Live discussion on bkovac.github.io) | [hackernews]: Show HN: Hacking a $20 4G wireless hotspot into a texting device (Live discussion on bkovac.github.io)",
+          "totalInteractionCount": 2
+        }
+      },
+      "prospect": {
+        "id": "prosp_c663ffa3-2",
+        "email": null,
+        "name": "bobili1234",
+        "domain": null,
+        "mxVerified": false,
+        "confidenceScore": {
+          "score": 0,
+          "confidence": "low",
+          "breakdown": {
+            "validity": 0,
+            "domainTrust": 0,
+            "mxStrength": 0,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 37,
+        "band": "cold",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 15,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_461b8b3616",
+        "prospectId": "prosp_c663ffa3-2",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=company"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 50,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 20,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi bobili1234,\n\nSaw your work on AI at your company. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_c45cb92d-7",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_c45cb92d-7",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_jmtjn39n?domain=your%20company&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49710883",
+        "source": "hackernews",
+        "author": "iamnothere",
+        "content": "25 Years of Mass Surveillance Is Enough (Live discussion on schneier.com)",
+        "url": "https://www.schneier.com/blog/archives/2026/09/25-years-of-mass-surveillance-is-enough.html",
+        "timestamp": 1789471608,
+        "metadata": {
+          "domain": "schneier.com",
+          "score": 348,
+          "commentsCount": 76,
+          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49710883"
+        }
+      },
+      "prospect": {
+        "id": "prosp_08a3add1f8",
+        "email": "iamnothere@schneier.com",
+        "name": "iamnothere",
+        "domain": "schneier.com",
+        "mxVerified": true,
+        "mxRecords": "mx1.emailsrvr.com (pri 10), mx2.emailsrvr.com (pri 20)",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "TypeScript",
+            "Node.js"
+          ]
+        },
+        "confidenceScore": {
+          "score": 85,
+          "confidence": "verified",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 30,
+            "reputation": 15
+          }
+        }
+      },
+      "score": {
+        "heat": 52,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 30,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_6a8ab2020d",
+        "prospectId": "prosp_08a3add1f8",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=schneier.com"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi iamnothere,\n\nSaw your work on AI at schneier.com. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_340f99ef-2",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_340f99ef-2",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_tglflgue?domain=schneier.com&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49712746",
+        "source": "hackernews",
+        "author": "kaycebasques",
+        "content": "Global bond yields hit 2008 highs, raising stakes for big borrowers (Live discussion on reuters.com)",
+        "url": "https://www.reuters.com/world/asia-pacific/bond-selloff-drives-us-benchmark-beyond-5-stocks-rattled-2026-09-15/",
+        "timestamp": 1789481221,
+        "metadata": {
+          "domain": "reuters.com",
+          "score": 51,
+          "commentsCount": 18,
+          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49712746"
+        }
+      },
+      "prospect": {
+        "id": "prosp_4347e95f18",
+        "email": "kaycebasques@reuters.com",
+        "name": "kaycebasques",
+        "domain": "reuters.com",
+        "mxVerified": true,
+        "mxRecords": "mxa-00160c04.gslb.pphosted.com (pri 10), mxb-00160c04.gslb.pphosted.com (pri 10)",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "TypeScript",
+            "Node.js"
+          ]
+        },
+        "confidenceScore": {
+          "score": 85,
+          "confidence": "verified",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 30,
+            "reputation": 15
+          }
+        }
+      },
+      "score": {
+        "heat": 52,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 30,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_d6dfbc2f08",
+        "prospectId": "prosp_4347e95f18",
+        "tone": "technical",
+        "interests": [
+          "AI"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=reuters.com"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi kaycebasques,\n\nSaw your work on AI at reuters.com. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_7749eb49-0",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_7749eb49-0",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_6r05v1wg?domain=reuters.com&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49709381",
+        "source": "hackernews",
+        "author": "rmoff",
+        "content": "Alternatives to MinIO for single-node local S3 (Live discussion on rmoff.net)",
+        "url": "https://rmoff.net/2026/01/14/alternatives-to-minio-for-single-node-local-s3/",
+        "timestamp": 1789460487,
+        "metadata": {
+          "domain": "rmoff.net",
+          "score": 141,
+          "commentsCount": 70,
+          "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49709381"
+        }
+      },
+      "prospect": {
+        "id": "prosp_1e1800ce80",
+        "email": "rmoff@rmoff.net",
+        "name": "rmoff",
+        "domain": "rmoff.net",
+        "mxVerified": true,
+        "mxRecords": "aspmx.l.google.com (pri 1), alt1.aspmx.l.google.com (pri 5), alt2.aspmx.l.google.com (pri 5), aspmx2.googlemail.com (pri 10), aspmx3.googlemail.com (pri 10)",
+        "enrichment": {
+          "industry": "Developer Tools & SaaS",
+          "companySize": "11-50 employees",
+          "techStack": [
+            "TypeScript",
+            "Node.js"
+          ]
+        },
+        "confidenceScore": {
+          "score": 70,
+          "confidence": "high",
+          "breakdown": {
+            "validity": 15,
+            "domainTrust": 25,
+            "mxStrength": 30,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 52,
+        "band": "warm",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 30,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_2894836a87",
+        "prospectId": "prosp_1e1800ce80",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=rmoff.net"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 75,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 40,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi rmoff,\n\nSaw your work on AI at rmoff.net. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_3fb37c29-8",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_3fb37c29-8",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_yo9wes4t?domain=rmoff.net&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "reddit_881c8d0f",
+        "source": "reddit",
+        "author": "/u/DU3SU9",
+        "content": "Would you pay for an API Sync Check",
+        "url": "https://www.reddit.com/r/SaaS/comments/1wh2yuz/would_you_pay_for_an_api_sync_check/",
+        "timestamp": 1789484804,
+        "metadata": {
+          "liveRss": true
+        }
+      },
+      "prospect": {
+        "id": "prosp_82020a15-3",
+        "email": null,
+        "name": "DU3SU9",
+        "domain": null,
+        "mxVerified": false,
+        "confidenceScore": {
+          "score": 0,
+          "confidence": "low",
+          "breakdown": {
+            "validity": 0,
+            "domainTrust": 0,
+            "mxStrength": 0,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 32,
+        "band": "cold",
+        "intentLevel": "low",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 10,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_58d1a41996",
+        "prospectId": "prosp_82020a15-3",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "Reddit",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=company"
+        },
+        "platformPreference": {
+          "preferredPlatform": "Reddit",
+          "platformScores": {
+            "LinkedIn": 50,
+            "X": 30,
+            "Reddit": 55,
+            "Email": 20,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi DU3SU9,\n\nSaw your work on AI at your company. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "reddit",
+        "postId": "post_b395664a-1",
+        "url": "https://reddit.com/r/primordia/comments/post_b395664a-1",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_en3oegvb?domain=your%20company&p=Reddit"
+      }
+    },
+    {
+      "signal": {
+        "id": "reddit_b5dc2408",
+        "source": "reddit",
+        "author": "/u/tru2cent",
+        "content": "Tell me your SaaS so I can introduce it to our founder community",
+        "url": "https://www.reddit.com/r/SaaS/comments/1wh2vym/tell_me_your_saas_so_i_can_introduce_it_to_our/",
+        "timestamp": 1789484632,
+        "metadata": {
+          "liveRss": true
+        }
+      },
+      "prospect": {
+        "id": "prosp_b7724469-f",
+        "email": null,
+        "name": "tru2cent",
+        "domain": null,
+        "mxVerified": false,
+        "confidenceScore": {
+          "score": 0,
+          "confidence": "low",
+          "breakdown": {
+            "validity": 0,
+            "domainTrust": 0,
+            "mxStrength": 0,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 37,
+        "band": "cold",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 15,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_3a391c91f7",
+        "prospectId": "prosp_b7724469-f",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "Reddit",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=company"
+        },
+        "platformPreference": {
+          "preferredPlatform": "Reddit",
+          "platformScores": {
+            "LinkedIn": 50,
+            "X": 30,
+            "Reddit": 55,
+            "Email": 20,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi tru2cent,\n\nSaw your work on AI at your company. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "reddit",
+        "postId": "post_79411c66-1",
+        "url": "https://reddit.com/r/primordia/comments/post_79411c66-1",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_49pqumlf?domain=your%20company&p=Reddit"
+      }
+    },
+    {
+      "signal": {
+        "id": "reddit_57289718",
+        "source": "reddit",
+        "author": "/u/Fluid_Plan9886",
+        "content": "Sales says one thing. Support says another. Who do you believe?",
+        "url": "https://www.reddit.com/r/SaaS/comments/1wh2lfr/sales_says_one_thing_support_says_another_who_do/",
+        "timestamp": 1789483989,
+        "metadata": {
+          "liveRss": true
+        }
+      },
+      "prospect": {
+        "id": "prosp_ea476b74-5",
+        "email": null,
+        "name": "Fluid_Plan9886",
+        "domain": null,
+        "mxVerified": false,
+        "confidenceScore": {
+          "score": 0,
+          "confidence": "low",
+          "breakdown": {
+            "validity": 0,
+            "domainTrust": 0,
+            "mxStrength": 0,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 37,
+        "band": "cold",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 15,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_d6c77f9035",
+        "prospectId": "prosp_ea476b74-5",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "Reddit",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=company"
+        },
+        "platformPreference": {
+          "preferredPlatform": "Reddit",
+          "platformScores": {
+            "LinkedIn": 50,
+            "X": 30,
+            "Reddit": 55,
+            "Email": 20,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi Fluid_Plan9886,\n\nSaw your work on AI at your company. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "reddit",
+        "postId": "post_2a968ce5-1",
+        "url": "https://reddit.com/r/primordia/comments/post_2a968ce5-1",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_w3ptsm9f?domain=your%20company&p=Reddit"
+      }
+    },
+    {
+      "signal": {
+        "id": "reddit_86b9cb26",
+        "source": "reddit",
+        "author": "/u/algorys",
+        "content": "Devops avant l'avènement de l'IA et maintenant",
+        "url": "https://www.reddit.com/r/devops/comments/1wh2eze/devops_avant_lavènement_de_lia_et_maintenant/",
+        "timestamp": 1789483564,
+        "metadata": {
+          "liveRss": true
+        }
+      },
+      "prospect": {
+        "id": "prosp_74b0793f-f",
+        "email": null,
+        "name": "algorys",
+        "domain": null,
+        "mxVerified": false,
+        "confidenceScore": {
+          "score": 0,
+          "confidence": "low",
+          "breakdown": {
+            "validity": 0,
+            "domainTrust": 0,
+            "mxStrength": 0,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 32,
+        "band": "cold",
+        "intentLevel": "low",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 10,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_5b28f40b90",
+        "prospectId": "prosp_74b0793f-f",
+        "tone": "technical",
+        "interests": [
+          "AI"
+        ],
+        "preferredPlatform": "Reddit",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=company"
+        },
+        "platformPreference": {
+          "preferredPlatform": "Reddit",
+          "platformScores": {
+            "LinkedIn": 50,
+            "X": 30,
+            "Reddit": 55,
+            "Email": 20,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi algorys,\n\nSaw your work on AI at your company. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "reddit",
+        "postId": "post_ecf6bf6f-5",
+        "url": "https://reddit.com/r/primordia/comments/post_ecf6bf6f-5",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_v25vsc6h?domain=your%20company&p=Reddit"
+      }
+    },
+    {
+      "signal": {
+        "id": "reddit_48b14b12",
+        "source": "reddit",
+        "author": "/u/lurker_bee",
+        "content": "Iron Man-like ceiling-mounted robotic arms for house chores unveiled",
+        "url": "https://www.reddit.com/r/technology/comments/1wh2d9q/iron_manlike_ceilingmounted_robotic_arms_for/",
+        "timestamp": 1789483461,
+        "metadata": {
+          "liveRss": true
+        }
+      },
+      "prospect": {
+        "id": "prosp_cc941922-c",
+        "email": null,
+        "name": "lurker_bee",
+        "domain": null,
+        "mxVerified": false,
+        "confidenceScore": {
+          "score": 0,
+          "confidence": "low",
+          "breakdown": {
+            "validity": 0,
+            "domainTrust": 0,
+            "mxStrength": 0,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 37,
+        "band": "cold",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 15,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_e69944583e",
+        "prospectId": "prosp_cc941922-c",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "Reddit",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=company"
+        },
+        "platformPreference": {
+          "preferredPlatform": "Reddit",
+          "platformScores": {
+            "LinkedIn": 50,
+            "X": 30,
+            "Reddit": 55,
+            "Email": 20,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi lurker_bee,\n\nSaw your work on AI at your company. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "reddit",
+        "postId": "post_216f27f5-4",
+        "url": "https://reddit.com/r/primordia/comments/post_216f27f5-4",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_a1qihi1y?domain=your%20company&p=Reddit"
+      }
+    },
+    {
+      "signal": {
+        "id": "reddit_ec9d434c",
+        "source": "reddit",
+        "author": "/u/notomarsol",
+        "content": "7 boring industries where you can build a $20k+ MRR SaaS",
+        "url": "https://www.reddit.com/r/SaaS/comments/1wh2b1m/7_boring_industries_where_you_can_build_a_20k_mrr/",
+        "timestamp": 1789483316,
+        "metadata": {
+          "liveRss": true
+        }
+      },
+      "prospect": {
+        "id": "prosp_af83c0ed-1",
+        "email": null,
+        "name": "notomarsol",
+        "domain": null,
+        "mxVerified": false,
+        "confidenceScore": {
+          "score": 0,
+          "confidence": "low",
+          "breakdown": {
+            "validity": 0,
+            "domainTrust": 0,
+            "mxStrength": 0,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 32,
+        "band": "cold",
+        "intentLevel": "low",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 10,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_b5ac251826",
+        "prospectId": "prosp_af83c0ed-1",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "Reddit",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=company"
+        },
+        "platformPreference": {
+          "preferredPlatform": "Reddit",
+          "platformScores": {
+            "LinkedIn": 50,
+            "X": 30,
+            "Reddit": 55,
+            "Email": 20,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi notomarsol,\n\nSaw your work on AI at your company. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "reddit",
+        "postId": "post_15100f48-1",
+        "url": "https://reddit.com/r/primordia/comments/post_15100f48-1",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_0s3g7j80?domain=your%20company&p=Reddit"
+      }
+    },
+    {
+      "signal": {
+        "id": "reddit_4fbb8112",
+        "source": "reddit",
+        "author": "/u/AxomaticallyExtinct",
+        "content": "Sen. Kennedy readies AI 'kill switch' bill",
+        "url": "https://www.reddit.com/r/technology/comments/1wh22z0/sen_kennedy_readies_ai_kill_switch_bill/",
+        "timestamp": 1789482784,
+        "metadata": {
+          "liveRss": true,
+          "multiSourceDeduplicated": true,
+          "sources": [
+            "reddit"
+          ],
+          "mergedContent": "Sen. Kennedy readies AI 'kill switch' bill | [reddit]: DeSantis calls opposition to AI protections a 'losing position' for Republicans | The Florida governor is pressing for AI safeguards amid industry tumult as major tech executives call for a development pause of advanced systems.",
+          "totalInteractionCount": 5
+        }
+      },
+      "prospect": {
+        "id": "prosp_1c181609-a",
+        "email": null,
+        "name": "AxomaticallyExtinct",
+        "domain": null,
+        "mxVerified": false,
+        "confidenceScore": {
+          "score": 0,
+          "confidence": "low",
+          "breakdown": {
+            "validity": 0,
+            "domainTrust": 0,
+            "mxStrength": 0,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 32,
+        "band": "cold",
+        "intentLevel": "low",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 10,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_1aa90e4f01",
+        "prospectId": "prosp_1c181609-a",
+        "tone": "technical",
+        "interests": [
+          "AI"
+        ],
+        "preferredPlatform": "Reddit",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=company"
+        },
+        "platformPreference": {
+          "preferredPlatform": "Reddit",
+          "platformScores": {
+            "LinkedIn": 50,
+            "X": 30,
+            "Reddit": 55,
+            "Email": 20,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi AxomaticallyExtinct,\n\nSaw your work on AI at your company. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "reddit",
+        "postId": "post_83f5c7e0-8",
+        "url": "https://reddit.com/r/primordia/comments/post_83f5c7e0-8",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_gp4nh80j?domain=your%20company&p=Reddit"
+      }
+    },
+    {
+      "signal": {
+        "id": "reddit_9dd530f0",
+        "source": "reddit",
+        "author": "/u/Hot-Mycologist-7917",
+        "content": "How Should a Maketing Automation Saas should Enter into the SA Market.",
+        "url": "https://www.reddit.com/r/SaaS/comments/1wh21m4/how_should_a_maketing_automation_saas_should/",
+        "timestamp": 1789482695,
+        "metadata": {
+          "liveRss": true
+        }
+      },
+      "prospect": {
+        "id": "prosp_aecc5d29-2",
+        "email": null,
+        "name": "Hot-Mycologist-7917",
+        "domain": null,
+        "mxVerified": false,
+        "confidenceScore": {
+          "score": 0,
+          "confidence": "low",
+          "breakdown": {
+            "validity": 0,
+            "domainTrust": 0,
+            "mxStrength": 0,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 37,
+        "band": "cold",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 15,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_456e2c72ae",
+        "prospectId": "prosp_aecc5d29-2",
+        "tone": "technical",
+        "interests": [
+          "automation"
+        ],
+        "preferredPlatform": "Reddit",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=company"
+        },
+        "platformPreference": {
+          "preferredPlatform": "Reddit",
+          "platformScores": {
+            "LinkedIn": 50,
+            "X": 30,
+            "Reddit": 55,
+            "Email": 20,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi Hot-Mycologist-7917,\n\nSaw your work on automation at your company. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "reddit",
+        "postId": "post_eb48a1f6-4",
+        "url": "https://reddit.com/r/primordia/comments/post_eb48a1f6-4",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_uu58tss0?domain=your%20company&p=Reddit"
+      }
+    },
+    {
+      "signal": {
+        "id": "reddit_7a49ba9f",
+        "source": "reddit",
+        "author": "/u/zedguy",
+        "content": "How Google, Meta are implementing its ‘age assurance’ tech in Canada - National",
+        "url": "https://www.reddit.com/r/technology/comments/1wh20i7/how_google_meta_are_implementing_its_age/",
+        "timestamp": 1789482633,
+        "metadata": {
+          "liveRss": true
+        }
+      },
+      "prospect": {
+        "id": "prosp_9a0f177a-5",
+        "email": null,
+        "name": "zedguy",
+        "domain": null,
+        "mxVerified": false,
+        "confidenceScore": {
+          "score": 0,
+          "confidence": "low",
+          "breakdown": {
+            "validity": 0,
+            "domainTrust": 0,
+            "mxStrength": 0,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 37,
+        "band": "cold",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 15,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_b857b484d5",
+        "prospectId": "prosp_9a0f177a-5",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "Reddit",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=company"
+        },
+        "platformPreference": {
+          "preferredPlatform": "Reddit",
+          "platformScores": {
+            "LinkedIn": 50,
+            "X": 30,
+            "Reddit": 55,
+            "Email": 20,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi zedguy,\n\nSaw your work on AI at your company. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "reddit",
+        "postId": "post_52fcbfbc-6",
+        "url": "https://reddit.com/r/primordia/comments/post_52fcbfbc-6",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_00vfcg5u?domain=your%20company&p=Reddit"
+      }
+    },
+    {
+      "signal": {
+        "id": "reddit_dc91d76f",
+        "source": "reddit",
+        "author": "/u/Neither-Plankton-772",
+        "content": "What are an affordable nimble GTM strategies for European b2c SaaS?",
+        "url": "https://www.reddit.com/r/SaaS/comments/1wh1438/what_are_an_affordable_nimble_gtm_strategies_for/",
+        "timestamp": 1789480571,
+        "metadata": {
+          "id": "reddit_dc91d76f",
+          "source": "reddit",
+          "author": "/u/Neither-Plankton-772",
+          "content": "What are an affordable nimble GTM strategies for European b2c SaaS?",
+          "url": "https://www.reddit.com/r/SaaS/comments/1wh1438/what_are_an_affordable_nimble_gtm_strategies_for/",
+          "timestamp": 1789480571,
+          "metadata": {
+            "liveRss": true
+          },
+          "multiSourceDeduplicated": true,
+          "sources": [
+            "reddit"
+          ],
+          "mergedContent": "What are an affordable nimble GTM strategies for European b2c SaaS? | [reddit]: What are an affordable nimble GTM strategies for European b2c SaaS?",
+          "totalInteractionCount": 3
+        }
+      },
+      "prospect": {
+        "id": "prosp_46b18664-b",
+        "email": null,
+        "name": "Neither-Plankton-772",
+        "domain": null,
+        "mxVerified": false,
+        "confidenceScore": {
+          "score": 0,
+          "confidence": "low",
+          "breakdown": {
+            "validity": 0,
+            "domainTrust": 0,
+            "mxStrength": 0,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 37,
+        "band": "cold",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 15,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_85cf507ccf",
+        "prospectId": "prosp_46b18664-b",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "Reddit",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=company"
+        },
+        "platformPreference": {
+          "preferredPlatform": "Reddit",
+          "platformScores": {
+            "LinkedIn": 50,
+            "X": 30,
+            "Reddit": 55,
+            "Email": 20,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi Neither-Plankton-772,\n\nSaw your work on AI at your company. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "reddit",
+        "postId": "post_0fc15ce8-2",
+        "url": "https://reddit.com/r/primordia/comments/post_0fc15ce8-2",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_f3kq2062?domain=your%20company&p=Reddit"
+      }
+    },
+    {
+      "signal": {
+        "id": "reddit_d4c87279",
+        "source": "reddit",
+        "author": "/u/Chance-Past-7214",
+        "content": "Application Support → DevOps/Development? Need career advice",
+        "url": "https://www.reddit.com/r/devops/comments/1wh0k12/application_support_devopsdevelopment_need_career/",
+        "timestamp": 1789479211,
+        "metadata": {
+          "id": "reddit_d4c87279",
+          "source": "reddit",
+          "author": "/u/Chance-Past-7214",
+          "content": "Application Support → DevOps/Development? Need career advice",
+          "url": "https://www.reddit.com/r/devops/comments/1wh0k12/application_support_devopsdevelopment_need_career/",
+          "timestamp": 1789479211,
+          "metadata": {
+            "id": "reddit_d4c87279",
+            "source": "reddit",
+            "author": "/u/Chance-Past-7214",
+            "content": "Application Support → DevOps/Development? Need career advice",
+            "url": "https://www.reddit.com/r/devops/comments/1wh0k12/application_support_devopsdevelopment_need_career/",
+            "timestamp": 1789479211,
+            "metadata": {
+              "id": "reddit_d4c87279",
+              "source": "reddit",
+              "author": "/u/Chance-Past-7214",
+              "content": "Application Support → DevOps/Development? Need career advice",
+              "url": "https://www.reddit.com/r/devops/comments/1wh0k12/application_support_devopsdevelopment_need_career/",
+              "timestamp": 1789479211,
+              "metadata": {
+                "liveRss": true
+              }
+            }
+          }
+        }
+      },
+      "prospect": {
+        "id": "prosp_72eab399-b",
+        "email": null,
+        "name": "Chance-Past-7214",
+        "domain": null,
+        "mxVerified": false,
+        "confidenceScore": {
+          "score": 0,
+          "confidence": "low",
+          "breakdown": {
+            "validity": 0,
+            "domainTrust": 0,
+            "mxStrength": 0,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 32,
+        "band": "cold",
+        "intentLevel": "low",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 10,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_8ce13964f7",
+        "prospectId": "prosp_72eab399-b",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "Reddit",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=company"
+        },
+        "platformPreference": {
+          "preferredPlatform": "Reddit",
+          "platformScores": {
+            "LinkedIn": 50,
+            "X": 30,
+            "Reddit": 55,
+            "Email": 20,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi Chance-Past-7214,\n\nSaw your work on AI at your company. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "reddit",
+        "postId": "post_d55004e1-b",
+        "url": "https://reddit.com/r/primordia/comments/post_d55004e1-b",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_pcs5z569?domain=your%20company&p=Reddit"
+      }
+    },
+    {
+      "signal": {
+        "id": "reddit_3aff9c26",
+        "source": "reddit",
+        "author": "/u/maddy30445r",
+        "content": "Finally done with my app and we are live!!🤞🧿",
+        "url": "https://www.reddit.com/r/SaaS/comments/1wh0j21/finally_done_with_my_app_and_we_are_live/",
+        "timestamp": 1789479144,
+        "metadata": {
+          "id": "reddit_3aff9c26",
+          "source": "reddit",
+          "author": "/u/maddy30445r",
+          "content": "Finally done with my app and we are live!!🤞🧿",
+          "url": "https://www.reddit.com/r/SaaS/comments/1wh0j21/finally_done_with_my_app_and_we_are_live/",
+          "timestamp": 1789479144,
+          "metadata": {
+            "liveRss": true
+          },
+          "multiSourceDeduplicated": true,
+          "sources": [
+            "reddit"
+          ],
+          "mergedContent": "Finally done with my app and we are live!!🤞🧿 | [reddit]: Finally done with my app and we are live!!🤞🧿",
+          "totalInteractionCount": 3
+        }
+      },
+      "prospect": {
+        "id": "prosp_46c4e71f-0",
+        "email": null,
+        "name": "maddy30445r",
+        "domain": null,
+        "mxVerified": false,
+        "confidenceScore": {
+          "score": 0,
+          "confidence": "low",
+          "breakdown": {
+            "validity": 0,
+            "domainTrust": 0,
+            "mxStrength": 0,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 32,
+        "band": "cold",
+        "intentLevel": "low",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 10,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_c79b828dd0",
+        "prospectId": "prosp_46c4e71f-0",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "Reddit",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=company"
+        },
+        "platformPreference": {
+          "preferredPlatform": "Reddit",
+          "platformScores": {
+            "LinkedIn": 50,
+            "X": 30,
+            "Reddit": 55,
+            "Email": 20,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi maddy30445r,\n\nSaw your work on AI at your company. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "reddit",
+        "postId": "post_a7235be5-d",
+        "url": "https://reddit.com/r/primordia/comments/post_a7235be5-d",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_twhx8ol6?domain=your%20company&p=Reddit"
+      }
+    },
+    {
+      "signal": {
+        "id": "hn_49712186",
+        "source": "hackernews",
+        "author": "vrganj",
+        "content": "Australia 'on the same page' as Canada as it seeks deeper EU alliance (Live discussion on reddit.com)",
+        "url": "https://www.reddit.com/r/worldnews/comments/1wgqken/australia_on_the_same_page_as_canada_as_it_seeks/",
+        "timestamp": 1789478738,
+        "metadata": {
+          "id": "hn_49712186",
+          "source": "hackernews",
+          "author": "vrganj",
+          "content": "Australia 'on the same page' as Canada as it seeks deeper EU alliance (Live discussion on reddit.com)",
+          "url": "https://www.reddit.com/r/worldnews/comments/1wgqken/australia_on_the_same_page_as_canada_as_it_seeks/",
+          "timestamp": 1789478738,
+          "metadata": {
+            "domain": "reddit.com",
+            "score": 19,
+            "commentsCount": 2,
+            "hnDiscussionUrl": "https://news.ycombinator.com/item?id=49712186",
+            "multiSourceDeduplicated": true,
+            "sources": [
+              "hackernews"
+            ],
+            "mergedContent": "Australia 'on the same page' as Canada as it seeks deeper EU alliance (Live discussion on reddit.com) | [hackernews]: Australia 'on the same page' as Canada as it seeks deeper EU alliance (Live discussion on reddit.com)",
+            "totalInteractionCount": 2
+          }
+        }
+      },
+      "prospect": {
+        "id": "prosp_6848f6a4-4",
+        "email": null,
+        "name": "vrganj",
+        "domain": null,
+        "mxVerified": false,
+        "confidenceScore": {
+          "score": 0,
+          "confidence": "low",
+          "breakdown": {
+            "validity": 0,
+            "domainTrust": 0,
+            "mxStrength": 0,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 37,
+        "band": "cold",
+        "intentLevel": "medium",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 15,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_84596e4a3c",
+        "prospectId": "prosp_6848f6a4-4",
+        "tone": "technical",
+        "interests": [
+          "AI",
+          "infra"
+        ],
+        "preferredPlatform": "LinkedIn",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=company"
+        },
+        "platformPreference": {
+          "preferredPlatform": "LinkedIn",
+          "platformScores": {
+            "LinkedIn": 50,
+            "X": 30,
+            "Reddit": 10,
+            "Email": 20,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi vrganj,\n\nSaw your work on AI at your company. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "linkedin",
+        "postId": "post_08a5b10e-9",
+        "url": "https://linkedin.com/feed/update/urn:li:activity:post_08a5b10e-9",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_x5fexvos?domain=your%20company&p=LinkedIn"
+      }
+    },
+    {
+      "signal": {
+        "id": "reddit_2b031207",
+        "source": "reddit",
+        "author": "/u/Conscious-Quarter423",
+        "content": "Humanity running out of time, warns AI researcher",
+        "url": "https://www.reddit.com/r/technology/comments/1wh0942/humanity_running_out_of_time_warns_ai_researcher/",
+        "timestamp": 1789478470,
+        "metadata": {
+          "id": "reddit_2b031207",
+          "source": "reddit",
+          "author": "/u/Conscious-Quarter423",
+          "content": "Humanity running out of time, warns AI researcher",
+          "url": "https://www.reddit.com/r/technology/comments/1wh0942/humanity_running_out_of_time_warns_ai_researcher/",
+          "timestamp": 1789478470,
+          "metadata": {
+            "liveRss": true
+          },
+          "multiSourceDeduplicated": true,
+          "sources": [
+            "reddit"
+          ],
+          "mergedContent": "Humanity running out of time, warns AI researcher | [reddit]: Humanity running out of time, warns AI researcher",
+          "totalInteractionCount": 3
+        }
+      },
+      "prospect": {
+        "id": "prosp_190212d2-b",
+        "email": null,
+        "name": "Conscious-Quarter423",
+        "domain": null,
+        "mxVerified": false,
+        "confidenceScore": {
+          "score": 0,
+          "confidence": "low",
+          "breakdown": {
+            "validity": 0,
+            "domainTrust": 0,
+            "mxStrength": 0,
+            "reputation": 0
+          }
+        }
+      },
+      "score": {
+        "heat": 32,
+        "band": "cold",
+        "intentLevel": "low",
+        "quorum": {
+          "quorumReached": false,
+          "agreementCount": 0,
+          "quorumScore": 0,
+          "intentLevel": "low",
+          "matchedIntents": []
+        },
+        "behaviorDepth": {
+          "scrollDepthPct": 0,
+          "dwellTimeSeconds": 0
+        },
+        "breakdown": {
+          "sentiment": 0.1,
+          "keywordScore": 0,
+          "depthScore": 10,
+          "matchedKeywords": []
+        }
+      },
+      "persona": {
+        "id": "pers_75b3add8fc",
+        "prospectId": "prosp_190212d2-b",
+        "tone": "technical",
+        "interests": [
+          "AI"
+        ],
+        "preferredPlatform": "Reddit",
+        "ctaPreference": {
+          "optimalCta": "Explore the Open Benchmark Architecture Spec",
+          "ctaType": "benchmark_teardown",
+          "ctaUrl": "https://moneyplughub.com/?tab=reality-engine&domain=company"
+        },
+        "platformPreference": {
+          "preferredPlatform": "Reddit",
+          "platformScores": {
+            "LinkedIn": 50,
+            "X": 30,
+            "Reddit": 55,
+            "Email": 20,
+            "Bluesky": 15,
+            "Mastodon": 10
+          }
+        },
+        "timingPrediction": {
+          "bestUtcHour": 14,
+          "recommendedDay": "Tuesday",
+          "timezone": "America/New_York (UTC-4/-5)",
+          "windowDescription": "Tuesday 14:00 UTC (10:00 AM EDT Executive Sweet Spot)"
+        }
+      },
+      "outboundText": "Hi Conscious-Quarter423,\n\nSaw your work on AI at your company. We built a local-first SQLite WAL pipeline that drops agent tail latency to sub-millisecond ranges.\n\nWould love to Explore the Open Benchmark Architecture Spec if you're exploring optimizations this quarter.",
+      "distribution": {
+        "success": true,
+        "platform": "reddit",
+        "postId": "post_a1acd207-a",
+        "url": "https://reddit.com/r/primordia/comments/post_a1acd207-a",
+        "status": "mocked",
+        "trackingUrl": "https://moneyplughub.com/t/trk_1jom9bu8?domain=your%20company&p=Reddit"
+      }
+    }
+  ]
+}

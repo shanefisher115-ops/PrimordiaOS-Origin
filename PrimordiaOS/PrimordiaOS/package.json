@@ -1,0 +1,23 @@
+{
+  "name": "primordiaos",
+  "version": "1.0.0",
+  "description": "PrimordiaOS Unified Multi-Realm Cognition Organism",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node kernel/bootstrap.js",
+    "cli": "node interfaces/cli.js",
+    "consolidate": "node ../consolidation-engine/index.js",
+    "audit": "node interfaces/cli.js antigrav",
+    "bigbang": "node interfaces/cli.js bigbang",
+    "pulse": "node interfaces/cli.js pulse"
+  },
+  "dependencies": {
+    "axios": "^1.20.0",
+    "ws": "^8.18.0",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@types/xml2js": "^0.4.14"
+  }
+}

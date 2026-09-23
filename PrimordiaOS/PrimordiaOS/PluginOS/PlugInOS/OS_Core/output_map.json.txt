@@ -1,0 +1,30 @@
+{
+  "drift_mode": "distributed",
+  "motion_type": "independent",
+  "matter_type": "fluid",
+  "energy_level": "high",
+  "flow_type": "streaming",
+  "pulse_type": "strong",
+  "surge_intent": "expressive",
+  "expression_depth": "deep",
+  "focus_type": "sharp",
+  "surge_duration": "sustained",
+
+  "mappings": {
+    "low_activity": {
+      "energy": 0.2,
+      "focus": 0.1,
+      "mood": "calm_deep"
+    },
+    "medium_activity": {
+      "energy": 0.5,
+      "focus": 0.5,
+      "mood": "engaged"
+    },
+    "high_activity": {
+      "energy": 0.9,
+      "focus": 0.9,
+      "mood": "intense_focused"
+    }
+  }
+}

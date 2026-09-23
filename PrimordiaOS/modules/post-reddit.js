@@ -1,13 +1,13 @@
-import { CONFIG } from "../config.ts";
-import { assertPlatformIdentity } from "../identity.ts";
-export async function postToX(caption) {
+import { CONFIG } from "../config";
+import { assertPlatformIdentity } from "../identity";
+export async function postToReddit(title, text) {
     assertPlatformIdentity("reddit");
-    await fetch("https://api.twitter.com/2/tweets", {
+    await fetch("https://oauth.reddit.com/api/submit", {
         method: "POST",
         headers: {
-            Authorization: `Bearer ${CONFIG.X_TOKEN}`,
-            "Content-Type": "application/json",
+            Authorization: `Bearer ${CONFIG.REDDIT_TOKEN || ''}`,
+            "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: JSON.stringify({ text: caption }),
+        body: `kind=self&title=${encodeURIComponent(title)}&text=${encodeURIComponent(text)}`,
     });
 }

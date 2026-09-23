@@ -1,0 +1,7 @@
+{
+  "id": "task-export-001",
+  "agent": "exporter",
+  "payload": {
+    "platforms": ["tiktok", "shorts", "reels"]
+  }
+}

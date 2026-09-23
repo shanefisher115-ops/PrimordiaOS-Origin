@@ -1,0 +1,8 @@
+module.exports = {
+  generateContent(input) {
+    return {
+      type: "shortform",
+      text: `Generated content based on: ${input}`
+    };
+  }
+};

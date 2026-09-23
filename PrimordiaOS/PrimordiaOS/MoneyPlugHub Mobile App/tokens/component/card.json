@@ -1,0 +1,21 @@
+{
+  "component": {
+    "card-primary": {
+      "background": {
+        "value": "{semantic.color.background-card}"
+      },
+      "radius": {
+        "value": "{semantic.radius.card}"
+      },
+      "padding": {
+        "value": "{semantic.spacing.layout-padding}"
+      },
+      "shadow": {
+        "value": "{semantic.shadow.card}"
+      },
+      "border-color": {
+        "value": "{semantic.color.border-subtle}"
+      }
+    }
+  }
+}

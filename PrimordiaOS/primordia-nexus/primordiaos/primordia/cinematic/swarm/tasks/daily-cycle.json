@@ -1,0 +1,8 @@
+{
+  "id": "task-scheduler-001",
+  "agent": "scheduler",
+  "payload": {
+    "generateCount": 20,
+    "autoQueue": true
+  }
+}

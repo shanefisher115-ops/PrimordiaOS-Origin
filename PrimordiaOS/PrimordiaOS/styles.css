@@ -1,0 +1,39 @@
+body {
+    background: #0b0b0b;
+    color: #e0e0e0;
+    font-family: Arial;
+    margin: 0;
+    padding: 0;
+}
+
+.dashboard {
+    padding: 20px;
+}
+
+.card {
+    background: #1a1a1a;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 8px;
+}
+
+h1 {
+    color: #00e0ff;
+}
+
+h2 {
+    color: #00bcd4;
+}
+
+pre {
+    background: #111;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+.alert {
+    background: #ff0033;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+}

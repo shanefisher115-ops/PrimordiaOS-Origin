@@ -1,0 +1,8 @@
+{
+  "id": "task-brand-001",
+  "agent": "brandArchitect",
+  "payload": {
+    "theme": "anti-gravity cosmic OS",
+    "palette": ["#6A00FF", "#0A001A", "#FF00CC"]
+  }
+}

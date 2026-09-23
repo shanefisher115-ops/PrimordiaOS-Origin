@@ -1,0 +1,11 @@
+{
+  "type": "primordia_telemetry",
+  "source": "UnrealChamber",
+  "realm": "LIVE_CHAMBER",
+  "metrics": {
+    "reactor_charge": 0.0,
+    "glyph_stability": 0.0,
+    "storm_intensity": 0.0
+  },
+  "timestamp": 0
+}

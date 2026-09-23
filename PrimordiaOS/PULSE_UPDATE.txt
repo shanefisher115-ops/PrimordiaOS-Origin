@@ -1,9 +1,0 @@
-{
-  "type": "PULSE_UPDATE",
-  "payload": {
-    "pulse": 0.74,
-    "trend": "rising",
-    "color": "#7f4cff"
-  }
-}
-s

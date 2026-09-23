@@ -1,7 +1,0 @@
-{
-  "commands": [
-    { "name": "SpawnPulse", "intensity": 1.0 },
-    { "name": "SpawnAgent", "energy": 0.8 },
-    { "name": "TriggerShockwave", "radius": 5.0 }
-  ]
-}

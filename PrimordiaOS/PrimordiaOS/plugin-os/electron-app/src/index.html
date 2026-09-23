@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+
+<body style="background:black;color:#0ff;font-family:Consolas;">
+  <h1>Hello World — Electron is alive</h1>
+  <script>
+    console.log("Renderer loaded!");
+    <!-- Workflow Editor Panel -->
+    <div class="panel" id="workflow-panel">
+      <div class="panel-title">Workflow Editor</div>
+      <div id="workflow-canvas" style="height:200px; background:#07101a; padding:8px; overflow:auto;"></div>
+      <div class="input-row" style="margin-top:8px;">
+        <input id="wf-desc" placeholder="Workflow description" />
+        <button id="wf-add-cmd">Add Command Step</button>
+        <button id="wf-add-wait">Add Wait Step</button>
+        <button id="wf-export">Export JSON</button>
+      </div>
+      <pre id="wf-json" style="height:120px; overflow:auto; background:#020617; padding:8px; border-radius:6px;"></pre>
+    </div>
+
+    alert("Cockpit renderer is alive!");
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,12 @@
+{"eventId":"ev_link_0","sequence":1,"platform":"tiktok_live","type":"CHAT_MESSAGE","timestampMs":1789158311399,"payload":{"intent":"LINK_REQUEST"}}
+{"eventId":"ev_link_1","sequence":2,"platform":"tiktok_live","type":"CHAT_MESSAGE","timestampMs":1789158311399,"payload":{"intent":"LINK_REQUEST"}}
+{"eventId":"ev_link_2","sequence":3,"platform":"tiktok_live","type":"CHAT_MESSAGE","timestampMs":1789158311399,"payload":{"intent":"LINK_REQUEST"}}
+{"eventId":"ev_link_3","sequence":4,"platform":"tiktok_live","type":"CHAT_MESSAGE","timestampMs":1789158311399,"payload":{"intent":"LINK_REQUEST"}}
+{"eventId":"ev_link_0","sequence":1,"platform":"tiktok_live","type":"CHAT_MESSAGE","timestampMs":1789166651812,"payload":{"intent":"LINK_REQUEST"}}
+{"eventId":"ev_link_1","sequence":2,"platform":"tiktok_live","type":"CHAT_MESSAGE","timestampMs":1789166651812,"payload":{"intent":"LINK_REQUEST"}}
+{"eventId":"ev_link_2","sequence":3,"platform":"tiktok_live","type":"CHAT_MESSAGE","timestampMs":1789166651812,"payload":{"intent":"LINK_REQUEST"}}
+{"eventId":"ev_link_3","sequence":4,"platform":"tiktok_live","type":"CHAT_MESSAGE","timestampMs":1789166651812,"payload":{"intent":"LINK_REQUEST"}}
+{"eventId":"ev_link_0","sequence":1,"platform":"tiktok_live","type":"CHAT_MESSAGE","timestampMs":1789170841476,"payload":{"intent":"LINK_REQUEST"}}
+{"eventId":"ev_link_1","sequence":2,"platform":"tiktok_live","type":"CHAT_MESSAGE","timestampMs":1789170841476,"payload":{"intent":"LINK_REQUEST"}}
+{"eventId":"ev_link_2","sequence":3,"platform":"tiktok_live","type":"CHAT_MESSAGE","timestampMs":1789170841476,"payload":{"intent":"LINK_REQUEST"}}
+{"eventId":"ev_link_3","sequence":4,"platform":"tiktok_live","type":"CHAT_MESSAGE","timestampMs":1789170841476,"payload":{"intent":"LINK_REQUEST"}}

@@ -1,0 +1,652 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrimordiaOS Sovereign Realm Cockpit HUD</title>
+  <script>
+  (() => {
+    const _orig = console.warn;
+    console.warn = function(...args) {
+      if (typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
+      _orig.apply(console, args);
+    };
+  })();
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg: #040813;
+      --card-bg: rgba(8, 16, 36, 0.75);
+      --border-cyan: rgba(0, 240, 255, 0.25);
+      --border-amber: rgba(255, 170, 0, 0.35);
+      --border-crimson: rgba(255, 0, 85, 0.35);
+      --accent: #00f0ff;
+    }
+    body {
+      background: radial-gradient(circle at 50% 10%, #0a132c 0%, #03060f 100%);
+      color: #d1e4ff;
+      font-family: 'JetBrains Mono', monospace, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas;
+    }
+    .glow-cyan { text-shadow: 0 0 12px rgba(0, 240, 255, 0.7); }
+    .glow-emerald { text-shadow: 0 0 12px rgba(0, 255, 136, 0.7); }
+    .glow-amber { text-shadow: 0 0 12px rgba(255, 170, 0, 0.7); }
+    .glow-crimson { text-shadow: 0 0 12px rgba(255, 0, 85, 0.7); }
+    .radar-grid {
+      background-image: 
+        radial-gradient(circle, rgba(0, 240, 255, 0.12) 1px, transparent 1px),
+        linear-gradient(to right, rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+      background-size: 28px 28px, 28px 28px, 28px 28px;
+    }
+    .panel-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-cyan);
+      backdrop-filter: blur(12px);
+      transition: all 0.3s ease;
+    }
+    .panel-card:hover {
+      border-color: rgba(0, 240, 255, 0.5);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+    ::-webkit-scrollbar-thumb { background: #00f0ff55; border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: #00f0ffaa; }
+  </style>
+</head>
+<body class="min-h-screen p-3 md:p-5 radar-grid flex flex-col justify-between">
+
+  <!-- TOP SOVEREIGN HEADER & HUD -->
+  <header class="max-w-7xl mx-auto w-full mb-4">
+    <div class="panel-card rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 border-cyan-500/40">
+      <div class="flex items-center gap-3">
+        <div id="worldstate-pulse" class="w-3.5 h-3.5 rounded-full bg-cyan-400 animate-ping"></div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base font-black tracking-widest uppercase text-cyan-400 glow-cyan">
+              PRIMORDIAOS // 7-REALM VISUAL COCKPIT
+            </h1>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+              v1.0.0 ORIGIN
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-400">
+            Sovereign: <span class="text-slate-100 font-bold">Shane (Tier 0)</span> | Session: <span id="session-header-id" class="text-cyan-300 font-mono">primordiaos-sovereign-session-001-main</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Ribbon -->
+      <div class="flex flex-wrap items-center gap-2 text-xs">
+        <div class="px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-700/60 flex items-center gap-2">
+          <span class="text-slate-400">WORLD-STATE:</span>
+          <span id="header-state" class="font-bold text-emerald-400 glow-emerald">STABLE</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-700/60 flex items-center gap-2">
+          <span class="text-slate-400">ANTIGRAV:</span>
+          <span class="font-bold text-cyan-300">76/100 (PASSED)</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-700/60 flex items-center gap-2">
+          <span class="text-slate-400">KOKORO TTS:</span>
+          <span id="header-tts-status" class="font-bold text-emerald-400">ONLINE (5050)</span>
+        </div>
+        <a href="http://localhost:3000/arcade" target="_blank" class="px-3 py-1.5 bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 border border-indigo-500/50 rounded-lg text-xs font-bold transition-all active:scale-95 flex items-center gap-1.5">
+          <span>ðŸ•³ï¸</span> THEATRE 4K
+        </a>
+        <a href="http://localhost:3000/arcade" target="_blank" class="px-3 py-1.5 bg-pink-950/80 hover:bg-pink-900 text-pink-300 border border-pink-500/50 rounded-lg text-xs font-bold transition-all active:scale-95 flex items-center gap-1.5">
+          <span>ðŸ•¹ï¸</span> CYBER ARCADE
+        </a>
+        <button onclick="refreshAllRealms()" class="px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/40 text-cyan-300 border border-cyan-500/50 rounded-lg text-xs font-bold transition-all active:scale-95">
+          ðŸ”„ SYNC REALMS
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN 7-REALM MULTIPLEX GRID -->
+  <main class="max-w-7xl mx-auto w-full flex-grow grid grid-cols-1 md:grid-cols-12 gap-4">
+
+    <!-- LEFT COLUMN: CONVERSATION REALM (5 Cols) -->
+    <section class="md:col-span-5 flex flex-col gap-4">
+      
+      <!-- Realm 1: Conversation -->
+      <div class="panel-card rounded-2xl p-4 flex flex-col h-[580px] border-cyan-500/30">
+        <div class="flex items-center justify-between border-b border-cyan-500/20 pb-2 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">ðŸ’¬</span>
+            <span class="font-bold text-cyan-300 text-xs uppercase tracking-wider">Conversation Realm</span>
+          </div>
+          <span id="chat-status" class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Ready</span>
+        </div>
+
+        <!-- Live Cognitive Thought Stream Bubble -->
+        <div id="thought-container" class="hidden mb-3 p-2.5 rounded-xl bg-purple-950/40 border border-purple-500/40 text-[11px] space-y-1">
+          <div class="flex items-center justify-between text-purple-300 font-bold text-[10px] uppercase tracking-wider">
+            <span class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-purple-400 animate-ping"></span>
+              Cognitive Thought Stream (Extended Reasoning)
+            </span>
+          </div>
+          <div id="thought-text" class="text-purple-200/90 font-mono text-[10px] leading-relaxed max-h-24 overflow-y-auto whitespace-pre-wrap"></div>
+        </div>
+
+        <!-- Subsystem Actuator Executing Badge -->
+        <div id="tool-call-badge" class="hidden mb-2 px-2.5 py-1 rounded bg-cyan-950/80 border border-cyan-500/60 text-[10px] text-cyan-300 font-bold flex items-center gap-2">
+          <span class="animate-spin text-xs">âš™ï¸</span>
+          <span>Invoked Tool: <span id="tool-call-name" class="underline">none</span></span>
+        </div>
+
+        <!-- Messages Thread -->
+        <div id="messages-thread" class="flex-grow overflow-y-auto space-y-3 pr-1 text-xs">
+          <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-300">
+            <div class="text-[10px] text-cyan-400 font-bold mb-1">[PrimordiaOS:STABLE] Consciousness Online</div>
+            <p>PrimordiaOS streaming conversational substrate active. Ready for your command, Sovereign.</p>
+          </div>
+        </div>
+
+        <!-- Prompt Input & Controls -->
+        <div class="pt-3 border-t border-cyan-500/20 space-y-2">
+          <!-- Attachment indicator -->
+          <div id="active-attachment-chip" class="hidden text-[10px] text-cyan-300 flex items-center justify-between bg-cyan-950/60 px-2 py-1 rounded border border-cyan-500/30">
+            <span>ðŸ“Ž Attached: <span id="attached-file-name">none</span></span>
+            <button onclick="clearAttachment()" class="text-red-400 hover:text-red-300 font-bold">Ã—</button>
+          </div>
+
+          <form id="chat-form" onsubmit="handleSendPrompt(event)" class="flex gap-2">
+            <input 
+              id="prompt-input" 
+              type="text" 
+              placeholder="Transmit directive or /see image.png..." 
+              class="flex-grow bg-slate-900/90 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-cyan-400 text-slate-100 placeholder-slate-500 font-mono"
+            />
+            <button 
+              type="submit" 
+              id="send-btn"
+              class="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-extrabold rounded-xl text-xs transition-all active:scale-95"
+            >
+              TRANSMIT
+            </button>
+          </form>
+          <div class="flex justify-between text-[10px] text-slate-500">
+            <span>Tokens: <span id="token-tally-footer" class="text-slate-400">0</span></span>
+            <span>Speech Output: <span class="text-emerald-400">Kokoro ONNX</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTER COLUMN: WORLD-STATE, TOOLS & VISION REALMS (4 Cols) -->
+    <section class="md:col-span-4 flex flex-col gap-4">
+      
+      <!-- Realm 2: World-State -->
+      <div class="panel-card rounded-2xl p-4 border-emerald-500/30 space-y-3">
+        <div class="flex items-center justify-between border-b border-emerald-500/20 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">ðŸŒ</span>
+            <span class="font-bold text-emerald-300 text-xs uppercase tracking-wider">World-State Realm</span>
+          </div>
+          <span id="worldstate-badge" class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold">
+            [STABLE]
+          </span>
+        </div>
+
+        <!-- Telemetry Meters -->
+        <div class="space-y-2 text-xs">
+          <div>
+            <div class="flex justify-between text-[10px] text-slate-400 mb-0.5">
+              <span>CPU Core Pressure</span>
+              <span id="cpu-metric" class="text-cyan-300 font-bold">0%</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+              <div id="cpu-bar" class="h-full bg-cyan-400 rounded-full transition-all duration-500" style="width: 12%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-[10px] text-slate-400 mb-0.5">
+              <span>RAM Allocation</span>
+              <span id="ram-metric" class="text-purple-300 font-bold">0%</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+              <div id="ram-bar" class="h-full bg-purple-400 rounded-full transition-all duration-500" style="width: 45%"></div>
+            </div>
+          </div>
+          <div class="flex justify-between text-[10px] text-slate-400 pt-1">
+            <span>Voice Timbre Mod: <span id="voice-mod-metric" class="text-emerald-300">1.02x</span></span>
+            <span>Spine Port: <span class="text-cyan-300">3000</span></span>
+          </div>
+        </div>
+
+        <!-- World-State Controls -->
+        <div class="flex gap-2 pt-1">
+          <button onclick="dispatchRealmAction('worldstate', 'force_stable')" class="flex-1 py-1.5 px-2 bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-500/40 rounded-lg text-[10px] font-bold transition-all active:scale-95">
+            FORCE STABLE
+          </button>
+          <button onclick="dispatchRealmAction('worldstate', 'refresh_telemetry')" class="flex-1 py-1.5 px-2 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 rounded-lg text-[10px] font-bold transition-all active:scale-95">
+            SNAPSHOT
+          </button>
+        </div>
+      </div>
+
+      <!-- Realm 3: Subsystem Tools -->
+      <div class="panel-card rounded-2xl p-4 border-purple-500/30 space-y-3">
+        <div class="flex items-center justify-between border-b border-purple-500/20 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">âš™ï¸</span>
+            <span class="font-bold text-purple-300 text-xs uppercase tracking-wider">Subsystem Tools</span>
+          </div>
+          <span class="text-[10px] text-slate-400">Auto-Actuation</span>
+        </div>
+
+        <!-- Tool Quick Actuators -->
+        <div class="grid grid-cols-2 gap-2 text-[10px]">
+          <button onclick="dispatchRealmAction('tools', 'niagara_burst')" class="p-2 rounded-xl bg-purple-950/50 hover:bg-purple-900/60 border border-purple-500/40 text-purple-200 font-bold text-left transition-all active:scale-95">
+            ðŸ’¥ NIAGARA BURST
+            <div class="text-[9px] text-slate-400 font-normal">Unreal Engine 5.4</div>
+          </button>
+          <button onclick="dispatchRealmAction('tools', 'movieforge_emerald')" class="p-2 rounded-xl bg-cyan-950/50 hover:bg-cyan-900/60 border border-cyan-500/40 text-cyan-200 font-bold text-left transition-all active:scale-95">
+            ðŸŽ¨ LUT: EMERALD
+            <div class="text-[9px] text-slate-400 font-normal">MovieForge 4K</div>
+          </button>
+          <button onclick="dispatchRealmAction('tools', 'movieforge_imperial')" class="p-2 rounded-xl bg-amber-950/50 hover:bg-amber-900/60 border border-amber-500/40 text-amber-200 font-bold text-left transition-all active:scale-95">
+            ðŸ‘‘ LUT: IMPERIAL
+            <div class="text-[9px] text-slate-400 font-normal">Warm DaVinci Grade</div>
+          </button>
+          <button onclick="promptShellExec()" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-left transition-all active:scale-95">
+            ðŸ’» EXEC SHELL
+            <div class="text-[9px] text-slate-400 font-normal">Autonomous PSH</div>
+          </button>
+          <a href="http://localhost:3000/arcade" target="_blank" class="p-2 rounded-xl bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-500/50 text-indigo-200 font-bold text-left transition-all active:scale-95 block">
+            ðŸ•³ï¸ EVENT HORIZON
+            <div class="text-[9px] text-slate-400 font-normal">Neural Theatre 4K</div>
+          </a>
+          <a href="http://localhost:3000/arcade" target="_blank" class="p-2 rounded-xl bg-pink-950/60 hover:bg-pink-900/80 border border-pink-500/50 text-pink-200 font-bold text-left transition-all active:scale-95 block">
+            ðŸ•¹ï¸ RETRO ARCADE
+            <div class="text-[9px] text-slate-400 font-normal">8 Retro Games</div>
+          </a>
+        </div>
+
+        <!-- Recent Tool Activity -->
+        <div class="bg-black/40 rounded-lg p-2 text-[10px] font-mono space-y-1">
+          <div class="text-slate-500 text-[9px] uppercase">Recent Subsystem Signals:</div>
+          <div id="tools-activity-log" class="text-slate-300 max-h-16 overflow-y-auto space-y-0.5">
+            <div>â€¢ Niagara burst dispatched (x: 0, y: 0, z: 120)</div>
+            <div>â€¢ MovieForge color calibrated to Imperial Gold</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Realm 4: Multimodal Vision -->
+      <div class="panel-card rounded-2xl p-4 border-cyan-500/30 space-y-2">
+        <div class="flex items-center justify-between border-b border-cyan-500/20 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">ðŸ‘ï¸</span>
+            <span class="font-bold text-cyan-300 text-xs uppercase tracking-wider">Vision Perception</span>
+          </div>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-500/40 text-cyan-300">from_file</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <input 
+            id="vision-file-input" 
+            type="text" 
+            placeholder="Path to image (e.g. test_vision.png)..."
+            class="flex-grow bg-slate-900/90 border border-slate-700 rounded-lg px-2 py-1 text-[11px] focus:outline-none focus:border-cyan-400 font-mono"
+          />
+          <button onclick="setVisualAttachment()" class="px-2.5 py-1 bg-cyan-500/20 hover:bg-cyan-500/40 text-cyan-300 border border-cyan-500/50 rounded-lg text-[10px] font-bold">
+            ATTACH
+          </button>
+        </div>
+        <p class="text-[9px] text-slate-400">Supports drag-and-drop or paths to .png, .jpg, and .pdf for cognitive visual analysis.</p>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: AUDIO, MEMORY & AUTONOMY (3 Cols) -->
+    <section class="md:col-span-3 flex flex-col gap-4">
+      
+      <!-- Realm 5: Audio (Kokoro TTS) -->
+      <div class="panel-card rounded-2xl p-4 border-amber-500/30 space-y-2">
+        <div class="flex items-center justify-between border-b border-amber-500/20 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">ðŸ”Š</span>
+            <span class="font-bold text-amber-300 text-xs uppercase tracking-wider">Kokoro Audio</span>
+          </div>
+          <span class="text-[10px] text-emerald-400 font-bold">24 kHz</span>
+        </div>
+
+        <div class="space-y-1 text-xs">
+          <div class="flex justify-between text-[10px] text-slate-400">
+            <span>Voice Profile:</span>
+            <span id="audio-voice-name" class="text-amber-300 font-bold">af_sarah</span>
+          </div>
+          <div class="flex justify-between text-[10px] text-slate-400">
+            <span>Daemon:</span>
+            <span class="text-cyan-300">http://127.0.0.1:5050</span>
+          </div>
+        </div>
+
+        <button onclick="dispatchRealmAction('audio', 'test_speech')" class="w-full py-1.5 bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 border border-amber-500/40 rounded-lg text-[10px] font-bold transition-all active:scale-95">
+          TEST AUDIO PULSE
+        </button>
+
+        <div class="bg-black/40 rounded p-1.5 text-[9px] text-slate-400">
+          Last Spoken: <span id="last-spoken-sentence" class="text-slate-300 italic">"PrimordiaOS vocal core online."</span>
+        </div>
+      </div>
+
+      <!-- Realm 6: Sovereign Memory -->
+      <div class="panel-card rounded-2xl p-4 border-pink-500/30 space-y-2">
+        <div class="flex items-center justify-between border-b border-pink-500/20 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">ðŸ§ </span>
+            <span class="font-bold text-pink-300 text-xs uppercase tracking-wider">Memory Realm</span>
+          </div>
+          <span id="memory-turn-count" class="text-[10px] font-bold text-pink-400">0 Turns</span>
+        </div>
+
+        <div class="space-y-1 text-[10px] text-slate-400">
+          <div class="flex justify-between">
+            <span>Sovereign User:</span>
+            <span class="text-slate-200 font-bold">Shane</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Substrate State:</span>
+            <span id="memory-state-pill" class="text-emerald-400">STABLE</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Total Tokens Spent:</span>
+            <span id="memory-tokens-spent" class="text-cyan-300 font-bold">0</span>
+          </div>
+        </div>
+
+        <button onclick="dispatchRealmAction('memory', 'flush_context')" class="w-full py-1 bg-pink-950/50 hover:bg-pink-900/60 text-pink-300 border border-pink-500/40 rounded-lg text-[10px] font-bold transition-all active:scale-95">
+          FLUSH SHORT-TERM CONTEXT
+        </button>
+      </div>
+
+      <!-- Realm 7: Autonomy Watchdog -->
+      <div class="panel-card rounded-2xl p-4 border-yellow-500/30 space-y-2">
+        <div class="flex items-center justify-between border-b border-yellow-500/20 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">âš¡</span>
+            <span class="font-bold text-yellow-300 text-xs uppercase tracking-wider">Autonomy Watchdog</span>
+          </div>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-yellow-950 border border-yellow-500/40 text-yellow-300 font-bold">60s Tick</span>
+        </div>
+
+        <div class="space-y-1 text-[10px] text-slate-400">
+          <div>Persistence: <span class="text-slate-200 font-mono">SQLite (sessions/)</span></div>
+          <div>Mode: <span class="text-emerald-400 font-mono">CREATE_OR_RESUME</span></div>
+          <div>Pre-Turn Hook: <span class="text-cyan-300 font-mono">Active (@hooks.pre_turn)</span></div>
+          <div>Tool Error Hook: <span class="text-purple-300 font-mono">Active (@hooks.on_tool_error)</span></div>
+        </div>
+
+        <div class="w-full h-1 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+          <div id="watchdog-bar" class="h-full bg-yellow-400 rounded-full animate-pulse" style="width: 100%"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- JAVASCRIPT ENGINE & SSE REAL-TIME BINDINGS -->
+  <script>
+    let activeAttachedFile = "";
+    let isStreaming = false;
+
+    // 1. Periodic Telemetry Sync (Every 2 seconds)
+    async function refreshAllRealms() {
+      try {
+        const res = await fetch("/api/realms");
+        if (!res.ok) return;
+        const data = await res.json();
+        
+        // Iterate over realms from manifest
+        for (const realm of data.realms || []) {
+          updateRealmPanel(realm);
+        }
+      } catch (err) {
+        console.warn("Telemetry sync warning:", err);
+      }
+    }
+
+    function updateRealmPanel(realm) {
+      const live = realm.live || {};
+      const m = live.metrics || {};
+
+      if (realm.id === "worldstate") {
+        const state = m.state || "STABLE";
+        const badge = document.getElementById("worldstate-badge");
+        const headerState = document.getElementById("header-state");
+        const pulse = document.getElementById("worldstate-pulse");
+
+        badge.textContent = `[${state}]`;
+        headerState.textContent = state;
+
+        if (state === "STABLE") {
+          badge.className = "px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold";
+          headerState.className = "font-bold text-emerald-400 glow-emerald";
+          pulse.className = "w-3.5 h-3.5 rounded-full bg-emerald-400 animate-ping";
+        } else if (state === "FLUX") {
+          badge.className = "px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-bold";
+          headerState.className = "font-bold text-amber-400 glow-amber";
+          pulse.className = "w-3.5 h-3.5 rounded-full bg-amber-400 animate-ping";
+        } else {
+          badge.className = "px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[11px] font-bold";
+          headerState.className = "font-bold text-rose-400 glow-crimson";
+          pulse.className = "w-3.5 h-3.5 rounded-full bg-rose-400 animate-ping";
+        }
+
+        document.getElementById("cpu-metric").textContent = `${m.cpu_percent || 0}%`;
+        document.getElementById("cpu-bar").style.width = `${Math.min(100, m.cpu_percent || 0)}%`;
+
+        document.getElementById("ram-metric").textContent = `${m.ram_percent || 0}%`;
+        document.getElementById("ram-bar").style.width = `${Math.min(100, m.ram_percent || 0)}%`;
+
+        document.getElementById("voice-mod-metric").textContent = `${m.voice_speed || 1.05}x`;
+      }
+
+      else if (realm.id === "audio") {
+        document.getElementById("audio-voice-name").textContent = m.active_voice || "af_sarah";
+        if (live.events && live.events.length > 0) {
+          const lastEvt = live.events[live.events.length - 1];
+          if (lastEvt.details) {
+            document.getElementById("last-spoken-sentence").textContent = `"${lastEvt.details}"`;
+          }
+        }
+      }
+
+      else if (realm.id === "memory") {
+        document.getElementById("memory-turn-count").textContent = `${m.total_history_turns || 0} Turns`;
+        document.getElementById("memory-state-pill").textContent = m.active_world_state || "STABLE";
+      }
+
+      else if (realm.id === "conversation") {
+        const consumed = m.total_tokens_consumed || 0;
+        document.getElementById("token-tally-footer").textContent = consumed;
+        document.getElementById("memory-tokens-spent").textContent = consumed;
+      }
+    }
+
+    // 2. Dispatch Realm-Specific Actions
+    async function dispatchRealmAction(realmId, action, params = {}) {
+      try {
+        const res = await fetch(`/api/realms/${realmId}/action`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action, params })
+        });
+        const json = await res.json();
+        
+        // Log action in chat thread
+        appendMessage("SYSTEM", `Action Dispatched: [${realmId.toUpperCase()}] -> ${action}`);
+        refreshAllRealms();
+      } catch (err) {
+        appendMessage("ERROR", `Failed to dispatch action: ${err.message}`);
+      }
+    }
+
+    function promptShellExec() {
+      const cmd = prompt("Enter shell command to execute under sovereign policy:", "Get-Process | Select-Object -First 5");
+      if (cmd) {
+        dispatchRealmAction("tools", "exec_shell", { command: cmd });
+      }
+    }
+
+    function setVisualAttachment() {
+      const input = document.getElementById("vision-file-input");
+      const val = input.value.trim();
+      if (!val) return;
+      activeAttachedFile = val;
+      document.getElementById("attached-file-name").textContent = val;
+      document.getElementById("active-attachment-chip").classList.remove("hidden");
+      input.value = "";
+    }
+
+    function clearAttachment() {
+      activeAttachedFile = "";
+      document.getElementById("active-attachment-chip").classList.add("hidden");
+    }
+
+    // 3. Conversational Turn via Streaming SSE
+    async function handleSendPrompt(e) {
+      e.preventDefault();
+      if (isStreaming) return;
+
+      const input = document.getElementById("prompt-input");
+      const prompt = input.value.trim();
+      if (!prompt) return;
+
+      input.value = "";
+      isStreaming = true;
+      document.getElementById("chat-status").textContent = "Streaming...";
+      document.getElementById("chat-status").className = "text-[10px] px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 animate-pulse";
+
+      // Append user bubble
+      appendMessage("SHANE", prompt);
+
+      // Prepare OS message container
+      const osBubble = appendMessage("PRIMORDIAOS", "");
+      const thoughtContainer = document.getElementById("thought-container");
+      const thoughtText = document.getElementById("thought-text");
+      const toolBadge = document.getElementById("tool-call-badge");
+      const toolName = document.getElementById("tool-call-name");
+
+      thoughtContainer.classList.add("hidden");
+      thoughtText.textContent = "";
+      toolBadge.classList.add("hidden");
+
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt: prompt,
+            image_path: activeAttachedFile
+          })
+        });
+
+        clearAttachment();
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n\n");
+          buffer = lines.pop(); // Retain incomplete line
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              try {
+                const data = JSON.parse(line.substring(6));
+                
+                // 1. Thought Stream
+                if (data.type === "thought") {
+                  thoughtContainer.classList.remove("hidden");
+                  thoughtText.textContent += data.text;
+                  thoughtText.scrollTop = thoughtText.scrollHeight;
+                }
+                // 2. Tool Call
+                else if (data.type === "tool_call") {
+                  toolBadge.classList.remove("hidden");
+                  toolName.textContent = data.name;
+                  appendMessage("SYSTEM", `Actuator Invoked: ${data.name}`);
+                }
+                // 3. Text Token Stream
+                else if (data.type === "token") {
+                  osBubble.textContent += data.text;
+                  const thread = document.getElementById("messages-thread");
+                  thread.scrollTop = thread.scrollHeight;
+                }
+                // 4. Turn Complete
+                else if (data.type === "done") {
+                  refreshAllRealms();
+                }
+                // 5. Error
+                else if (data.type === "error") {
+                  osBubble.textContent = data.message;
+                }
+              } catch (parseErr) {
+                console.warn("SSE parse issue:", parseErr);
+              }
+            }
+          }
+        }
+      } catch (networkErr) {
+        osBubble.textContent = `Neural uplink error: ${networkErr.message}`;
+      } finally {
+        isStreaming = false;
+        document.getElementById("chat-status").textContent = "Ready";
+        document.getElementById("chat-status").className = "text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+        refreshAllRealms();
+      }
+    }
+
+    function appendMessage(sender, text) {
+      const thread = document.getElementById("messages-thread");
+      const wrapper = document.createElement("div");
+      
+      if (sender === "SHANE") {
+        wrapper.className = "p-2.5 rounded-xl bg-cyan-950/40 border border-cyan-500/30 text-cyan-100 ml-6";
+        wrapper.innerHTML = `<div class="text-[10px] text-cyan-400 font-bold mb-0.5">[Shane > Sovereign Directive]</div><p class="whitespace-pre-wrap">${escapeHtml(text)}</p>`;
+        thread.appendChild(wrapper);
+        thread.scrollTop = thread.scrollHeight;
+        return null;
+      } else if (sender === "SYSTEM") {
+        wrapper.className = "p-1.5 rounded-lg bg-black/60 border border-slate-800 text-[10px] text-purple-300 font-mono";
+        wrapper.textContent = `âš™ï¸ ${text}`;
+        thread.appendChild(wrapper);
+        thread.scrollTop = thread.scrollHeight;
+        return null;
+      } else {
+        wrapper.className = "p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-200 mr-4";
+        const header = document.createElement("div");
+        header.className = "text-[10px] text-emerald-400 font-bold mb-0.5";
+        header.textContent = "[PrimordiaOS:STABLE] Response Stream";
+        const p = document.createElement("p");
+        p.className = "whitespace-pre-wrap";
+        p.textContent = text;
+        wrapper.appendChild(header);
+        wrapper.appendChild(p);
+        thread.appendChild(wrapper);
+        thread.scrollTop = thread.scrollHeight;
+        return p;
+      }
+    }
+
+    function escapeHtml(string) {
+      return String(string).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Initial load
+    refreshAllRealms();
+    setInterval(refreshAllRealms, 2000);
+  </script>
+</body>
+</html>

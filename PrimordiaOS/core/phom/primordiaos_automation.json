@@ -1,0 +1,126 @@
+{
+  "version": "1.0.0",
+  "system": "PrimordiaOS",
+  "automation_level": "full",
+  "signals": {
+    "sources": [
+      "metrics",
+      "events",
+      "user_state",
+      "world_state"
+    ],
+    "definitions": [
+      {
+        "id": "pulse_energy_spike",
+        "type": "metric_threshold",
+        "metric": "agent_energy",
+        "operator": ">",
+        "value": 0.85,
+        "severity": "high",
+        "tags": ["pulse", "niagara", "burst"]
+      },
+      {
+        "id": "unreal_connected",
+        "type": "system_state",
+        "metric": "unreal_bridge",
+        "operator": "==",
+        "value": "online",
+        "severity": "info",
+        "tags": ["bridge", "world", "ready"]
+      },
+      {
+        "id": "universe_evolution_trigger",
+        "type": "composite",
+        "expression": "agent_energy > 0.7 && metric_stream_variance > 0.3",
+        "severity": "critical",
+        "tags": ["evolution", "fractal", "spawn"]
+      }
+    ]
+  },
+  "actions": {
+    "library": [
+      {
+        "id": "spawn_pulsewave_burst",
+        "kind": "unreal_world",
+        "event_type": "pulse_update",
+        "niagara_system": "NS_PulseWaveBurst",
+        "parameters": {
+          "intensity": "agent_energy",
+          "radius": "metric_stream_variance",
+          "color_mode": "signal_severity"
+        }
+      },
+      {
+        "id": "spawn_agent_energy_orb",
+        "kind": "unreal_world",
+        "event_type": "agent_state",
+        "niagara_system": "NS_AgentEnergyOrb",
+        "parameters": {
+          "energy": "agent_energy",
+          "orbit_radius": "agent_focus",
+          "glow": "agent_clarity"
+        }
+      },
+      {
+        "id": "spawn_evolution_fractal_burst",
+        "kind": "unreal_world",
+        "event_type": "evolution_patch",
+        "niagara_system": "NS_EvolutionFractalBurst",
+        "parameters": {
+          "iterations": "evolution_depth",
+          "scale": "evolution_magnitude",
+          "color_shift": "evolution_phase"
+        }
+      }
+    ],
+    "policies": [
+      {
+        "id": "auto_pulse_on_spike",
+        "when_signal": "pulse_energy_spike",
+        "do_action": "spawn_pulsewave_burst",
+        "mode": "auto"
+      },
+      {
+        "id": "auto_evolution_on_trigger",
+        "when_signal": "universe_evolution_trigger",
+        "do_action": "spawn_evolution_fractal_burst",
+        "mode": "auto"
+      }
+    ]
+  },
+  "worlds": {
+    "templates": [
+      {
+        "id": "primordia_control_room",
+        "kind": "vr_space",
+        "rules": {
+          "ambient_pulse": "agent_energy",
+          "hud_layers": ["metrics", "signals", "actions"],
+          "camera_mode": "observer"
+        }
+      },
+      {
+        "id": "nebula_arena",
+        "kind": "vr_space",
+        "rules": {
+          "spawn_on_signal": ["pulse_energy_spike", "universe_evolution_trigger"],
+          "effects": ["NS_PulseWaveBurst", "NS_EvolutionFractalBurst"],
+          "camera_mode": "immersive"
+        }
+      }
+    ]
+  },
+  "loop": {
+    "steps": [
+      "collect_metrics",
+      "derive_signals",
+      "select_actions",
+      "emit_events",
+      "unreal_executes",
+      "log_proof",
+      "update_scores"
+    ],
+    "event_endpoint": "ws://localhost:17800",
+    "event_schema_ref": "primordia_event_schema.json"
+  }
+}

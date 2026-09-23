@@ -1,0 +1,8 @@
+{
+  "id": "task-build-world-001",
+  "agent": "unrealEngineer",
+  "payload": {
+    "seedFile": "seed-output-001.json",
+    "useProceduralMeshes": true
+  }
+}

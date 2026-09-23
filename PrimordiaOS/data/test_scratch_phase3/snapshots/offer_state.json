@@ -1,0 +1,28 @@
+{
+  "activeOffer": {
+    "id": "off_70c42f9d1c2376e4",
+    "decisionId": "off_70c42f9d1c2376e4",
+    "ts": 1789170841493,
+    "timestampMs": 1789170841493,
+    "ruleTriggered": "RULE_DYNAMIC_PRICE_ADJUST",
+    "action": "OFFER_DECISION",
+    "priority": 50,
+    "offerType": "DYNAMIC",
+    "price": 49,
+    "ctaText": "⚡ UNLOCK PRIMORDIA PROTOCOL ($49)",
+    "cooldownKey": "OFFER_COOLDOWN_DYNAMIC",
+    "idempotencyKey": "246ddf60458bfb29",
+    "destinationUrl": "https://primordialorigin.com/offer?tier=dynamic&price=49",
+    "reason": "Deterministic dynamic pricing calculated ($49) from viewer density (0) and CTR (0).",
+    "rationale": "Deterministic dynamic pricing calculated ($49) from viewer density (0) and CTR (0).",
+    "payload": {
+      "targetCtaId": "cta_dynamic_49",
+      "ctaLabel": "⚡ UNLOCK PRIMORDIA PROTOCOL ($49)",
+      "targetUrl": "https://primordialorigin.com/offer?tier=dynamic&price=49",
+      "price": 49,
+      "offerType": "DYNAMIC",
+      "cooldownKey": "OFFER_COOLDOWN_DYNAMIC"
+    }
+  },
+  "lastOfferTs": 1789170841493
+}

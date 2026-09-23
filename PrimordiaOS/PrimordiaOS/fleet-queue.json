@@ -1,0 +1,139 @@
+﻿[
+  {
+    "id": 101,
+    "cluster": "MoneyPlugHub",
+    "repo": "shanefisher115-ops/moneyplughub",
+    "task": "Solana USDC Web3 Crypto Payments & Phantom Wallet Adapter",
+    "prompt": "Implement native Solana Web3 crypto payment integration in src/backend/routes/crypto.ts using @solana/web3.js and @solana/wallet-adapter, allowing creators to connect Phantom/Solflare wallets and receive instant USDC payout transfers alongside Stripe.",
+    "status": "pending"
+  },
+  {
+    "id": 102,
+    "cluster": "MoneyPlugHub",
+    "repo": "shanefisher115-ops/moneyplughub",
+    "task": "AI Affiliate Viral Marketing Copywriter Engine",
+    "prompt": "Build an in-app AI copywriter tool using Gemini Flash that generates high-converting X/Twitter threads, TikTok video scripts, and email swipes tailored to a creator's niche with embedded affiliate links and tracking tokens.",
+    "status": "pending"
+  },
+  {
+    "id": 103,
+    "cluster": "MoneyPlugHub",
+    "repo": "shanefisher115-ops/moneyplughub",
+    "task": "Automated W-9 / 1099-MISC Creator Tax Compliance",
+    "prompt": "Build an automated tax compliance module that collects creator W-9 forms, validates TIN/EIN formats, logs digital signatures, and aggregates yearly earnings for automated 1099-MISC export generation.",
+    "status": "pending"
+  },
+  {
+    "id": 104,
+    "cluster": "MoneyPlugHub",
+    "repo": "shanefisher115-ops/moneyplughub",
+    "task": "Smart Churn Recovery & Dunning Campaign Flow",
+    "prompt": "Implement smart billing dunning workflows: automated retry schedules for failed credit card invoices, customized grace period handling, and targeted discount offers via email/SMS to prevent subscriber churn.",
+    "status": "pending"
+  },
+  {
+    "id": 105,
+    "cluster": "MoneyPlugHub",
+    "repo": "shanefisher115-ops/moneyplughub",
+    "task": "Encrypted Syndicate Real-Time Voice and Chat Rooms",
+    "prompt": "Implement token-gated syndicate chat and voice rooms using WebSockets and WebRTC audio channels, restricting access based on user Wealth Tier badges with end-to-end encrypted messaging.",
+    "status": "pending"
+  },
+  {
+    "id": 106,
+    "cluster": "Kernel",
+    "repo": "shanefisher115-ops/Primordial-Origin",
+    "task": "5-Axis Simultaneous CNC Toolpath Generator",
+    "prompt": "Implement advanced 5-axis simultaneous CNC toolpath generation algorithms supporting swarf milling and multi-surface finishing with dynamic tool axis vector interpolation and tilt collision limits.",
+    "status": "pending"
+  },
+  {
+    "id": 107,
+    "cluster": "Kernel",
+    "repo": "shanefisher115-ops/Primordial-Origin",
+    "task": "NURBS Surface Lofting and Fairing Evaluator",
+    "prompt": "Implement a Non-Uniform Rational B-Spline (NURBS) surface generator supporting curve lofting, knot vector normalization, surface curvature evaluation, and fairing through 3D point cloud slices.",
+    "status": "pending"
+  },
+  {
+    "id": 108,
+    "cluster": "Kernel",
+    "repo": "shanefisher115-ops/Primordial-Origin",
+    "task": "Automated B-rep Geometry Defeature Engine",
+    "prompt": "Implement an automated B-rep solid defeature algorithm that detects and suppresses small fillets, chamfers, and non-structural micro-holes to optimize complex CAD geometries for FEA and aerodynamic meshing.",
+    "status": "pending"
+  },
+  {
+    "id": 109,
+    "cluster": "Kernel",
+    "repo": "shanefisher115-ops/Primordial-Origin",
+    "task": "Automated MEP 3D A-Star Pathfinding Router",
+    "prompt": "Implement an automated 3D A* obstacle-avoidance pathfinding router for BIM MEP systems that routes HVAC ducts, electrical conduits, and plumbing between connection nodes while avoiding structural elements.",
+    "status": "pending"
+  },
+  {
+    "id": 110,
+    "cluster": "Kernel",
+    "repo": "shanefisher115-ops/Primordial-Origin",
+    "task": "Reverse CAM: G-Code to 3D Solid Reconstructor",
+    "prompt": "Implement a reverse CAM parser that reads legacy G-code files (G00, G01, G02, G03) and reconstructs the carved 3D volume geometry as a clean, manifold B-rep mesh.",
+    "status": "pending"
+  },
+  {
+    "id": 111,
+    "cluster": "Frontend",
+    "repo": "shanefisher115-ops/frontend",
+    "task": "Unreal Engine 5 Pixel Streaming WebRTC Bridge",
+    "prompt": "Implement a WebRTC client component in the React frontend that connects to Unreal Engine 5 Pixel Streaming servers with low-latency video playback and bidirectional mouse/keyboard event forwarding.",
+    "status": "pending"
+  },
+  {
+    "id": 112,
+    "cluster": "Frontend",
+    "repo": "shanefisher115-ops/frontend",
+    "task": "GLSL Shaders: Von Mises FEA Stress and Thermal Heatmaps",
+    "prompt": "Create custom Three.js GLSL vertex and fragment shaders for rendering dynamic Von Mises stress and thermal gradient heatmaps directly across 3D CAD solid surfaces.",
+    "status": "pending"
+  },
+  {
+    "id": 113,
+    "cluster": "Frontend",
+    "repo": "shanefisher115-ops/frontend",
+    "task": "3D Binaural Spatial Audio DSP Engine",
+    "prompt": "Upgrade the Web Audio soundDesignEngine.ts with a 3D binaural audio panner using HRTF spatialization, placing cutting sounds, spindle hums, and assistant voices at specific 3D coordinates around the listener.",
+    "status": "pending"
+  },
+  {
+    "id": 114,
+    "cluster": "Frontend",
+    "repo": "shanefisher115-ops/frontend",
+    "task": "Infinite Collaborative Spatial Reasoning Canvas",
+    "prompt": "Build an infinite zoomable whiteboard canvas component where users can pin 3D CAD viewports, code editors, agent reasoning node graphs, and telemetry widgets into a unified workspace.",
+    "status": "pending"
+  },
+  {
+    "id": 115,
+    "cluster": "API",
+    "repo": "shanefisher115-ops/primordialorigin-api",
+    "task": "Supabase Realtime SQL Triggers & Row-Level Security",
+    "prompt": "Implement PostgreSQL functions, triggers, and Row-Level Security (RLS) policies for Supabase that broadcast instant change deltas on cad_models and commission_ledger tables over WebSocket channels.",
+    "status": "pending"
+  },
+  {
+    "id": 116,
+    "cluster": "API",
+    "repo": "shanefisher115-ops/moneyplughub",
+    "task": "Cloudflare KV Global Edge CDN Caching for Sigils",
+    "prompt": "Implement Cloudflare Workers KV and Cache API handlers in deploy/worker.ts to cache rendered SVG sigils and public creator profile cards at 300+ global edge locations with sub-10ms response times.",
+    "status": "pending"
+  },
+  {
+    "id": 117,
+    "cluster": "Realms",
+    "repo": "shanefisher115-ops/primordiaos-core-realm",
+    "task": "Autonomous GitHub PR Auto-Merger and Conflict Sentinel",
+    "prompt": "Build an automated release watchdog service that polls GitHub for Jules-generated pull requests, verifies CI status, checks for merge conflicts, auto-rebases clean branches, and squash-merges into dev.",
+    "status": "pending"
+  }
+]
+

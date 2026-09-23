@@ -1,0 +1,125 @@
+{
+  "version": "1.0.0",
+  "spec_type": "mcp_store_spec",
+  "name": "Unified Multi-Platform Store Asset Specifications",
+  "platforms": {
+    "ios": {
+      "name": "Apple App Store",
+      "targets": [
+        {
+          "device": "iPhone 15 Pro Max / 16 Pro Max",
+          "display_size": "6.7 inch",
+          "dimensions": { "width": 1290, "height": 2796 },
+          "aspect_ratio": "19.5:9",
+          "formats": ["PNG", "JPEG"],
+          "max_file_size_mb": 8,
+          "required_count": [3, 10]
+        },
+        {
+          "device": "iPhone 14 Plus / 13 Pro Max",
+          "display_size": "6.5 inch",
+          "dimensions": { "width": 1242, "height": 2688 },
+          "aspect_ratio": "19.5:9",
+          "formats": ["PNG", "JPEG"],
+          "max_file_size_mb": 8,
+          "required_count": [3, 10]
+        },
+        {
+          "device": "iPhone 8 Plus",
+          "display_size": "5.5 inch",
+          "dimensions": { "width": 1242, "height": 2208 },
+          "aspect_ratio": "16:9",
+          "formats": ["PNG", "JPEG"],
+          "max_file_size_mb": 8,
+          "required_count": [3, 10]
+        },
+        {
+          "device": "iPad Pro (6th Gen)",
+          "display_size": "12.9 inch",
+          "dimensions": { "width": 2048, "height": 2732 },
+          "aspect_ratio": "4:3",
+          "formats": ["PNG", "JPEG"],
+          "max_file_size_mb": 8,
+          "required_count": [1, 10]
+        }
+      ],
+      "icons": [
+        { "name": "AppStoreMasterIcon", "dimensions": { "width": 1024, "height": 1024 }, "no_alpha": true }
+      ]
+    },
+    "android": {
+      "name": "Google Play Store",
+      "targets": [
+        {
+          "device": "Android Phone Standard",
+          "dimensions": { "width": 1080, "height": 2400 },
+          "aspect_ratio": "20:9",
+          "formats": ["PNG", "JPEG"],
+          "max_file_size_mb": 8,
+          "required_count": [2, 8]
+        },
+        {
+          "device": "7-inch Tablet",
+          "dimensions": { "width": 1200, "height": 1920 },
+          "aspect_ratio": "16:10",
+          "formats": ["PNG", "JPEG"],
+          "max_file_size_mb": 8,
+          "required_count": [1, 8]
+        },
+        {
+          "device": "10-inch Tablet",
+          "dimensions": { "width": 1600, "height": 2560 },
+          "aspect_ratio": "16:10",
+          "formats": ["PNG", "JPEG"],
+          "max_file_size_mb": 8,
+          "required_count": [1, 8]
+        }
+      ],
+      "promotional": [
+        {
+          "name": "FeatureGraphic",
+          "dimensions": { "width": 1024, "height": 500 },
+          "aspect_ratio": "1024:500",
+          "formats": ["PNG", "JPEG"],
+          "required": true
+        }
+      ],
+      "icons": [
+        { "name": "GooglePlayHiResIcon", "dimensions": { "width": 512, "height": 512 }, "max_file_size_kb": 1024 }
+      ]
+    },
+    "windows": {
+      "name": "Microsoft Windows Store",
+      "targets": [
+        {
+          "name": "Desktop 4K Hero",
+          "dimensions": { "width": 3840, "height": 2160 },
+          "aspect_ratio": "16:9",
+          "formats": ["PNG"],
+          "required": true
+        },
+        {
+          "name": "Desktop 1080p Screenshot",
+          "dimensions": { "width": 1920, "height": 1080 },
+          "aspect_ratio": "16:9",
+          "formats": ["PNG"],
+          "required": true
+        }
+      ],
+      "tiles": [
+        { "name": "SquareMediumTile", "dimensions": { "width": 300, "height": 300 } },
+        { "name": "SquareLargeTile", "dimensions": { "width": 600, "height": 600 } },
+        { "name": "WideTile", "dimensions": { "width": 620, "height": 300 } }
+      ]
+    },
+    "promo_marketing": {
+      "name": "Affiliate & Social Campaigns",
+      "targets": [
+        { "name": "X_Twitter_Header", "dimensions": { "width": 1500, "height": 500 } },
+        { "name": "YouTube_Channel_Art", "dimensions": { "width": 2560, "height": 1440 } },
+        { "name": "Discord_Banner", "dimensions": { "width": 960, "height": 540 } },
+        { "name": "MoneyPlugHub_Referral_Card", "dimensions": { "width": 1200, "height": 630 } }
+      ]
+    }
+  }
+}

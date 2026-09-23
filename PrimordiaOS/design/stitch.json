@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "engine": "stitch.manifest",
+  "name": "PrimordiaOS UI Stitch Manifest",
+  "tokens": {
+    "colors": {
+      "primary": "#00FFC2",
+      "secondary": "#00E5FF",
+      "accent": "#FFD700",
+      "laser": "#A855F7",
+      "background": "#07090E",
+      "surface": "#0D111A",
+      "border": "rgba(0, 255, 194, 0.25)"
+    },
+    "typography": {
+      "display": {
+        "fontFamily": "Cinematic Mythic Sans, Space Grotesk, sans-serif",
+        "fontWeight": 800,
+        "letterSpacing": "0.08em"
+      },
+      "code": {
+        "fontFamily": "JetBrains Mono, Fira Code, monospace",
+        "fontWeight": 600
+      },
+      "body": {
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontWeight": 400
+      }
+    },
+    "glassmorphism": {
+      "backdropBlur": "24px",
+      "backgroundAlpha": 0.65,
+      "borderGlow": "0 0 25px rgba(0, 255, 194, 0.35)"
+    }
+  },
+  "layout_hierarchy": [
+    {
+      "layer": "ambient_depth",
+      "blendMode": "SCREEN",
+      "effect": "particle_flux"
+    },
+    {
+      "layer": "device_bezel",
+      "style": "cinematic_titanium_edge",
+      "shadow": "0 30px 60px rgba(0, 0, 0, 0.85)"
+    },
+    {
+      "layer": "ui_frame_content",
+      "cornerRadius": "48px"
+    },
+    {
+      "layer": "mythic_overlay",
+      "elements": ["realm_sigils", "node_runes"]
+    },
+    {
+      "layer": "promotional_copy",
+      "slots": [
+        { "id": "slot_headline", "position": "top", "max_chars": 45 },
+        { "id": "slot_subheadline", "position": "top_subtitle", "max_chars": 80 },
+        { "id": "slot_badge", "position": "floating_badge" }
+      ]
+    }
+  ]
+}

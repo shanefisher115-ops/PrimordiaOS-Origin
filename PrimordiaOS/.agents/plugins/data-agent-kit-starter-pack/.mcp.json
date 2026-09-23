@@ -1,0 +1,210 @@
+{
+  "mcpServers": {
+    "notebook": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "git+https://github.com/gemini-cli-extensions/data-agent-kit-starter-pack.git",
+        "--mode=notebook"
+      ],
+      "env": {},
+      "env_vars": [
+        "DATA_CLOUD_CURR_IDE_NAME"
+      ]
+    },
+    "visualization": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "git+https://github.com/gemini-cli-extensions/data-agent-kit-starter-pack.git",
+        "--mode=visualization"
+      ],
+      "env": {},
+      "env_vars": [
+        "DATA_CLOUD_CURR_IDE_NAME"
+      ]
+    },
+    "bigquery": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@toolbox-sdk/server@>=1.1.0",
+        "--prebuilt",
+        "bigquery",
+        "--stdio",
+        "--user-agent-metadata",
+        "datacloud.codex"
+      ],
+      "env": {
+        "BIGQUERY_LOCATION": "us",
+        "BIGQUERY_PROJECT": "primordial-antigravity-core"
+      }
+    },
+    "spanner": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@toolbox-sdk/server@>=1.1.0",
+        "--prebuilt",
+        "spanner",
+        "--stdio",
+        "--user-agent-metadata",
+        "datacloud.codex"
+      ],
+      "env": {
+        "SPANNER_DATABASE": "",
+        "SPANNER_DIALECT": "",
+        "SPANNER_INSTANCE": "",
+        "SPANNER_PROJECT": "primordial-antigravity-core"
+      }
+    },
+    "alloydb-postgres-admin": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@toolbox-sdk/server@>=1.1.0",
+        "--prebuilt",
+        "alloydb-postgres-admin",
+        "--stdio",
+        "--user-agent-metadata",
+        "datacloud.codex"
+      ],
+      "env": {}
+    },
+    "alloydb-postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@toolbox-sdk/server@>=1.1.0",
+        "--prebuilt",
+        "alloydb-postgres",
+        "--stdio",
+        "--user-agent-metadata",
+        "datacloud.codex"
+      ],
+      "env": {
+        "ALLOYDB_POSTGRES_CLUSTER": "",
+        "ALLOYDB_POSTGRES_DATABASE": "",
+        "ALLOYDB_POSTGRES_INSTANCE": "",
+        "ALLOYDB_POSTGRES_IP_TYPE": "",
+        "ALLOYDB_POSTGRES_PASSWORD": "",
+        "ALLOYDB_POSTGRES_PROJECT": "primordial-antigravity-core",
+        "ALLOYDB_POSTGRES_REGION": "us-west1",
+        "ALLOYDB_POSTGRES_USER": ""
+      }
+    },
+    "cloud-sql-postgresql-admin": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@toolbox-sdk/server@>=1.1.0",
+        "--prebuilt",
+        "cloud-sql-postgres-admin",
+        "--stdio",
+        "--user-agent-metadata",
+        "datacloud.codex"
+      ],
+      "env": {}
+    },
+    "cloud-sql-postgresql": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@toolbox-sdk/server@>=1.1.0",
+        "--prebuilt",
+        "cloud-sql-postgres",
+        "--stdio",
+        "--user-agent-metadata",
+        "datacloud.codex"
+      ],
+      "env": {
+        "CLOUD_SQL_POSTGRES_DATABASE": "",
+        "CLOUD_SQL_POSTGRES_INSTANCE": "",
+        "CLOUD_SQL_POSTGRES_IP_TYPE": "",
+        "CLOUD_SQL_POSTGRES_PASSWORD": "",
+        "CLOUD_SQL_POSTGRES_PROJECT": "primordial-antigravity-core",
+        "CLOUD_SQL_POSTGRES_REGION": "us-west1",
+        "CLOUD_SQL_POSTGRES_USER": ""
+      }
+    },
+    "knowledge_catalog": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@toolbox-sdk/server@>=1.1.0",
+        "--prebuilt",
+        "dataplex",
+        "--stdio",
+        "--user-agent-metadata",
+        "datacloud.codex"
+      ],
+      "env": {
+        "DATAPLEX_PROJECT": "primordial-antigravity-core"
+      }
+    },
+    "dataproc": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@toolbox-sdk/server@>=1.1.0",
+        "--prebuilt",
+        "dataproc",
+        "--stdio",
+        "--user-agent-metadata",
+        "datacloud.codex"
+      ],
+      "env": {
+        "DATAPROC_PROJECT": "primordial-antigravity-core",
+        "DATAPROC_REGION": "us-west1"
+      }
+    },
+    "serverless-spark": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@toolbox-sdk/server@>=1.1.0",
+        "--prebuilt",
+        "serverless-spark",
+        "--stdio",
+        "--user-agent-metadata",
+        "datacloud.codex"
+      ],
+      "env": {
+        "SERVERLESS_SPARK_PROJECT": "primordial-antigravity-core",
+        "SERVERLESS_SPARK_LOCATION": "us-west1"
+      }
+    },
+    "bigtable": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@toolbox-sdk/server@>=1.1.0",
+        "--prebuilt",
+        "bigtable",
+        "--stdio",
+        "--user-agent-metadata",
+        "datacloud.codex"
+      ],
+      "env": {
+        "BIGTABLE_PROJECT": "primordial-antigravity-core",
+        "BIGTABLE_INSTANCE": ""
+      }
+    },
+    "cloud-storage": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@toolbox-sdk/server@>=1.1.0",
+        "--prebuilt",
+        "cloud-storage",
+        "--stdio",
+        "--user-agent-metadata",
+        "datacloud.codex"
+      ],
+      "env": {
+        "CLOUD_STORAGE_PROJECT": "primordial-antigravity-core"
+      }
+    }
+  }
+}
+

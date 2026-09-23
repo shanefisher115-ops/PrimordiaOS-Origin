@@ -1,0 +1,66 @@
+Set-Content -Path "$root\config\personas.json" -Encoding ASCII @'
+{
+  "personas": [
+    {
+      "id": "P1",
+      "label": "Laser/Plasma Job Shop – Head Crash Prevention",
+      "problems": [
+        {
+          "id": "head_crash_downtime",
+          "summary": "Tip-up slugs on slat beds cause catastrophic head crashes at 100+ m/min, destroying $12k–$25k laser heads and stopping production for days."
+        }
+      ],
+      "features": [
+        {
+          "id": "slat_bed_collision_envelope",
+          "summary": "Automated slat-bed geometry calculation and collision envelope verification with >12.5mm clearance across 52,400 tool vectors."
+        },
+        {
+          "id": "micro_tabbing_nano_joints",
+          "summary": "Automatic micro-tabbing, nano-joints, and smart lead-in/lead-out planning that physically prevent parts from tilting into the rapid-motion envelope."
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "label": "High-Alloy Aerospace/Medical Fab – Yield & Thermal Control",
+      "problems": [
+        {
+          "id": "alloy_scrap_cost",
+          "summary": "Titanium, 316L, and Inconel sheets cost hundreds of dollars; manual nesting wastes 15–30% and thermal distortion scraps parts."
+        }
+      ],
+      "features": [
+        {
+          "id": "maxrects_nesting",
+          "summary": "MaxRects 2D nesting with kerf compensation (G41/G42) to reach >90% sheet utilization and cut scrap by thousands per month."
+        },
+        {
+          "id": "thermal_tsp_sequencing",
+          "summary": "Thermal TSP sequencing that spreads heat so you avoid warping and HAZ scrap without hand-editing G-code."
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "label": "Multi-Process CNC + Weld – Unified Stack & AI Copilots",
+      "problems": [
+        {
+          "id": "software_silos_knowledge_gap",
+          "summary": "Shops juggle 4–6 legacy tools and expensive post-processors; when senior machinists retire, juniors struggle to program safely."
+        }
+      ],
+      "features": [
+        {
+          "id": "cloud_unified_suite",
+          "summary": "Zero-install cloud suite that merges CAD healing, multi-part nesting, 5-axis collision checking, and instant post-processing for all major CNC dialects."
+        },
+        {
+          "id": "ai_metallurgy_heat_copilots",
+          "summary": "In-app AI metallurgy and Rosenthal heat copilots that recommend laser power, assist gas, focal point, weld bead geometry, and ERP quoting."
+        }
+      ]
+    }
+  ]
+}
+'@

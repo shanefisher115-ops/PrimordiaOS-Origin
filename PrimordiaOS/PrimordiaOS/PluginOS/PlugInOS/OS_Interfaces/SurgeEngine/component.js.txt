@@ -1,0 +1,13 @@
+// v0.1 Surge Engine — sustained focused surges
+
+function generateSurge(state) {
+  return {
+    surgeActive: state.intensity > 0.7,
+    surgeStrength: state.intensity,
+    surgeDuration: 800 + state.focus * 600
+  };
+}
+
+module.exports = {
+  generateSurge
+};

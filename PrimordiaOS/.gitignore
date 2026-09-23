@@ -1,13 +1,7 @@
-# ============================================================
-# PRIMORDIAOS MASTER .gitignore
-# Unreal Engine + Node.js + TypeScript + Supabase + VS Code
-# ============================================================
-
 ##############################
 # Unreal Engine
 ##############################
 
-# Build artifacts
 Binaries/
 DerivedDataCache/
 Intermediate/
@@ -16,7 +10,6 @@ Build/
 dist/
 out/
 
-# Unreal project files that regenerate
 *.sln
 *.suo
 *.opensdf
@@ -24,58 +17,39 @@ out/
 *.VC.db
 *.VC.opendb
 
-# Crash logs
 *.log
 *.dmp
 
-# Unreal asset caches
 *.uasset
 *.umap
 
-# Ignore Engine folder if present
 Engine/
 
 ##############################
-# PrimordiaOS Node Backend
+# Node / TypeScript / Autonomy
 ##############################
 
-# Node modules
 node_modules/
-
-# Environment variables
 .env
 .env.local
 .env.production
 .env.development
 
-# Logs
 logs/
 *.log
 
-# Build outputs
 build/
 dist/
 out/
-
-# Temporary files
 *.tmp
 *.temp
-
-##############################
-# TypeScript
-##############################
-
-# TS build cache
 *.tsbuildinfo
 
 ##############################
 # Supabase
 ##############################
 
-# Supabase generated migrations (optional)
 supabase/migrations/
-
-# Supabase local dev artifacts
 supabase/.temp/
 supabase/.branches/
 
@@ -98,22 +72,36 @@ electron/build/
 # OS / System Files
 ##############################
 
-# Windows
 Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# Mac
 .DS_Store
 .AppleDouble
 .LSOverride
 
-# Linux
 *~
 
 ##############################
 # Git
 ##############################
 
-# Ignore Git conflict backups
 *.orig
+
+##############################
+# PrimordiaOS Autonomy / Dist
+##############################
+
+dist-autonomy/
+autonomy-build/
+autonomy/
+
+##############################
+# Gemini / Antigravity Scratch
+##############################
+
+.gemini/
+.gemini/antigravity/
+.gemini/antigravity/scratch/
+.gemini/antigravity/conversations/
+primordia_memory.sqlite*

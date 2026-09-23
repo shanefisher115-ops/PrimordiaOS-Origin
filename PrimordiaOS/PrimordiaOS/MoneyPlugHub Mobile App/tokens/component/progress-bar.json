@@ -1,0 +1,15 @@
+{
+  "component": {
+    "progress-bar": {
+      "track-color": {
+        "value": "{semantic.color.border-subtle}"
+      },
+      "fill-color": {
+        "value": "{semantic.color.accent-primary}"
+      },
+      "radius": {
+        "value": "{primitive.radius.full}"
+      }
+    }
+  }
+}

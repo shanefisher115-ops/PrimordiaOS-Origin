@@ -1,0 +1,20 @@
+{
+  "provider": "smtp",
+  "smtp": {
+    "host": "mail.primordialorigin.com",
+    "port": 465,
+    "secure": true,
+    "auth": {
+      "user": "contact@primordialorigin.com",
+      "pass": "YOUR_EMAIL_PASSWORD"
+    }
+  },
+  "resend": {
+    "apiKey": "re_123456789"
+  },
+  "defaults": {
+    "fromEmail": "contact@primordialorigin.com",
+    "fromName": "Shane | Primordia Systems",
+    "replyTo": "contact@primordialorigin.com"
+  }
+}

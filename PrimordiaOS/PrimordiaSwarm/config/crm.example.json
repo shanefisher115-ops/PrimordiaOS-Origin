@@ -1,0 +1,20 @@
+{
+  "activeProvider": "instantly",
+  "instantly": {
+    "apiKey": "YOUR_INSTANTLY_API_KEY",
+    "campaignId": "CAMPAIGN_ID_OPTIONAL"
+  },
+  "lemlist": {
+    "apiKey": "YOUR_LEMLIST_API_KEY",
+    "campaignId": "CAMPAIGN_ID_OPTIONAL"
+  },
+  "apollo": {
+    "apiKey": "YOUR_APOLLO_API_KEY"
+  },
+  "hubspot": {
+    "accessToken": "pat-na1-YOUR_HUBSPOT_TOKEN"
+  },
+  "webhook": {
+    "url": "https://hooks.zapier.com/hooks/catch/XXXXXX/YYYYYY"
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "version": "1.0.0",
+  "timestamp": 1789024201822,
+  "realms": [
+    {
+      "realmId": "sovereign_core",
+      "name": "Sovereign Kernel Realm",
+      "description": "Supreme origin kernel of PrimordiaOS. Houses immutable rule engine and Tier 0 sovereign intent.",
+      "centerCoordinates": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "radius": 500,
+      "metadata": {
+        "tier": "Supreme",
+        "antiGravScore": 100
+      },
+      "createdAt": 1789024201740,
+      "updatedAt": 1789024201740
+    },
+    {
+      "realmId": "sovereign_cockpit",
+      "name": "Sovereign Cockpit Realm",
+      "description": "Interactive operator console, HUD, Cyber Arcade, and high-altitude neural telemetry.",
+      "centerCoordinates": {
+        "x": 1000,
+        "y": 0,
+        "z": 0
+      },
+      "radius": 400,
+      "metadata": {
+        "uiHost": "http://localhost:3000/arcade",
+        "wsPort": 3000
+      },
+      "createdAt": 1789024201740,
+      "updatedAt": 1789024201741
+    },
+    {
+      "realmId": "vision_core",
+      "name": "VisionCore Realm",
+      "description": "MovieForge 4K Neural Theater, visual shaders, DaVinci LUT processing, and perception.",
+      "centerCoordinates": {
+        "x": 0,
+        "y": 1000,
+        "z": 0
+      },
+      "radius": 400,
+      "metadata": {
+        "luts": [
+          "Imperial Gold",
+          "Cyberpunk Emerald",
+          "Neutral Raw"
+        ]
+      },
+      "createdAt": 1789024201740,
+      "updatedAt": 1789024201741
+    },
+    {
+      "realmId": "moneyplughub",
+      "name": "MoneyPlugHub Autonomous Realm",
+      "description": "Autonomous publishing loops, faceless media generation, and syndication engines.",
+      "centerCoordinates": {
+        "x": -1000,
+        "y": 0,
+        "z": 0
+      },
+      "radius": 400,
+      "metadata": {
+        "loopDepthLimit": 10,
+        "antiSpam": true
+      },
+      "createdAt": 1789024201740,
+      "updatedAt": 1789024201741
+    },
+    {
+      "realmId": "unreal_bridge",
+      "name": "Unreal Engine 5.4 Bridge Realm",
+      "description": "Niagara particle telemetry, physics simulation, and procedural actor mesh generation.",
+      "centerCoordinates": {
+        "x": 0,
+        "y": -1000,
+        "z": 0
+      },
+      "radius": 400,
+      "metadata": {
+        "ueVersion": "5.4",
+        "streamMode": "WebSocket"
+      },
+      "createdAt": 1789024201740,
+      "updatedAt": 1789024201741
+    },
+    {
+      "realmId": "lexicon_codex",
+      "name": "Lexicon Codex Realm",
+      "description": "Living conceptual registry, high-altitude terminology, and inscription chamber.",
+      "centerCoordinates": {
+        "x": 0,
+        "y": 0,
+        "z": 1000
+      },
+      "radius": 350,
+      "metadata": {
+        "cognitiveAltitude": "High"
+      },
+      "createdAt": 1789024201740,
+      "updatedAt": 1789024201741
+    }
+  ],
+  "adjacency": [
+    {
+      "from": "sovereign_core",
+      "to": [
+        "sovereign_cockpit",
+        "vision_core",
+        "moneyplughub",
+        "unreal_bridge",
+        "lexicon_codex"
+      ]
+    },
+    {
+      "from": "sovereign_cockpit",
+      "to": [
+        "sovereign_core",
+        "moneyplughub"
+      ]
+    },
+    {
+      "from": "vision_core",
+      "to": [
+        "sovereign_core",
+        "unreal_bridge"
+      ]
+    },
+    {
+      "from": "moneyplughub",
+      "to": [
+        "sovereign_core",
+        "sovereign_cockpit"
+      ]
+    },
+    {
+      "from": "unreal_bridge",
+      "to": [
+        "sovereign_core",
+        "vision_core"
+      ]
+    },
+    {
+      "from": "lexicon_codex",
+      "to": [
+        "sovereign_core"
+      ]
+    }
+  ]
+}

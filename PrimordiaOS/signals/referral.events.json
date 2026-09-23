@@ -1,0 +1,9 @@
+{
+  "events": [
+    "ReferralCreated",
+    "ReferralVerified",
+    "ReferralDrop",
+    "ReferralFraudSuspected",
+    "ReferralRewardTriggered"
+  ]
+}

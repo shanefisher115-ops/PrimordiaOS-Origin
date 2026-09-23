@@ -1,0 +1,25 @@
+.selfkernel-container {
+  padding: 24px;
+  color: #f8fafc;
+  background: #030308;
+}
+
+.selfkernel-card {
+  background: #111;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #333;
+  margin-bottom: 20px;
+}
+
+.selfkernel-list {
+  background: #111;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #333;
+}
+
+.selfkernel-entry {
+  padding: 6px 0;
+  border-bottom: 1px solid #222;
+}

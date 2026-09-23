@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ScenePlan",
+  "type": "object",
+  "properties": {
+    "scenes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "environment": { "type": "string" },
+          "characters": { "type": "array", "items": { "type": "string" } },
+          "camera": { "type": "string" },
+          "fx": { "type": "array", "items": { "type": "string" } },
+          "duration": { "type": "number" }
+        },
+        "required": ["id", "environment", "duration"]
+      }
+    }
+  },
+  "required": ["scenes"]
+}

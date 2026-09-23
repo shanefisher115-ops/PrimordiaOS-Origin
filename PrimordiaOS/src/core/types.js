@@ -1,0 +1,2 @@
+// core/types.ts
+export {};

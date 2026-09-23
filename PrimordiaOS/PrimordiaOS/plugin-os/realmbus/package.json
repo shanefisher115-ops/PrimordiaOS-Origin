@@ -1,0 +1,20 @@
+{
+  "name": "@primordiaos/realmbus",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "PrimordiaOS RealmBus — Multirealm WebSocket Gateway",
+  "main": "index.ts",
+  "scripts": {
+    "start": "npx tsx index.ts",
+    "dev": "npx tsx watch index.ts"
+  },
+  "dependencies": {
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "@types/ws": "^8.5.10",
+    "typescript": "^5.6.3"
+  }
+}

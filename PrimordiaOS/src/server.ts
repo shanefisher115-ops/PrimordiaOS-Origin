@@ -1,34 +1,53 @@
-// ────────────────────────────────────────────────────────────
-//  server.ts
-//  PrimordiaOS Backend Entry Point
-//  HTTP → PrimordiaRouter → Skills → Channels
-// ────────────────────────────────────────────────────────────
+// src/server.ts
 
-import express, { Request, Response } from "express";
-import PrimordiaRouter from "./PrimordiaRouter.js";
+import express from "express"
+import cors from "cors"
 
-const app = express();
-app.use(express.json());
+import "./live/scheduler"   // autonomous intelligence loop
 
-// Health check
-app.get("/", (req: Request, res: Response) => {
-  res.json({ status: "PrimordiaOS Online" });
-});
+const app = express()
+app.use(cors())
+app.use(express.json())
 
-// Main PrimordiaOS endpoint
-app.post("/primordia", (req: Request, res: Response) => {
-  try {
-    PrimordiaRouter(req, res);
-  } catch (err: any) {
-    res.status(500).json({
-      success: false,
-      error: err.message || "PrimordiaOS Backend Error",
-    });
-  }
-});
+console.log("\n======================================")
+console.log("      PrimordiaOS Autonomous Server")
+console.log("======================================\n")
 
-const PORT = process.env.PORT || 3000;
+console.log("[server] Booting PrimordiaOS…")
+console.log("[server] Loading Autonomous Intelligence Core…")
+console.log("[server] Starting Intelligent Scheduler…")
+console.log("[server] Multi‑platform posting agents online.")
+console.log("[server] Trend Discovery + Topic Evolution online.")
+console.log("[server] Performance Feedback Engine online.")
+console.log("[server] Faceless Video Agent online.")
+console.log("[server] Monetization Engine online.\n")
+
+// ---------------------------------------------
+// OPTIONAL: lightweight API endpoints
+// ---------------------------------------------
+
+app.get("/", (req, res) => {
+  res.json({
+    status: "ok",
+    message: "PrimordiaOS Autonomous Server Running",
+    time: new Date().toISOString()
+  })
+})
+
+app.get("/health", (req, res) => {
+  res.json({ status: "healthy" })
+})
+
+app.get("/version", (req, res) => {
+  res.json({ version: "PrimordiaOS‑AIC‑1.0" })
+})
+
+// ---------------------------------------------
+// START SERVER
+// ---------------------------------------------
+const PORT = 3000
 
 app.listen(PORT, () => {
-  console.log(`PrimordiaOS backend running on port ${PORT}`);
-});
+  console.log(`[server] Listening on port ${PORT}`)
+  console.log("[server] PrimordiaOS is fully operational.\n")
+})

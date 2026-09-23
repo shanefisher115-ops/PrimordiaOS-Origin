@@ -1,0 +1,21 @@
+{
+  "semantic": {
+    "typography": {
+      "display": {
+        "value": "{primitive.font-size.xxl}"
+      },
+      "title": {
+        "value": "{primitive.font-size.xl}"
+      },
+      "section-title": {
+        "value": "{primitive.font-size.lg}"
+      },
+      "body": {
+        "value": "{primitive.font-size.sm}"
+      },
+      "caption": {
+        "value": "{primitive.font-size.xs}"
+      }
+    }
+  }
+}

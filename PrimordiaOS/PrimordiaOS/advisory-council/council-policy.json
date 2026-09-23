@@ -1,0 +1,28 @@
+{
+  "enable_watchdog": true,
+  "enable_sentinel": true,
+  "enable_historian": true,
+  "enable_oracle": true,
+  "enable_auditor": true,
+  "enable_mediator": true,
+  "behavior_thresholds": {
+    "anomaly_score": 0.7,
+    "instability_score": 0.5
+  },
+  "integrity_thresholds": {
+    "unauthorized_file_change": true,
+    "unauthorized_module_load": true
+  },
+  "pattern_memory": {
+    "max_history": 5000,
+    "drift_pattern_detection": true
+  },
+  "oracle": {
+    "allow_ai_advice": true,
+    "ai_advice_is_nonbinding": true
+  },
+  "consensus_rules": {
+    "quorum": 4,
+    "require_guardian_for_high_severity": true
+  }
+}

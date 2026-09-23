@@ -1,0 +1,82 @@
+{
+  "longTerm": [
+    {
+      "id": "1541ap0",
+      "timestamp": "2026-07-14T13:20:36.879Z",
+      "text": "Prompt: \"Diagnose and repair this system failure. \nSource: module_creator_os\nError details: Telemetry signal timeout\nConsensus Action: Trigger automated dependency diagnostics and reset modules with default parameters.\nOutput a structured JSON remediation plan containing: remedy, targetService, action (reboot_process | adjust_parameter), payload (object), and safetyCheckNeeded.\" | Output: \"{\n  \"remedy\": \"Reset module execution cooldowns\",\n  \"targetService\": \"sovereign_scheduler\",\n  \"action\": \"adjust_parameter\",\n  \"payload\": {\n    \"cooldown\": 120\n  },\n  \"safetyCheckNeeded\": true\n}\"",
+      "metadata": {
+        "mode": "standard",
+        "model": "healing-specialist"
+      }
+    },
+    {
+      "id": "5bs0v08",
+      "timestamp": "2026-07-14T13:21:03.811Z",
+      "text": "Prompt: \"Diagnose and repair this system failure. \nSource: module_creator_os\nError details: Telemetry signal timeout\nConsensus Action: Trigger automated dependency diagnostics and reset modules with default parameters.\nOutput a structured JSON remediation plan containing: remedy, targetService, action (reboot_process | adjust_parameter), payload (object), and safetyCheckNeeded.\" | Output: \"{\n  \"remedy\": \"Recover module creator_os and reset execution state\",\n  \"targetService\": \"creator_os\",\n  \"action\": \"adjust_parameter\",\n  \"payload\": {\n    \"cooldown\": 120\n  },\n  \"safetyCheckNeeded\": true\n}\"",
+      "metadata": {
+        "mode": "standard",
+        "model": "healing-specialist"
+      }
+    },
+    {
+      "id": "efl66cu",
+      "timestamp": "2026-07-14T14:01:38.867Z",
+      "text": "Prompt: \"Diagnose and repair this system failure. \nSource: module_creator_os\nError details: Telemetry signal timeout\nConsensus Action: Trigger automated dependency diagnostics and reset modules with default parameters.\nOutput a structured JSON remediation plan containing: remedy, targetService, action (reboot_process | adjust_parameter), payload (object), and safetyCheckNeeded.\" | Output: \"{\n  \"remedy\": \"Recover module creator_os and reset execution state\",\n  \"targetService\": \"creator_os\",\n  \"action\": \"adjust_parameter\",\n  \"payload\": {\n    \"cooldown\": 120\n  },\n  \"safetyCheckNeeded\": true\n}\"",
+      "metadata": {
+        "mode": "standard",
+        "model": "healing-specialist"
+      }
+    }
+  ],
+  "preferences": {
+    "prompt": 3,
+    "diagnose": 3,
+    "repair": 3,
+    "this": 3,
+    "system": 3,
+    "failure": 3,
+    "source": 3,
+    "module": 6,
+    "creator": 7,
+    "error": 3,
+    "details": 3,
+    "telemetry": 3,
+    "signal": 3,
+    "timeout": 3,
+    "consensus": 3,
+    "action": 9,
+    "trigger": 3,
+    "automated": 3,
+    "dependency": 3,
+    "diagnostics": 3,
+    "reset": 6,
+    "modules": 3,
+    "with": 3,
+    "default": 3,
+    "parameters": 3,
+    "output": 6,
+    "structured": 3,
+    "json": 3,
+    "remediation": 3,
+    "plan": 3,
+    "containing": 3,
+    "remedy": 6,
+    "targetservice": 6,
+    "reboot": 3,
+    "process": 3,
+    "adjust": 6,
+    "parameter": 6,
+    "payload": 6,
+    "object": 3,
+    "safetycheckneeded": 6,
+    "execution": 3,
+    "cooldowns": 1,
+    "sovereign": 1,
+    "scheduler": 1,
+    "cooldown": 3,
+    "true": 3,
+    "recover": 2,
+    "state": 2
+  },
+  "totalInteractions": 3
+}

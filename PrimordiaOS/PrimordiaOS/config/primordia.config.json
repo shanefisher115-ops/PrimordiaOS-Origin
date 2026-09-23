@@ -1,0 +1,34 @@
+{
+  "system_name": "PrimordiaOS",
+  "codename": "Sovereign Cognition Organism",
+  "version": "1.0.0",
+  "environment": "production",
+  "sovereignty": {
+    "tier_0_owner": "Shane",
+    "antigrav_threshold": 70,
+    "strict_mode": true
+  },
+  "ports": {
+    "spine_http": 3000,
+    "simulation_ws": 17800,
+    "economic_api": 3001,
+    "pixel_stream": 8888
+  },
+  "paths": {
+    "spine_root": "primordiaos",
+    "kernel": "primordiaos/kernel",
+    "agents": "primordiaos/agents",
+    "realms": "primordiaos/realms",
+    "pipelines": "primordiaos/pipelines",
+    "simulation": "primordiaos/simulation",
+    "identity": "primordiaos/identity",
+    "economy": "primordiaos/economy",
+    "interfaces": "primordiaos/interfaces",
+    "vessels": "primordiaos/vessels",
+    "config": "primordiaos/config",
+    "docs": "primordiaos/docs",
+    "archive": "primordiaos/archive"
+  },
+  "modules_auto_discovery": true,
+  "heartbeat_interval_ms": 12000
+}

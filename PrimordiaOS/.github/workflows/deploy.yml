@@ -1,0 +1,62 @@
+name: Deploy Primordial Origin to Cloud Run
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'primordial-origin/**'
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: primordial-antigravity-core
+  REGION: us-central1
+  SERVICE: primordial-origin
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # Required for Workload Identity Federation
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to Cloud Run
+        working-directory: primordial-origin
+        run: |
+          gcloud run deploy ${{ env.SERVICE }} \
+            --source . \
+            --region ${{ env.REGION }} \
+            --allow-unauthenticated \
+            --quiet
+
+      - name: Verify Health
+        run: |
+          SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE }} \
+            --region ${{ env.REGION }} \
+            --format='value(status.url)')
+          echo "Service URL: $SERVICE_URL"
+          
+          # Wait for cold start
+          sleep 10
+          
+          HEALTH=$(curl -s --max-time 30 "$SERVICE_URL/api/health")
+          echo "Health check response: $HEALTH"
+          
+          if echo "$HEALTH" | grep -q '"ok":true'; then
+            echo "✅ Deployment verified successfully"
+          else
+            echo "❌ Health check failed"
+            exit 1
+          fi

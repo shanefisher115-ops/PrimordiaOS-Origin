@@ -1,9 +1,0 @@
-{
-  "name": "codex_chamber",
-  "world": "origin_world",
-  "type": "chamber",
-  "state": "draft",
-  "relations": [],
-  "monetization": {},
-  "telemetry": {}
-}

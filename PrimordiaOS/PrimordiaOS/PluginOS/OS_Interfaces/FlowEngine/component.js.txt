@@ -1,0 +1,13 @@
+// v0.1 Flow Engine — directional motion generator
+
+function generateFlow(state) {
+  return {
+    directionX: state.focus * 0.8,
+    directionY: 0.1,
+    turbulence: 0.2 + state.energy * 0.3
+  };
+}
+
+module.exports = {
+  generateFlow
+};

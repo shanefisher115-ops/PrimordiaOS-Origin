@@ -1,0 +1,26 @@
+body {
+  margin: 0;
+  background: #0a0a12;
+  color: #e6e6ff;
+  font-family: system-ui, sans-serif;
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+}
+
+.surface {
+  flex: 1;
+  border-radius: 10px;
+  border: 1px solid #2b2d3a;
+  background: radial-gradient(circle at top, #151728 0, #05060a 55%);
+  padding: 12px;
+  min-height: 300px;
+}
+
+.surface-title {
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8be9fd;
+  margin-bottom: 8px;
+}

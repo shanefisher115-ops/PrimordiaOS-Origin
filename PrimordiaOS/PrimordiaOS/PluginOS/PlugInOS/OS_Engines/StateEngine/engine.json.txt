@@ -1,0 +1,29 @@
+const fs = require('fs');
+const path = require('path');
+
+const statePath = path.join(__dirname, '..', '..', 'OS_Core', 'state.json');
+
+function readState() {
+  return JSON.parse(fs.readFileSync(statePath, 'utf8'));
+}
+
+function writeState(nextState) {
+  fs.writeFileSync(statePath, JSON.stringify(nextState, null, 2), 'utf8');
+}
+
+function updateState(partial) {
+  const current = readState();
+  const next = {
+    ...current,
+    ...partial,
+    lastUpdate: new Date().toISOString()
+  };
+  writeState(next);
+  return next;
+}
+
+module.exports = {
+  readState,
+  writeState,
+  updateState
+};

@@ -1,0 +1,136 @@
+{
+  "$schema": "https://primordiaorigin.com/schemas/realm-kernel-v2.json",
+  "realm_id": "store_asset_forge",
+  "name": "Store Asset Forge Realm",
+  "class": "production.cinematic",
+  "version": "1.0.0",
+  "directive_mode": "Cinematic Asset Production & Multi-Platform Store Deployment",
+  "description": "A unified cinematic production realm that binds Stitch, Figma, MCP, and Antigravity into a single automated pipeline. Generates screenshots, icons, promotional graphics, and multi-platform asset bundles for PrimordiaOS and affiliate realms.",
+  "capabilities": [
+    "auto_extract_ui_metadata",
+    "auto_ingest_figma_frames",
+    "auto_apply_mcp_store_specs",
+    "auto_generate_platform_assets",
+    "auto_publish_asset_bundles",
+    "auto_branding_sync",
+    "auto_realm_promo_generation"
+  ],
+  "inputs": {
+    "figma_file": "/design/source.fig",
+    "stitch_manifest": "/design/stitch.json",
+    "mcp_spec": "/spec/store.json",
+    "antigravity_profile": "/cinematic/profile.ag"
+  },
+  "outputs": {
+    "ios_screenshots": "/out/ios/screenshots/",
+    "android_screenshots": "/out/android/screenshots/",
+    "windows_store_assets": "/out/windows/assets/",
+    "promo_graphics": "/out/promo/",
+    "realm_icons": "/out/icons/",
+    "bundle": "/out/bundle.zip"
+  },
+  "pipeline": [
+    {
+      "step": "ingest_figma",
+      "engine": "figma.ingest",
+      "description": "Extract frames, components, and layout metadata from the Figma source file.",
+      "produces": [
+        "figma_frames.json",
+        "figma_components.json"
+      ]
+    },
+    {
+      "step": "stitch_extract",
+      "engine": "stitch.extract",
+      "description": "Parse UI metadata: colors, fonts, layout structure, component hierarchy.",
+      "consumes": [
+        "figma_frames.json"
+      ],
+      "produces": [
+        "ui_metadata.json"
+      ]
+    },
+    {
+      "step": "apply_mcp_specs",
+      "engine": "mcp.apply",
+      "description": "Apply platform-specific store requirements (App Store, Google Play, Windows Store).",
+      "consumes": [
+        "ui_metadata.json",
+        "mcp_spec"
+      ],
+      "produces": [
+        "platform_asset_specs.json"
+      ]
+    },
+    {
+      "step": "antigravity_generate",
+      "engine": "antigravity.render",
+      "description": "Generate cinematic, platform-ready assets using Antigravity's AI rendering engine.",
+      "consumes": [
+        "platform_asset_specs.json",
+        "antigravity_profile"
+      ],
+      "produces": [
+        "ios_screenshots/",
+        "android_screenshots/",
+        "windows_store_assets/",
+        "promo_graphics/",
+        "realm_icons/"
+      ]
+    },
+    {
+      "step": "bundle_assets",
+      "engine": "forge.bundle",
+      "description": "Package all generated assets into a unified multi-platform release bundle.",
+      "consumes": [
+        "ios_screenshots/",
+        "android_screenshots/",
+        "windows_store_assets/",
+        "promo_graphics/",
+        "realm_icons/"
+      ],
+      "produces": [
+        "bundle.zip"
+      ]
+    }
+  ],
+  "automation": {
+    "triggers": [
+      "on_realm_update",
+      "on_ui_change",
+      "on_new_agent",
+      "on_new_capability",
+      "on_release_candidate"
+    ],
+    "actions": [
+      "regenerate_assets",
+      "sync_branding",
+      "publish_bundle",
+      "notify_affiliate_realms"
+    ]
+  },
+  "affiliate_unlocks": [
+    "moneyplughub.storefront",
+    "automation_realm.asset_pipeline",
+    "cinematic_realm.ui_showcase",
+    "prophecy_engine.visual_manifest"
+  ],
+  "cinematic": {
+    "style": "mythic_os",
+    "overlays": [
+      "particle_flux",
+      "realm_sigils",
+      "node_runes"
+    ],
+    "transitions": [
+      "forge_ignition",
+      "sigil_bloom",
+      "asset_rainfall"
+    ]
+  },
+  "sovereignty_governance": {
+    "tier_authority": "Tier 0 Human Sovereign approval for release candidate dispatch",
+    "antigrav_threshold": 70,
+    "friction_preservation": "High-friction creative control gates and cryptographic asset signing"
+  }
+}

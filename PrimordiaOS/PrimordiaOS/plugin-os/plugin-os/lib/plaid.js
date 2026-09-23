@@ -1,0 +1,368 @@
+export async function POST() {
+    const response = await plaidClient.linkTokenCreate({
+        user: { client_user_id: 'USER_ID' },
+        client_name: 'Creator OS',
+        products: ['auth', 'transactions'],
+        language, :  ===  ===  ===  ===  ===  ===  ===  ===  ===  ===  ===  ===  ===  ===  == , MASTER, v3, Plug, In, OS, Bootstrapper,
+        : Self, Healing, Versioned, Rollback, Ready,
+        :  ===  ===  ===  ===  ===  ===  ===  ===  ===  ===  ===  ===  ===  ===  ==
+            Write - Host, "🧠 Plug‑In OS MASTER v3 initializing...": --
+    }--, --, --, --, --, --, --, --, --, --, --, --, --, --, --, --, --, --, --, --, --, 0., Create, rollback, snapshot, --, --, --, --, --, --, --, --, --, --, --, --, --, --, --, --, --, --, --, --, --, --);
+    Get - Date - Format;
+    "yyyyMMdd_HHmmss"
+        = ".rollback/snapshot_";
+    Write - Host;
+    "📸 Creating rollback snapshot at ...";
+    if (!(Test - Path))
+        ".rollback";
+    {
+        mkdir;
+        ".rollback";
+    }
+    Copy - Item - Recurse * -ErrorAction;
+    SilentlyContinue;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    1.;
+    Ensure;
+    project;
+    folder;
+    exists;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    if (!(Test - Path))
+        "plugin-os";
+    {
+        Write - Host;
+        "📁 Creating project folder...";
+        mkdir;
+        plugin - os;
+    }
+    cd;
+    plugin - os;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    2.;
+    Initialize;
+    Git;
+    if (missing)
+        --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    if (!(Test - Path))
+        ".git";
+    {
+        Write - Host;
+        "🔧 Initializing Git...";
+        git;
+        init;
+    }
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    3.;
+    Ensure;
+    package.json;
+    exists;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    if (!(Test - Path))
+        "package.json";
+    {
+        Write - Host;
+        "⚙️ Initializing Next.js project...";
+        npx;
+        create - next - app;
+        --typescript;
+        --app;
+        --eslint;
+        --src - dir--;
+        no - tailwind--;
+        -alias;
+        "@/*";
+    }
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    4.;
+    Install & heal;
+    dependencies;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --Write - Host;
+    "📦 Healing dependencies...";
+    npm;
+    install;
+    plaid;
+    /client openai axios dotenv;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    5.;
+    Ensure / lib;
+    folder;
+    exists;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    if (!(Test - Path))
+        "lib";
+    {
+        mkdir;
+        lib;
+    }
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    6.;
+    Repair;
+    Plaid;
+    client;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --;
+    --Write - Host;
+    "🧩 Repairing Plaid client...";
+    import { Configuration, PlaidApi, PlaidEnvironments } from 'plaid';
+    const config = new Configuration({
+        basePath: PlaidEnvironments.sandbox,
+        baseOptions: {
+            headers: {
+                'PLAID-CLIENT-ID': process.env.PLAID_CLIENT_ID,
+                'PLAID-SECRET': process.env.PLAID_SECRET,
+            },
+        },
+    });
+    export const plaidClient = new PlaidApi(config);
+}
