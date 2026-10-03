@@ -1,0 +1,4 @@
+Panel: FXPanelLayout
+Widgets:
+  - Button: SpawnPulseWave
+  - Button: SpawnNebulaField

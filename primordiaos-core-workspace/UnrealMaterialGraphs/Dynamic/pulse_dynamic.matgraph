@@ -1,0 +1,4 @@
+Graph: PulseDynamic
+Nodes:
+  - Glow: 1.0
+  - Color: Blue

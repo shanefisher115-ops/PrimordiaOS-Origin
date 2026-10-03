@@ -1,0 +1,2 @@
+float3 PulseColor = float3(0.0, 0.2, 1.0);
+float PulseIntensity = 1.0;

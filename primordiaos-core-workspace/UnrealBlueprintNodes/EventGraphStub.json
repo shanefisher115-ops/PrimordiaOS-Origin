@@ -1,0 +1,11 @@
+{
+  \"EventGraph\": {
+    \"OnWSMessage\": [
+      \"Parse JSON\",
+      \"Route Event\",
+      \"Trigger FX\",
+      \"Move Camera\",
+      \"Apply Lighting\"
+    ]
+  }
+}

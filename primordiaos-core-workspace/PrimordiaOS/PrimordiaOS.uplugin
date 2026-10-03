@@ -1,0 +1,20 @@
+{
+  \"FileVersion\": 3,
+  \"Version\": 1,
+  \"VersionName\": \"1.0\",
+  \"FriendlyName\": \"PrimordiaOS Engine\",
+  \"Description\": \"PrimordiaOS text-to-video orchestration layer for Unreal.\",
+  \"Category\": \"Primordia\",
+  \"Modules\": [
+    {
+      \"Name\": \"PrimordiaRuntime\",
+      \"Type\": \"Runtime\",
+      \"LoadingPhase\": \"Default\"
+    },
+    {
+      \"Name\": \"PrimordiaEditor\",
+      \"Type\": \"Editor\",
+      \"LoadingPhase\": \"Default\"
+    }
+  ]
+}

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrimordiaFlow // Quantum Reactor Core</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --bg-deep: #030712;
+            --neon-cyan: #06b6d4;
+            --neon-blue: #3b82f6;
+            --neon-violet: #8b5cf6;
+            --alert-red: #ef4444;
+            --text-glow: 0 0 15px rgba(6, 182, 212, 0.4);
+        }
+        body {
+            background-color: var(--bg-deep);
+            color: #f3f4f6;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 15px;
+            overflow: hidden;
+        }
+        header {
+            border-bottom: 1px solid rgba(6, 182, 212, 0.3);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--neon-cyan);
+            text-shadow: var(--text-glow);
+            letter-spacing: 2px;
+        }
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 15px;
+            height: calc(100vh - 70px);
+        }
+        .viewport-container {
+            position: relative;
+            background: #010409;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        #webgl-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .card {
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 6px;
+            padding: 15px;
+            backdrop-filter: blur(8px);
+        }
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--neon-cyan);
+            margin: 5px 0;
+            text-shadow: var(--text-glow);
+        }
+        .slider-container {
+            margin-top: 10px;
+        }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--neon-cyan);
+            cursor: pointer;
+        }
+        .log-box {
+            background: #010409;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 6px;
+            height: 160px;
+            overflow-y: auto;
+            padding: 8px;
+            font-size: 0.75rem;
+            color: #38bdf8;
+        }
+        .log-entry {
+            margin-bottom: 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            padding-bottom: 2px;
+        }
+        .alert { color: var(--alert-red); text-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PRIMORDIAFLOW // QUANTUM MATRIX VIEWPORT</h1>
+        <div id="connection-status" style="color: var(--neon-cyan); font-size: 0.85rem;">KERNEL LINK ACTIVE</div>
+    </header>
+
+    <div class="main-layout">
+        <!-- WebGL 3D Vortex Viewport -->
+        <div class="viewport-container">
+            <canvas id="webgl-canvas"></canvas>
+        </div>
+
+        <!-- Telemetry & Controls Sidebar -->
+        <div class="sidebar">
+            <div class="card">
+                <h3 style="margin:0 0 5px 0; font-size:0.9rem;">B-FIELD INDUCTION</h3>
+                <div class="metric-value" id="val-bfield">6.0T</div>
+                <div class="slider-container">
+                    <input type="range" id="bfield-slider" min="1.0" max="10.0" step="0.2" value="6.0">
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin:0 0 5px 0; font-size:0.9rem;">STRESS INDEX</h3>
+                <div class="metric-value" id="val-stress">0.0%</div>
+                <div style="font-size:0.8rem; color: #94a3b8;">Limit: <span style="color: var(--neon-violet);">78.0%</span></div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin:0 0 5px 0; font-size:0.9rem;">HARDWARE THREADS</h3>
+                <div class="metric-value" id="val-threads">12</div>
+                <div style="font-size:0.8rem; color: #10b981;">Worker Pool Active</div>
+            </div>
+
+            <div class="card" style="flex-grow: 1; display:flex; flex-direction:column;">
+                <h3 style="margin:0 0 5px 0; font-size:0.9rem;">EVENT STREAM</h3>
+                <div class="log-box" id="log-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- THREE.JS LORENTZ VORTEX VIEWPORT ---
+        const canvas = document.getElementById('webgl-canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        
+        renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        camera.position.z = 25;
+
+        // Create Quantum Particle Vortex Mesh
+        const particleCount = 1800;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount * 3; i += 3) {
+            const radius = 3 + Math.random() * 9;
+            const theta = Math.random() * Math.PI * 2;
+            positions[i] = Math.cos(theta) * radius;
+            positions[i+1] = (Math.random() - 0.5) * 12;
+            positions[i+2] = Math.sin(theta) * radius;
+
+            colors[i] = 0.02;   // R
+            colors[i+1] = 0.71; // G
+            colors[i+2] = 0.83; // B (Cyan)
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const material = new THREE.PointsMaterial({
+            size: 0.18,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending,
+            transparent: true,
+            opacity: 0.85
+        });
+
+        const particleVortex = new THREE.Points(geometry, material);
+        scene.add(particleVortex);
+
+        // Core Energy Sphere
+        const sphereGeo = new THREE.SphereGeometry(1.8, 32, 32);
+        const sphereMat = new THREE.MeshBasicMaterial({
+            color: 0x06b6d4,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.35
+        });
+        const coreSphere = new THREE.Mesh(sphereGeo, sphereMat);
+        scene.add(coreSphere);
+
+        let currentBField = 6.0;
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = Date.now() * 0.001;
+
+            particleVortex.rotation.y = time * (currentBField * 0.08);
+            coreSphere.rotation.x = time * 0.5;
+            coreSphere.rotation.y = time * 0.3;
+
+            // Pulse core scale based on B-Field
+            const pulse = 1 + Math.sin(time * (currentBField * 0.5)) * 0.08;
+            coreSphere.scale.set(pulse, pulse, pulse);
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        });
+
+        // --- SOCKET.IO & UI TELEMETRY BINDINGS ---
+        const socket = io();
+        const statusEl = document.getElementById('connection-status');
+        const bFieldEl = document.getElementById('val-bfield');
+        const stressEl = document.getElementById('val-stress');
+        const threadsEl = document.getElementById('val-threads');
+        const logContainer = document.getElementById('log-container');
+        const slider = document.getElementById('bfield-slider');
+
+        socket.on('connect', () => {
+            statusEl.textContent = 'KERNEL LINK ACTIVE';
+            statusEl.style.color = '#10b981';
+        });
+
+        socket.on('disconnect', () => {
+            statusEl.textContent = 'LINK SEVERED';
+            statusEl.style.color = '#ef4444';
+        });
+
+        socket.on('tensor-telemetry', (data) => {
+            currentBField = data.bField;
+            bFieldEl.textContent = data.bField + 'T';
+            stressEl.textContent = data.compositeStress.toFixed(1) + '%';
+            threadsEl.textContent = data.activeAgents;
+            slider.value = data.bField;
+
+            if (data.compositeStress > 78.0) {
+                stressEl.className = 'metric-value alert';
+                sphereMat.color.setHex(0xef4444); // Shift core to alert red on stress breach
+            } else {
+                stressEl.className = 'metric-value';
+                sphereMat.color.setHex(0x06b6d4); // Cyan normal state
+            }
+
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            if (data.pulseTriggered) {
+                entry.innerHTML = `<span class="alert">[STRESS BREACH]</span> B-Field: ${data.bField}T | Stress: ${data.compositeStress.toFixed(1)}%`;
+            } else {
+                entry.innerHTML = `<span>[EQUILIBRIUM]</span> B-Field: ${data.bField}T | CPU: ${data.cpuLoad.toFixed(1)}%`;
+            }
+            logContainer.prepend(entry);
+            if (logContainer.childElementCount > 40) logContainer.lastChild.remove();
+        });
+
+        slider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            currentBField = val;
+            bFieldEl.textContent = val + 'T';
+            fetch('/api/tune', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bField: val })
+            });
+        });
+            socket.on('cosmic-axiom', (data) => {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.style.color = '#c084fc';
+            entry.style.borderLeft = '2px solid #8b5cf6';
+            entry.style.paddingLeft = '6px';
+            entry.innerHTML = <strong>[TRANSCENDENT AXIOM]</strong> \;
+            logContainer.prepend(entry);
+        });
+    </script>
+</body>
+</html>

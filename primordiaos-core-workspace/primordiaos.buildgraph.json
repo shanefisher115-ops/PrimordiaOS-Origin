@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "root": "./src",
+  "tasks": [
+    {
+      "name": "realm-engine",
+      "path": "./src/realm-engine",
+      "spec": "build"
+    },
+    {
+      "name": "memory-engine",
+      "path": "./src/memory-engine",
+      "spec": "build"
+    },
+    {
+      "name": "agents",
+      "path": "./src/agents",
+      "spec": "build"
+    },
+    {
+      "name": "scheduler",
+      "path": "./src/scheduler",
+      "spec": "build"
+    },
+    {
+      "name": "phom",
+      "path": "./src/phom",
+      "spec": "build"
+    },
+    {
+      "name": "overascension",
+      "path": "./src/overascension",
+      "spec": "build"
+    }
+  ]
+}

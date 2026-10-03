@@ -1,0 +1,4 @@
+Widget: CameraPreview
+Controls:
+  - PushIn
+  - SlowOrbit

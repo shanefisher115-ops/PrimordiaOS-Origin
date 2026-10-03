@@ -1,0 +1,9 @@
+{
+  \"batch\": [
+    \"AutoSequence\",
+    \"AutoSequence2\",
+    \"AutoSequence3\"
+  ],
+  \"resolution\": \"1920x1080\",
+  \"format\": \"EXR\"
+}

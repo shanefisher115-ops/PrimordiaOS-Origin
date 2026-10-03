@@ -1,0 +1,5 @@
+{
+  "PulseWave": { "intensity": 8, "color": "blue" },
+  "NebulaField": { "intensity": 3, "color": "violet" },
+  "Default": { "intensity": 5, "color": "white" }
+}

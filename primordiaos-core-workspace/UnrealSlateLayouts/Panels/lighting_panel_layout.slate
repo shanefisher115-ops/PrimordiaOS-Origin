@@ -1,0 +1,4 @@
+Panel: LightingPanelLayout
+Widgets:
+  - Button: PulseLight
+  - Button: NebulaLight

@@ -1,0 +1,12 @@
+{
+  \"PulseWave\": {
+    \"category\": \"Energy\",
+    \"color\": \"Blue\",
+    \"intensity\": 1.0
+  },
+  \"NebulaField\": {
+    \"category\": \"Cosmic\",
+    \"color\": \"Violet\",
+    \"density\": 0.8
+  }
+}

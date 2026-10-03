@@ -1,0 +1,9 @@
+{
+  \"Toolbar\": \"Primordia\",
+  \"Buttons\": [
+    \"Open Primordia Console\",
+    \"Preview FX\",
+    \"Preview Camera\",
+    \"Preview Lighting\"
+  ]
+}

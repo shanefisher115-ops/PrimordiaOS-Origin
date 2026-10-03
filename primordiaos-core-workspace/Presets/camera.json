@@ -1,0 +1,5 @@
+{
+  'CloseUp': { 'focal': 85, 'distance': 150 },
+  'Wide': { 'focal': 24, 'distance': 600 },
+  'Default': { 'focal': 35, 'distance': 300 }
+}

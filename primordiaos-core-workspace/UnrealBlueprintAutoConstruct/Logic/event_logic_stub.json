@@ -1,0 +1,8 @@
+{
+  \"Logic\": \"EventRouting\",
+  \"Steps\": [
+    \"Parse JSON\",
+    \"Extract EventName\",
+    \"Route Event\"
+  ]
+}

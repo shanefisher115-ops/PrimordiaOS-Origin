@@ -1,0 +1,4 @@
+Curve: PushIn
+Frames:
+  - { frame: 0, value: 0 }
+  - { frame: 60, value: 150 }

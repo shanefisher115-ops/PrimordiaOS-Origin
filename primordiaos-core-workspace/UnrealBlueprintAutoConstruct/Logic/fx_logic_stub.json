@@ -1,0 +1,7 @@
+{
+  \"Logic\": \"FXTrigger\",
+  \"Steps\": [
+    \"Get FXName\",
+    \"Spawn Niagara System\"
+  ]
+}

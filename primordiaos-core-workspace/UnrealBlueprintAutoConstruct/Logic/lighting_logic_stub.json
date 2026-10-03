@@ -1,0 +1,7 @@
+{
+  \"Logic\": \"LightingApply\",
+  \"Steps\": [
+    \"Get LightStyle\",
+    \"Apply Lighting Curve\"
+  ]
+}

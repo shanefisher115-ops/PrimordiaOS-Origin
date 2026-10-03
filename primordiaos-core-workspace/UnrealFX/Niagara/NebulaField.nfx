@@ -1,0 +1,6 @@
+System: NebulaField
+Emitters:
+  - Name: NebulaEmitter
+    Shape: Volume
+    Density: 0.8
+    Color: Violet

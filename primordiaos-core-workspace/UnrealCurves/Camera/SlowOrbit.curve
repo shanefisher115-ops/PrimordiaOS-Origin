@@ -1,0 +1,4 @@
+Curve: SlowOrbit
+Frames:
+  - { frame: 0, value: 0 }
+  - { frame: 240, value: 360 }

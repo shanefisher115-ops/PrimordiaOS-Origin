@@ -1,0 +1,7 @@
+{
+  \"Panel\": \"LightingPanel\",
+  \"Controls\": [
+    \"PulseLight\",
+    \"NebulaLight\"
+  ]
+}

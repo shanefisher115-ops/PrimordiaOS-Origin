@@ -1,0 +1,6 @@
+{
+  \"FXGraph\": {
+    \"Input\": \"EventName\",
+    \"Action\": \"Spawn Niagara System\"
+  }
+}

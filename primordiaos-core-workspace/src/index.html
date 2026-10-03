@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrimordiaFlow OS // Autonomous Telemetry Command Station</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darker: '#030712',
+                        darkpanel: '#0b0f19',
+                        accentglow: '#00f2fe',
+                        plasma: '#ff2a85',
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #030712; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-darker text-slate-100 h-screen w-screen overflow-hidden flex flex-col select-none font-sans" onclick="initAudioContext()">
+
+    <!-- Top Window Chrome / Viewport Switcher -->
+    <header class="h-10 bg-darkpanel border-b border-slate-800 flex items-center justify-between px-4 z-50 shrink-0">
+        <div class="flex items-center space-x-3">
+            <div class="flex space-x-1.5">
+                <div class="w-3 h-3 rounded-full bg-rose-500 cursor-pointer"></div>
+                <div class="w-3 h-3 rounded-full bg-amber-500 cursor-pointer"></div>
+                <div class="w-3 h-3 rounded-full bg-emerald-500 cursor-pointer"></div>
+            </div>
+            <div class="h-4 w-[1px] bg-slate-800 mx-1"></div>
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-atom text-accentglow animate-spin" style="animation-duration: 15s;"></i>
+                <span class="text-xs font-semibold tracking-wider text-slate-300">PrimordiaFlow OS <span class="text-slate-500 font-normal">v3.0 [Acoustic & Neural Swarm Linked]</span></span>
+            </div>
+        </div>
+
+        <!-- Viewport Switcher Tabs -->
+        <div class="flex space-x-1 bg-slate-900 p-1 rounded-md border border-slate-800">
+            <button onclick="switchView('accretion')" id="tab-accretion" class="px-3 py-1 rounded text-xs font-medium bg-accentglow/20 text-accentglow border border-accentglow/40 transition">Accretion Core</button>
+            <button onclick="switchView('tensor')" id="tab-tensor" class="px-3 py-1 rounded text-xs font-medium text-slate-400 hover:text-slate-200 transition">Lorentz Tensor Matrix</button>
+        </div>
+
+        <div class="flex items-center space-x-3 text-xs text-slate-400">
+            <div class="flex items-center space-x-1.5 bg-slate-900 px-2.5 py-1 rounded-md border border-slate-800">
+                <span id="sync-indicator" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="sync-text">System: NOMINAL</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Area -->
+    <div class="flex-1 relative overflow-hidden flex">
+        
+        <!-- Viewport 1: Accretion Core View -->
+        <div id="view-accretion" class="absolute inset-0 flex z-10 bg-black">
+            <aside class="w-80 bg-darkpanel border-r border-slate-800 flex flex-col h-full p-4 space-y-4 text-xs z-20 shrink-0 overflow-hidden">
+                <div>
+                    <h2 class="font-bold uppercase tracking-wider text-slate-200">Accretion Controls</h2>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Vortex plasma dynamics & polar collimation.</p>
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <div class="flex justify-between text-slate-400 mb-1">
+                            <span>Vortex Angular Velocity</span>
+                            <span id="val-velocity" class="text-accentglow font-mono">4.80 rad/s</span>
+                        </div>
+                        <input type="range" id="slider-velocity" min="1.0" max="10.0" step="0.1" value="4.8" class="w-full accent-cyan-400 bg-slate-900 rounded h-1.5 cursor-pointer">
+                    </div>
+                </div>
+                <div class="flex-1 flex flex-col pt-2 border-t border-slate-800">
+                    <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-2">Live Backend Telemetry</span>
+                    <div id="accretion-log" class="flex-1 bg-black/50 rounded border border-slate-900 p-2 font-mono text-[10px] text-slate-400 overflow-y-auto space-y-1">
+                        <div>[00:00:01] Accretion core initialized.</div>
+                    </div>
+                </div>
+            </aside>
+            <main class="flex-1 relative" id="canvas-accretion"></main>
+        </div>
+
+        <!-- Viewport 2: Lorentz Tensor Matrix View -->
+        <div id="view-tensor" class="absolute inset-0 flex z-0 opacity-0 pointer-events-none transition-opacity duration-300 bg-black">
+            <aside class="w-80 bg-darkpanel border-r border-slate-800 flex flex-col h-full p-4 space-y-4 text-xs z-20 shrink-0 overflow-hidden">
+                <div>
+                    <h2 class="font-bold uppercase tracking-wider text-slate-200">Tensor Parameters</h2>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Tuning electromagnetic flux induction & agent swarms.</p>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <div class="flex justify-between text-slate-400 mb-1">
+                            <span>Magnetic Induction (B-Field)</span>
+                            <span id="val-bfield" class="text-accentglow font-mono">4.8 T</span>
+                        </div>
+                        <input type="range" id="slider-bfield" min="1.0" max="10.0" step="0.2" value="4.8" class="w-full accent-cyan-400 bg-slate-900 rounded h-1.5 cursor-pointer">
+                    </div>
+                    <div class="bg-slate-900/80 p-2.5 rounded border border-slate-800 space-y-1 font-mono text-[11px]">
+                        <div class="flex justify-between text-slate-400"><span>Active Threads:</span><span id="stat-agents" class="text-accentglow">6</span></div>
+                        <div class="flex justify-between text-slate-400"><span>CPU Load:</span><span id="stat-cpu" class="text-accentglow">41.2%</span></div>
+                        <div class="flex justify-between text-slate-400"><span>Memory Usage:</span><span id="stat-mem" class="text-accentglow">58.0%</span></div>
+                    </div>
+                </div>
+
+                <div class="flex-1 flex flex-col pt-2 border-t border-slate-800">
+                    <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-2">Autonomous Diagnostics</span>
+                    <div id="tensor-log" class="flex-1 bg-black/50 rounded border border-slate-900 p-2 font-mono text-[10px] text-slate-400 overflow-y-auto space-y-1">
+                        <div>[00:00:01] Maxwell tensor matrix online.</div>
+                    </div>
+                </div>
+            </aside>
+            <main class="flex-1 relative" id="canvas-tensor"></main>
+        </div>
+
+    </div>
+
+    <script>
+        let currentView = 'accretion';
+        let targetVortexSpeed = 0.003;
+        let particleMaterialRef = null;
+
+        // --- Web Audio Synthesizer Integration ---
+        let audioCtx = null;
+        let oscNode = null;
+        let gainNode = null;
+        let audioInitialized = false;
+
+        function initAudioContext() {
+            if (audioInitialized) return;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                oscNode = audioCtx.createOscillator();
+                gainNode = audioCtx.createGain();
+
+                oscNode.type = 'sawtooth';
+                oscNode.frequency.setValueAtTime(55, audioCtx.currentTime); // Low fundamental tactical hum
+                gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
+
+                oscNode.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscNode.start();
+                audioInitialized = true;
+                console.log("[AUDIO ENGINE] Acoustic telemetry online.");
+            } catch (e) {
+                console.error("[AUDIO ERROR]", e);
+            }
+        }
+
+        function updateAudioTelemetry(bField, isWarning) {
+            if (!audioCtx || !oscNode || !gainNode) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const targetFreq = 45 + (bField * 22);
+            oscNode.frequency.setTargetAtTime(targetFreq, audioCtx.currentTime, 0.1);
+
+            if (isWarning) {
+                gainNode.gain.setTargetAtTime(0.15, audioCtx.currentTime, 0.05);
+                oscNode.type = 'square'; // Harsh warning timbre
+            } else {
+                gainNode.gain.setTargetAtTime(0.04, audioCtx.currentTime, 0.1);
+                oscNode.type = 'sawtooth';
+            }
+        }
+        
+        function switchView(view) {
+            currentView = view;
+            const tabAcc = document.getElementById('tab-accretion');
+            const tabTens = document.getElementById('tab-tensor');
+            const viewAcc = document.getElementById('view-accretion');
+            const viewTens = document.getElementById('view-tensor');
+
+            if (view === 'accretion') {
+                tabAcc.className = "px-3 py-1 rounded text-xs font-medium bg-accentglow/20 text-accentglow border border-accentglow/40 transition";
+                tabTens.className = "px-3 py-1 rounded text-xs font-medium text-slate-400 hover:text-slate-200 transition";
+                viewAcc.style.zIndex = "10"; viewAcc.style.opacity = "1"; viewAcc.style.pointerEvents = "auto";
+                viewTens.style.zIndex = "0"; viewTens.style.opacity = "0"; viewTens.style.pointerEvents = "none";
+            } else {
+                tabTens.className = "px-3 py-1 rounded text-xs font-medium bg-plasma/20 text-plasma border border-plasma/40 transition";
+                tabAcc.className = "px-3 py-1 rounded text-xs font-medium text-slate-400 hover:text-slate-200 transition";
+                viewTens.style.zIndex = "10"; viewTens.style.opacity = "1"; viewTens.style.pointerEvents = "auto";
+                viewAcc.style.zIndex = "0"; viewAcc.style.opacity = "0"; viewAcc.style.pointerEvents = "none";
+            }
+        }
+
+        // --- Three.js Accretion Core Setup ---
+        let sceneAcc, cameraAcc, rendererAcc, particlesMesh;
+        function initAccretion() {
+            const container = document.getElementById('canvas-accretion');
+            sceneAcc = new THREE.Scene();
+            sceneAcc.fog = new THREE.FogExp2(0x030712, 0.015);
+
+            cameraAcc = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+            cameraAcc.position.set(0, 15, 30);
+
+            rendererAcc = new THREE.WebGLRenderer({ antialias: true });
+            rendererAcc.setSize(container.clientWidth, container.clientHeight);
+            rendererAcc.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(rendererAcc.domElement);
+
+            const controls = new THREE.OrbitControls(cameraAcc, rendererAcc.domElement);
+            controls.enableDamping = true;
+
+            const particleCount = 15000;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount; i++) {
+                const radius = Math.random() * 14 + 2;
+                const theta = Math.random() * Math.PI * 2;
+                positions[i * 3] = Math.cos(theta) * radius;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 2;
+                positions[i * 3 + 2] = Math.sin(theta) * radius;
+
+                colors[i * 3] = 0.0; colors[i * 3 + 1] = 0.95; colors[i * 3 + 2] = 1.0;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            particleMaterialRef = new THREE.PointsMaterial({ size: 0.12, vertexColors: true, transparent: true, opacity: 0.8 });
+            particlesMesh = new THREE.Points(geometry, particleMaterialRef);
+            sceneAcc.add(particlesMesh);
+
+            window.addEventListener('resize', () => {
+                cameraAcc.aspect = container.clientWidth / container.clientHeight;
+                cameraAcc.updateProjectionMatrix();
+                rendererAcc.setSize(container.clientWidth, container.clientHeight);
+            });
+
+            animateAccretion();
+        }
+
+        function animateAccretion() {
+            requestAnimationFrame(animateAccretion);
+            if (particlesMesh) particlesMesh.rotation.y += targetVortexSpeed;
+            rendererAcc.render(sceneAcc, cameraAcc);
+        }
+
+        // --- Three.js Tensor Matrix Setup ---
+        let sceneTens, cameraTens, rendererTens, vectorFieldGroup;
+        let tensorConfig = { bField: 4.8 };
+
+        function initTensor() {
+            const container = document.getElementById('canvas-tensor');
+            sceneTens = new THREE.Scene();
+            sceneTens.fog = new THREE.FogExp2(0x030712, 0.02);
+
+            cameraTens = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+            cameraTens.position.set(0, 12, 22);
+
+            rendererTens = new THREE.WebGLRenderer({ antialias: true });
+            rendererTens.setSize(container.clientWidth, container.clientHeight);
+            rendererTens.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(rendererTens.domElement);
+
+            const controls = new THREE.OrbitControls(cameraTens, rendererTens.domElement);
+            controls.enableDamping = true;
+
+            const grid = new THREE.GridHelper(50, 50, 0x00f2fe, 0x1e293b);
+            grid.position.y = -5;
+            sceneTens.add(grid);
+
+            vectorFieldGroup = new THREE.Group();
+            const ringRadius = 8;
+            const arrowGeo = new THREE.ConeGeometry(0.15, 0.6, 4);
+            arrowGeo.rotateX(Math.PI / 2);
+
+            for (let i = 0; i < 16; i++) {
+                for (let j = 0; j < 16; j++) {
+                    const angle = (i / 16) * Math.PI * 2;
+                    const rOffset = ((j / 16) - 0.5) * 6;
+                    const x = Math.cos(angle) * (ringRadius + rOffset);
+                    const z = Math.sin(angle) * (ringRadius + rOffset);
+                    const y = Math.sin(rOffset * 0.8) * 1.5;
+
+                    const mat = new THREE.MeshBasicMaterial({ color: rOffset > 0 ? 0x00f2fe : 0xff2a85 });
+                    const arrow = new THREE.Mesh(arrowGeo, mat);
+                    arrow.position.set(x, y, z);
+                    arrow.userData = { initialY: y, angle: angle, rOffset: rOffset };
+                    vectorFieldGroup.add(arrow);
+                }
+            }
+            sceneTens.add(vectorFieldGroup);
+
+            window.addEventListener('resize', () => {
+                cameraTens.aspect = container.clientWidth / container.clientHeight;
+                cameraTens.updateProjectionMatrix();
+                rendererTens.setSize(container.clientWidth, container.clientHeight);
+            });
+
+            animateTensor();
+        }
+
+        let clock = new THREE.Clock();
+        function animateTensor() {
+            requestAnimationFrame(animateTensor);
+            const time = clock.getElapsedTime();
+            if (vectorFieldGroup) {
+                vectorFieldGroup.children.forEach((arrow) => {
+                    const u = arrow.userData;
+                    arrow.position.y = u.initialY + Math.sin(time * (tensorConfig.bField * 0.5) + u.angle * 3) * 1.2;
+                    arrow.rotation.y = -u.angle + time * (tensorConfig.bField * 0.2);
+                });
+            }
+            rendererTens.render(sceneTens, cameraTens);
+        }
+
+        // --- IPC Telemetry & UI Bindings ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initAccretion();
+            initTensor();
+
+            const bFieldSlider = document.getElementById('slider-bfield');
+            bFieldSlider.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                tensorConfig.bField = val;
+                document.getElementById('val-bfield').innerText = val.toFixed(1) + ' T';
+                updateAudioTelemetry(val, false);
+
+                if (window.electronAPI && window.electronAPI.tuneInduction) {
+                    window.electronAPI.tuneInduction(val);
+                }
+            });
+
+            if (window.electronAPI) {
+                window.electronAPI.onTensorUpdate((data) => {
+                    const stressRatio = data.compositeStress / 100.0;
+                    targetVortexSpeed = 0.002 + (stressRatio * 0.018);
+
+                    document.getElementById('stat-agents').innerText = data.activeAgents;
+                    document.getElementById('stat-cpu').innerText = data.cpuLoad.toFixed(1) + '%';
+                    document.getElementById('stat-mem').innerText = data.memoryUsage.toFixed(1) + '%';
+                    document.getElementById('sync-indicator').className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+                    document.getElementById('sync-text').innerText = "System: NOMINAL";
+
+                    if (particleMaterialRef) particleMaterialRef.color.setHex(0x00f2fe);
+                    updateAudioTelemetry(data.bField, false);
+
+                    const log = document.getElementById('tensor-log');
+                    if (log) {
+                        const div = document.createElement('div');
+                        div.textContent = `[SYNC] Stress: ${data.compositeStress.toFixed(1)}% | Agents: ${data.activeAgents} | B: ${data.bField}T`;
+                        log.appendChild(div);
+                        log.scrollTop = log.scrollHeight;
+                    }
+                });
+
+                window.electronAPI.onTensorWarning((data) => {
+                    targetVortexSpeed = 0.025; // High speed pulse
+                    document.getElementById('sync-indicator').className = "w-2 h-2 rounded-full bg-plasma animate-ping";
+                    document.getElementById('sync-text').innerText = "System: DAMPENING ACTIVE";
+
+                    // Visual Red-Shift Flare on accretion core
+                    if (particleMaterialRef) particleMaterialRef.color.setHex(0xff2a85);
+                    updateAudioTelemetry(data.bField, true);
+
+                    const log = document.getElementById('tensor-log');
+                    if (log) {
+                        const div = document.createElement('div');
+                        div.className = "text-plasma font-bold";
+                        div.textContent = `[GRAVITATIONAL PULSE] Stress limit breached (${data.compositeStress.toFixed(1)}%). Dampened to ${data.bField}T.`;
+                        log.appendChild(div);
+                        log.scrollTop = log.scrollHeight;
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

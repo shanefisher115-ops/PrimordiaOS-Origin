@@ -1,0 +1,7 @@
+{
+  \"rig\": \"AutoCamRig\",
+  \"moves\": [
+    { \"name\": \"PushIn\", \"speed\": 1.2 },
+    { \"name\": \"SlowOrbit\", \"speed\": 0.4 }
+  ]
+}

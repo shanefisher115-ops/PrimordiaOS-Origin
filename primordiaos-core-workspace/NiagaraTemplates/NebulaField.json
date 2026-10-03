@@ -1,0 +1,4 @@
+{
+  'system': 'NebulaField',
+  'params': { 'density': 0.8, 'hue': 'violet' }
+}

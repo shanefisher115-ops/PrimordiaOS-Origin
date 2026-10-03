@@ -1,0 +1,14 @@
+{
+  \"FileVersion\": 3,
+  \"Version\": 1,
+  \"VersionName\": \"1.0\",
+  \"FriendlyName\": \"Primordia Runtime\",
+  \"Description\": \"Runtime systems for PrimordiaOS text-to-video pipeline.\",
+  \"Modules\": [
+    {
+      \"Name\": \"PrimordiaRuntime\",
+      \"Type\": \"Runtime\",
+      \"LoadingPhase\": \"Default\"
+    }
+  ]
+}

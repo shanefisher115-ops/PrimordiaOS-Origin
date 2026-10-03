@@ -1,0 +1,6 @@
+System: PulseWave
+Emitters:
+  - Name: PulseEmitter
+    Shape: Sphere
+    BurstCount: 120
+    Color: Blue

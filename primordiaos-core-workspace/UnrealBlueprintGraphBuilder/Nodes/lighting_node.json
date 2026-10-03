@@ -1,0 +1,5 @@
+{
+  \"Node\": \"LightingNode\",
+  \"Inputs\": [\"EventName\"],
+  \"Outputs\": [\"LightStyle\"]
+}

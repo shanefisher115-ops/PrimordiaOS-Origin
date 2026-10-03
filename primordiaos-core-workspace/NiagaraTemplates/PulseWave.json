@@ -1,0 +1,4 @@
+{
+  'system': 'PulseWave',
+  'params': { 'intensity': 1.0, 'color': 'blue' }
+}

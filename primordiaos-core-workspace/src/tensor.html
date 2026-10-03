@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrimordiaFlow OS // Lorentz Tensor Stress Matrix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darker: '#030712',
+                        darkpanel: '#0b0f19',
+                        accentglow: '#00f2fe',
+                        plasma: '#ff2a85',
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #030712; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+        .glass-panel { background: rgba(11, 15, 25, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    </style>
+</head>
+<body class="bg-darker text-slate-100 h-screen w-screen overflow-hidden flex flex-col select-none font-sans">
+
+    <header class="h-10 bg-darkpanel border-b border-slate-800 flex items-center justify-between px-4 z-50 shrink-0">
+        <div class="flex items-center space-x-3">
+            <div class="flex space-x-1.5">
+                <div class="w-3 h-3 rounded-full bg-rose-500 cursor-pointer"></div>
+                <div class="w-3 h-3 rounded-full bg-amber-500 cursor-pointer"></div>
+                <div class="w-3 h-3 rounded-full bg-emerald-500 cursor-pointer"></div>
+            </div>
+            <div class="h-4 w-[1px] bg-slate-800 mx-1"></div>
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-vector-square text-accentglow animate-pulse"></i>
+                <span class="text-xs font-semibold tracking-wider text-slate-300">PrimordiaFlow // <span class="text-accentglow">Lorentz Tensor Matrix</span></span>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4 text-xs text-slate-400">
+            <div class="bg-slate-900 px-2.5 py-1 rounded border border-slate-800 text-cyan-400 font-mono">Status: ACTIVE CONFINEMENT</div>
+        </div>
+    </header>
+
+    <div class="flex-1 flex overflow-hidden relative">
+        <aside class="w-80 bg-darkpanel border-r border-slate-800 flex flex-col z-20 shrink-0 p-4 space-y-4 text-xs">
+            <div>
+                <h2 class="font-bold uppercase tracking-wider text-slate-200">Tensor Parameters</h2>
+                <p class="text-[11px] text-slate-400 mt-0.5">Tuning electromagnetic flux induction & vacuum pressure.</p>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <div class="flex justify-between text-slate-400 mb-1">
+                        <span>Magnetic Induction (B-Field)</span>
+                        <span id="val-bfield" class="text-accentglow font-mono">4.8 T</span>
+                    </div>
+                    <input type="range" id="slider-bfield" min="1.0" max="10.0" step="0.2" value="4.8" class="w-full accent-cyan-400 bg-slate-900 rounded h-1.5 cursor-pointer">
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-slate-400 mb-1">
+                        <span>Electric Flux Density (E-Field)</span>
+                        <span id="val-efield" class="text-plasma font-mono">120 kV/m</span>
+                    </div>
+                    <input type="range" id="slider-efield" min="20" max="300" step="10" value="120" class="w-full accent-pink-500 bg-slate-900 rounded h-1.5 cursor-pointer">
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-slate-400 mb-1">
+                        <span>Vacuum Pressure Gradient</span>
+                        <span id="val-pressure" class="text-amber-400 font-mono">89.4 Pa</span>
+                    </div>
+                    <input type="range" id="slider-pressure" min="10" max="200" step="2" value="89.4" class="w-full accent-amber-400 bg-slate-900 rounded h-1.5 cursor-pointer">
+                </div>
+            </div>
+
+            <button onclick="pulseTensor()" class="w-full py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 font-semibold rounded text-white shadow-lg shadow-cyan-500/20 transition flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-wave-square"></i>
+                <span>Execute Tensor Stress Sweep</span>
+            </button>
+
+            <div class="flex-1 flex flex-col pt-2 border-t border-slate-800">
+                <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-2">Tensor Field Diagnostics</span>
+                <div id="tensor-log" class="flex-1 bg-black/50 rounded border border-slate-900 p-2 font-mono text-[10px] text-slate-400 overflow-y-auto space-y-1">
+                    <div>[00:00:01] Initializing Maxwell-Minkowski tensor grid...</div>
+                    <div>[00:00:02] Lorentz vector field locked to torus centroid.</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 relative bg-black">
+            <div id="tensor-canvas" class="w-full h-full"></div>
+        </main>
+    </div>
+
+    <script>
+        let scene, camera, renderer, controls;
+        let vectorFieldGroup;
+        let clock = new THREE.Clock();
+        const config = { bField: 4.8, eField: 120, pressure: 89.4 };
+
+        function init() {
+            const container = document.getElementById('tensor-canvas');
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x030712, 0.02);
+
+            camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 12, 22);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+
+            createGridFloor();
+            createTensorVectorField();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+
+            setupUI();
+            animate();
+        }
+
+        function createGridFloor() {
+            const grid = new THREE.GridHelper(50, 50, 0x00f2fe, 0x1e293b);
+            grid.position.y = -5;
+            scene.add(grid);
+        }
+
+        function createTensorVectorField() {
+            vectorFieldGroup = new THREE.Group();
+            const ringRadius = 8;
+            const countX = 16;
+            const countZ = 16;
+
+            const arrowGeo = new THREE.ConeGeometry(0.15, 0.6, 4);
+            arrowGeo.rotateX(Math.PI / 2);
+
+            for (let i = 0; i < countX; i++) {
+                for (let j = 0; j < countZ; j++) {
+                    const angle = (i / countX) * Math.PI * 2;
+                    const rOffset = ((j / countZ) - 0.5) * 6;
+                    
+                    const x = Math.cos(angle) * (ringRadius + rOffset);
+                    const z = Math.sin(angle) * (ringRadius + rOffset);
+                    const y = Math.sin(rOffset * 0.8) * 1.5;
+
+                    const mat = new THREE.MeshBasicMaterial({ 
+                        color: rOffset > 0 ? 0x00f2fe : 0xff2a85,
+                        wireframe: false
+                    });
+                    const arrow = new THREE.Mesh(arrowGeo, mat);
+                    arrow.position.set(x, y, z);
+                    arrow.userData = { initialY: y, angle: angle, rOffset: rOffset };
+                    vectorFieldGroup.add(arrow);
+                }
+            }
+            scene.add(vectorFieldGroup);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            if (vectorFieldGroup) {
+                vectorFieldGroup.children.forEach((arrow) => {
+                    const u = arrow.userData;
+                    const freq = config.bField * 0.5;
+                    arrow.position.y = u.initialY + Math.sin(time * freq + u.angle * 3) * (config.eField / 100);
+                    arrow.rotation.y = -u.angle + time * (config.bField * 0.2);
+                });
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        function setupUI() {
+            document.getElementById('slider-bfield').addEventListener('input', (e) => {
+                config.bField = parseFloat(e.target.value);
+                document.getElementById('val-bfield').innerText = config.bField.toFixed(1) + ' T';
+            });
+            document.getElementById('slider-efield').addEventListener('input', (e) => {
+                config.eField = parseInt(e.target.value);
+                document.getElementById('val-efield').innerText = config.eField + ' kV/m';
+            });
+            document.getElementById('slider-pressure').addEventListener('input', (e) => {
+                config.pressure = parseFloat(e.target.value);
+                document.getElementById('val-pressure').innerText = config.pressure.toFixed(1) + ' Pa';
+            });
+        }
+
+        function pulseTensor() {
+            const log = document.getElementById('tensor-log');
+            const timeStr = new Date().toTimeString().split(' ')[0];
+            const div = document.createElement('div');
+            div.textContent = `[${timeStr}] Lorentz stress tensor sweep verified: Equilibrium confirmed at B=${config.bField}T.`;
+            log.appendChild(div);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

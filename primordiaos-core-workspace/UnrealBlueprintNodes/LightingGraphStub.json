@@ -1,0 +1,6 @@
+{
+  \"LightingGraph\": {
+    \"Input\": \"LightName\",
+    \"Action\": \"Apply Lighting Curve\"
+  }
+}

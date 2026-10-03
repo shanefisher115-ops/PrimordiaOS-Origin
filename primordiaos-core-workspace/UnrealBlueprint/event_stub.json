@@ -1,0 +1,7 @@
+{
+  'OnMessage': {
+    'ParseJSON': true,
+    'Switch': ['SpawnPulse', 'SpawnNebula'],
+    'Actions': ['TriggerNiagara', 'MoveCamera', 'AdjustLighting']
+  }
+}

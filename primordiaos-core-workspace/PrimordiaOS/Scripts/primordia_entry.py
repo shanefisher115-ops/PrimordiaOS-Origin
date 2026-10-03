@@ -1,0 +1,3 @@
+import primordia_blueprint_auto
+
+primordia_blueprint_auto.build_primordia_bridge()

@@ -1,0 +1,6 @@
+{
+  \"CameraGraph\": {
+    \"Input\": \"MoveName\",
+    \"Action\": \"Apply Camera Curve\"
+  }
+}

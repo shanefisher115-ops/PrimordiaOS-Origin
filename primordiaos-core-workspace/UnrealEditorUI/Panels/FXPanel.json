@@ -1,0 +1,7 @@
+{
+  \"Panel\": \"FXPanel\",
+  \"Controls\": [
+    \"Spawn PulseWave\",
+    \"Spawn NebulaField\"
+  ]
+}

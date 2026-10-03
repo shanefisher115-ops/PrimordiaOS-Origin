@@ -1,0 +1,5 @@
+{
+  \"Node\": \"EventNode\",
+  \"Inputs\": [\"WSMessage\"],
+  \"Outputs\": [\"EventName\"]
+}

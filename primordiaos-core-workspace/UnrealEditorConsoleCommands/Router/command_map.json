@@ -1,0 +1,9 @@
+{
+  \"Commands\": {
+    \"fx\": \"fx_handler.py\",
+    \"camera\": \"camera_handler.py\",
+    \"lighting\": \"lighting_handler.py\",
+    \"sequencer\": \"sequencer_handler.py\",
+    \"render\": \"render_handler.py\"
+  }
+}

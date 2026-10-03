@@ -1,0 +1,5 @@
+Curve: PulseLight
+Frames:
+  - { frame: 0, value: 2 }
+  - { frame: 30, value: 8 }
+  - { frame: 60, value: 2 }

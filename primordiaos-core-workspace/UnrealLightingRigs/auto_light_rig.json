@@ -1,0 +1,7 @@
+{
+  \"rig\": \"AutoLightRig\",
+  \"lights\": [
+    { \"name\": \"PulseLight\", \"intensity\": 8, \"color\": \"blue\" },
+    { \"name\": \"NebulaLight\", \"intensity\": 3, \"color\": \"violet\" }
+  ]
+}

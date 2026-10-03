@@ -1,0 +1,9 @@
+{
+  \"Window\": \"PrimordiaConsole\",
+  \"Actions\": [
+    \"Send Prompt\",
+    \"Preview FX\",
+    \"Preview Camera\",
+    \"Preview Lighting\"
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  \"Blueprint\": \"BP_AutoCameraRig\",
+  \"Functions\": [\"ApplyMove\", \"SetCameraStyle\"]
+}

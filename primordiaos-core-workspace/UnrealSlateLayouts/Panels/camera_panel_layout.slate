@@ -1,0 +1,4 @@
+Panel: CameraPanelLayout
+Widgets:
+  - Button: ApplyPushIn
+  - Button: ApplySlowOrbit

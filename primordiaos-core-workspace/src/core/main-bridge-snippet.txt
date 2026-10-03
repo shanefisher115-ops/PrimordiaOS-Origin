@@ -1,0 +1,17 @@
+// Add this inside your Electron main window creation & IPC setup block:
+const { ipcMain } = require('electron');
+const { TensorEquilibriumController } = require('./core/tensor-equilibrium.js');
+
+const matrix = new TensorEquilibriumController();
+
+ipcMain.on('tune-induction', (event, bField) => {
+    matrix.tuneInduction(bField);
+});
+
+matrix.on('equilibrium-confirmed', (data) => {
+    mainWindow.webContents.send('tensor-update', data);
+});
+
+matrix.on('equilibrium-loss', (data) => {
+    mainWindow.webContents.send('tensor-warning', data);
+});

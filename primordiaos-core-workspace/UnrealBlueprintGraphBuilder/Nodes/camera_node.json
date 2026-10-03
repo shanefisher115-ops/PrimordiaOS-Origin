@@ -1,0 +1,5 @@
+{
+  \"Node\": \"CameraNode\",
+  \"Inputs\": [\"EventName\"],
+  \"Outputs\": [\"CameraMove\"]
+}
