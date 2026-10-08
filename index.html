@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrimordiaOS Spatial Kernel</title>
+    <link rel="stylesheet" href="./src/styles.css">
+    <style>
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #05080f;
+        }
+        #viewport {
+            width: 100%; height: 100%;
+            position: absolute;
+            top: 0; left: 0;
+        }
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div id="viewport"></div>
+    <div id="ui-layer"></div>
+    <script type="module" src="./src/main.js"></script>
+</body>
+</html>
