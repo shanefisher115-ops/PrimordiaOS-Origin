@@ -1,0 +1,73 @@
+#version 450
+#extension GL_GOOGLE_include_directive : require
+// Parsing glyph: one threadling per framed message. Locates id/method/params,
+// hashes the method against the grimoire and assigns a spell.
+
+layout(local_size_x = 64) in;
+#include "common.glsl"
+#include "json.glsl"
+
+void main() {
+    uint i = gl_GlobalInvocationID.x;
+    if (i >= min(ctl.msg_count, MAX_MSGS)) return;
+
+    uint e = msgs[i].end;
+    uint s = e;
+    while (s > 0u && rb(s - 1u) != 10u) s--;
+    while (e > s && is_ws(rb(e - 1u))) e--;
+    s = skip_ws(s, e);
+
+    MsgRecord r;
+    r.start = s; r.end = e;
+    r.id_s = 0u; r.id_e = 0u;
+    r.params_s = 0u; r.params_e = 0u;
+    r.args_s = 0u; r.args_e = 0u;
+    r.spell = SP_NONE;
+    r.aux0 = 0u; r.aux1 = 0u; r.aux2 = 0u;
+
+    atomicAdd(ctl.total_msgs, 1u);
+    atomicAdd(ctl.total_bytes, e - s);
+
+    if (s < e) {
+        if (rb(s) != 123u || skip_value(s, e) != e) {
+            r.spell = SP_PARSE_ERR;
+        } else {
+            uint vs, ve;
+            bool has_id = find_member(s, e, gr.keys[K_ID], vs, ve);
+            if (has_id) { r.id_s = vs; r.id_e = ve; }
+
+            uint ms, me;
+            if (!find_member(s, e, gr.keys[K_METHOD], ms, me)) {
+                // A reply from the client (to a server request) needs no answer.
+                uint a, b;
+                bool reply = find_member(s, e, gr.keys[K_RESULT], a, b)
+                          || find_member(s, e, gr.keys[K_ERROR], a, b);
+                r.spell = reply ? SP_NONE : SP_INVALID;
+            } else if (rb(ms) != 34u || me < ms + 2u) {
+                r.spell = SP_INVALID;
+            } else {
+                uint spell = lookup(0u, gr.method_count, fnv(ms + 1u, me - 1u));
+                if (spell == NOT_FOUND) spell = SP_UNKNOWN;
+
+                uint ps, pe;
+                if (find_member(s, e, gr.keys[K_PARAMS], ps, pe)) { r.params_s = ps; r.params_e = pe; }
+
+                if (spell == SP_TOOLS_CALL) {
+                    uint ns, ne;
+                    if (pe > ps && find_member(ps, pe, gr.keys[K_NAME], ns, ne)
+                        && rb(ns) == 34u && ne >= ns + 2u) {
+                        uint t = lookup(gr.method_count, gr.tool_count, fnv(ns + 1u, ne - 1u));
+                        spell = (t == NOT_FOUND) ? SP_UNKNOWN_TOOL : t;
+                        uint a0, a1;
+                        if (find_member(ps, pe, gr.keys[K_ARGUMENTS], a0, a1)) { r.args_s = a0; r.args_e = a1; }
+                    } else {
+                        spell = SP_BAD_ARGS;
+                    }
+                }
+                // Requests without an id are notifications: never answered.
+                r.spell = has_id ? spell : SP_NONE;
+            }
+        }
+    }
+    msgs[i] = r;
+}

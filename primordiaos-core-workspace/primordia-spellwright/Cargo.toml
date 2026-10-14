@@ -1,0 +1,16 @@
+[package]
+name = "primordia-spellwright"
+version = "0.1.0"
+edition = "2021"
+description = "GPU-resident MCP server for PrimordiaOS: JSON-RPC framing, parsing, routing and replies run as Vulkan compute glyphs."
+build = "build.rs"
+
+[dependencies]
+ash = "0.38"
+axum = "0.8.9"
+bytes = "1.12.1"
+# Pack format (src/pack.rs): raw LZ4 blocks only, safe (bounds-checked) codec, no frame format.
+lz4_flex = { version = "0.14", default-features = false, features = ["std", "safe-encode", "safe-decode", "checked-decode"] }
+memmap2 = "0.9.11"
+tempfile = "3.27.0"
+tokio = { version = "1.53.3", features = ["full"] }

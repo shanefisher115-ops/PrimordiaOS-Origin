@@ -1,0 +1,284 @@
+#version 450
+// LZ4 block-decode glyph: one threadling per block job (src/decoder.rs).
+//
+// A job is { in_offset, comp_size, raw_size, out_offset } (bytes). comp_size bit 31 marks a block
+// stored uncompressed; otherwise the low 31 bits are the length of a raw LZ4 block (sequence
+// format: token, literal-length extensions, literals, 2-byte offset, match-length extensions).
+//
+// Input is untrusted. Every input read is checked against comp_size and every output write
+// against raw_size; matches with offset 0 or reaching before the job's output start are rejected.
+// Only output bytes in [out_offset, out_offset + raw_size) change.
+//
+// Memory operations are the main cost, so input and already-written output are read in aligned
+// 16-byte chunks (cached per threadling). A chunk may extend past the job's ranges but stays
+// inside the bound buffer, and bytes outside the job's ranges are never used. out_offset must be
+// 4-byte aligned (block_size is a multiple of 4): output is written as whole words (16-byte chunks
+// for stored blocks), and the one partial word at the end of a job is read-modify-written keeping
+// the bytes past raw_size. Output ranges must not overlap (the host checks), so no other
+// threadling touches any word a job writes.
+//
+// Each job gets a status { code, detail }: code 0 = ok, otherwise an E_* code below; detail is
+// the input position (relative to in_offset) where decoding stopped. On error, bytes inside the
+// job's own output range may have been partially written.
+//
+// Bounded dispatches: one threadling decodes a whole block serially, so a dispatch would last as
+// long as its slowest block. Instead each dispatch spends at most pc.budget work steps per job
+// (a step is one sequence or one 4/16-byte copy), then saves { ip, op, partial word } to the
+// state buffer and reports E_PENDING; the host dispatches again until no job is pending. A job
+// whose status is already final returns at once. The host sets every status to NOT_RUN first.
+
+// 64 = one full wave on GCN (wave64); RDNA runs it as one or two waves.
+layout(local_size_x = 64) in;
+
+const uint E_OK = 0u;
+const uint E_BAD_JOB = 1u;          // range outside the buffers, or out_offset not 4-aligned
+const uint E_IN_OVERRUN = 2u;       // truncated: needed more input than comp_size
+const uint E_OUT_OVERRUN = 3u;      // would write past raw_size
+const uint E_BAD_OFFSET = 4u;       // match offset 0 or before the block's output start
+const uint E_SIZE_MISMATCH = 5u;    // block ended before producing raw_size bytes
+const uint E_STORED_SIZE = 6u;      // stored block whose length differs from raw_size
+const uint E_PENDING = 7u;          // budget used up; resumes from the state buffer next dispatch
+const uint NOT_RUN = 0xFFFFFFFFu;
+
+const uint STORED_BIT = 0x80000000u;
+
+layout(std430, set = 0, binding = 0) readonly buffer Jobs { uvec4 jobs[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Input { uvec4 in_chunks[]; };
+layout(std430, set = 0, binding = 2) buffer Output { uvec4 out_chunks[]; };
+layout(std430, set = 0, binding = 3) buffer Status { uvec2 status[]; };
+layout(std430, set = 0, binding = 4) buffer State { uvec4 state[]; };
+
+layout(push_constant) uniform Push {
+    uint job_base;
+    uint job_count;
+    uint in_bytes;   // bound descriptor ranges, in bytes (multiples of 16)
+    uint out_bytes;
+    uint budget;     // work steps per job per dispatch (>= 1)
+} pc;
+
+// --- per-threadling decode state ---
+uint job;           // index of this threadling's job
+uint in_base;       // absolute byte offset of the job's input
+uint out_base;      // absolute byte offset of the job's output (4-aligned)
+uint op;            // output bytes produced so far
+uint acc;           // bytes of the current, not yet stored, output word (op & ~3 .. op)
+uint in_cache_idx = 0xFFFFFFFFu;
+uvec4 in_cache;
+uint out_cache_idx = 0xFFFFFFFFu;
+uint out_cache_limit;   // job-relative words below this were final when the chunk was loaded
+uvec4 out_cache;
+
+uint in_word(uint wi) {
+    uint ci = wi >> 2;
+    if (ci != in_cache_idx) {
+        in_cache_idx = ci;
+        in_cache = in_chunks[ci];
+    }
+    return in_cache[wi & 3u];
+}
+
+uint in_byte(uint rel) {
+    uint pos = in_base + rel;
+    return (in_word(pos >> 2) >> ((pos & 3u) * 8u)) & 0xFFu;
+}
+
+void store_word(uint wi, uint v) {
+    out_chunks[wi >> 2][wi & 3u] = v;
+}
+
+// 4 input bytes at job-relative `rel`. Bytes past the bound buffer read as 0; callers mask
+// off bytes past the ones they asked for.
+uint in4(uint rel) {
+    uint pos = in_base + rel;
+    uint w = pos >> 2;
+    uint s = (pos & 3u) * 8u;
+    uint lo = in_word(w);
+    if (s == 0u) return lo;
+    uint hi = w + 1u < (pc.in_bytes >> 2) ? in_word(w + 1u) : 0u;
+    return (lo >> s) | (hi << (32u - s));
+}
+
+// Appends the low n (1..4) bytes of v to the output.
+void put_n(uint v, uint n) {
+    if (n < 4u) v &= (1u << (n * 8u)) - 1u;
+    uint used = op & 3u;
+    acc |= v << (used * 8u);
+    if (used + n >= 4u) {
+        store_word((out_base + (op & ~3u)) >> 2, acc);
+        acc = used == 0u ? 0u : v >> (32u - used * 8u);
+    }
+    op += n;
+}
+
+// Job-relative output word `w` (w <= op / 4): stored words come from memory, the partial one from acc.
+uint out_word(uint w) {
+    uint done = op >> 2;
+    if (w >= done) return acc;
+    uint wi = (out_base >> 2) + w;  // out_base is 4-aligned
+    uint ci = wi >> 2;
+    // Words below `done` are final; a cached chunk is only trusted below the limit it was loaded at.
+    if (ci != out_cache_idx || w >= out_cache_limit) {
+        out_cache_idx = ci;
+        out_cache_limit = done;
+        out_cache = out_chunks[ci];
+    }
+    return out_cache[wi & 3u];
+}
+
+// 4 output bytes at job-relative `rel`; requires rel + 4 <= op.
+uint out4(uint rel) {
+    uint w = rel >> 2;
+    uint s = (rel & 3u) * 8u;
+    uint lo = out_word(w);
+    if (s == 0u) return lo;
+    return (lo >> s) | (out_word(w + 1u) << (32u - s));
+}
+
+uint out_byte(uint rel) {
+    return (out_word(rel >> 2) >> ((rel & 3u) * 8u)) & 0xFFu;
+}
+
+// Stores the trailing partial word, keeping the bytes past the job's range.
+void flush_tail() {
+    uint n = op & 3u;
+    if (n == 0u) return;
+    uint wi = (out_base + op) >> 2;
+    uint keep = 0xFFFFFFFFu << (n * 8u);
+    store_word(wi, (out_chunks[wi >> 2][wi & 3u] & keep) | acc);
+}
+
+uvec2 pending(uint ip) {
+    state[job] = uvec4(ip, op, acc, 0u);
+    return uvec2(E_PENDING, ip);
+}
+
+uvec2 decode_stored(uint clen, uint raw) {
+    if (clen != raw) return uvec2(E_STORED_SIZE, 0u);
+    // Words up to a 16-byte output boundary, then whole chunks, then the remaining words.
+    // Resumes at op (a multiple of 4, with nothing pending in acc).
+    uint i = op;
+    uint steps = 0u;
+    for (; i + 4u <= raw && ((out_base + i) & 15u) != 0u; i += 4u) store_word((out_base + i) >> 2, in4(i));
+    for (; i + 16u <= raw; i += 16u) {
+        if (steps++ >= pc.budget) {
+            op = i;
+            return pending(i);
+        }
+        out_chunks[(out_base + i) >> 4] = uvec4(in4(i), in4(i + 4u), in4(i + 8u), in4(i + 12u));
+    }
+    for (; i + 4u <= raw; i += 4u) store_word((out_base + i) >> 2, in4(i));
+    op = i;
+    for (; i < raw; i++) acc |= in_byte(i) << ((i & 3u) * 8u);
+    op = raw;
+    flush_tail();
+    return uvec2(E_OK, raw);
+}
+
+uvec2 decode_lz4(uint clen, uint raw, uint ip) {
+    uint steps = 0u;
+    for (;;) {
+        // Sequence boundary: the whole decode state is ip, op and acc.
+        if (steps >= pc.budget) return pending(ip);
+        if (ip >= clen) return uvec2(E_IN_OVERRUN, ip);
+        uint token = in_byte(ip++);
+
+        uint lit = token >> 4;
+        if (lit == 15u) {
+            uint b;
+            do {
+                if (ip >= clen) return uvec2(E_IN_OVERRUN, ip);
+                b = in_byte(ip++);
+                lit += b;
+                if (lit > raw) return uvec2(E_OUT_OVERRUN, ip);  // also keeps lit from overflowing
+            } while (b == 255u);
+        }
+        if (lit > raw - op) return uvec2(E_OUT_OVERRUN, ip);
+        if (lit > clen - ip) return uvec2(E_IN_OVERRUN, ip);
+        for (uint i = 0u; i < lit; i += 4u) put_n(in4(ip + i), min(4u, lit - i));
+        ip += lit;
+
+        // The last sequence is literals only and ends exactly at the end of the block.
+        if (ip == clen) {
+            if (op != raw) return uvec2(E_SIZE_MISMATCH, ip);
+            flush_tail();
+            return uvec2(E_OK, ip);
+        }
+
+        if (clen - ip < 2u) return uvec2(E_IN_OVERRUN, ip);
+        uint offset = in_byte(ip) | (in_byte(ip + 1u) << 8);
+        ip += 2u;
+        if (offset == 0u || offset > op) return uvec2(E_BAD_OFFSET, ip);
+
+        uint mlen = token & 15u;
+        if (mlen == 15u) {
+            uint b;
+            do {
+                if (ip >= clen) return uvec2(E_IN_OVERRUN, ip);
+                b = in_byte(ip++);
+                mlen += b;
+                if (mlen > raw) return uvec2(E_OUT_OVERRUN, ip);
+            } while (b == 255u);
+        }
+        mlen += 4u;
+        if (mlen > raw - op) return uvec2(E_OUT_OVERRUN, ip);
+        steps += 1u + ((lit + 3u) >> 2) + ((mlen + 3u) >> 2);
+        if (offset >= 4u) {
+            // Each 4-byte read ends at or before op, so it only sees bytes already produced;
+            // overlapping matches with offset >= 4 replicate correctly 4 bytes at a time.
+            for (uint i = 0u; i < mlen; i += 4u) put_n(out4(op - offset), min(4u, mlen - i));
+        } else {
+            // Offsets 1..3 repeat the last `offset` bytes: the match's words cycle with period 3
+            // (offset 3) or are all the same (offsets 1 and 2).
+            uint src = op - offset;
+            uint b0 = out_byte(src);
+            uint b1 = out_byte(src + 1u % offset);
+            uint b2 = out_byte(src + 2u % offset);
+            uint b3 = out_byte(src + 3u % offset);
+            uint p0 = b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
+            uint p1 = b1 | (b2 << 8) | (b0 << 16) | (b1 << 24);
+            uint p2 = b2 | (b0 << 8) | (b1 << 16) | (b2 << 24);
+            if (offset != 3u) {
+                p1 = p0;
+                p2 = p0;
+            }
+            for (uint i = 0u; i < mlen; i += 4u) {
+                put_n(p0, min(4u, mlen - i));
+                uint t = p0;
+                p0 = p1;
+                p1 = p2;
+                p2 = t;
+            }
+        }
+    }
+    return uvec2(E_IN_OVERRUN, ip);  // unreachable
+}
+
+void main() {
+    uint local = gl_GlobalInvocationID.x;
+    if (local >= pc.job_count) return;
+    job = pc.job_base + local;
+    uint code = status[job].x;
+    if (code != NOT_RUN && code != E_PENDING) return;  // already final
+    uvec4 jb = jobs[job];
+    uint clen = jb.y & ~STORED_BIT;
+    uint raw = jb.z;
+    in_base = jb.x;
+    out_base = jb.w;
+
+    // Overflow-safe range checks against the bound buffers.
+    if ((out_base & 3u) != 0u || in_base > pc.in_bytes || clen > pc.in_bytes - in_base ||
+        out_base > pc.out_bytes || raw > pc.out_bytes - out_base) {
+        status[job] = uvec2(E_BAD_JOB, 0u);
+        return;
+    }
+    uint ip = 0u;
+    op = 0u;
+    acc = 0u;
+    if (code == E_PENDING) {
+        uvec4 saved = state[job];
+        ip = saved.x;
+        op = saved.y;
+        acc = saved.z;
+    }
+    status[job] = (jb.y & STORED_BIT) != 0u ? decode_stored(clen, raw) : decode_lz4(clen, raw, ip);
+}

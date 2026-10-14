@@ -1,0 +1,178 @@
+#version 450
+#extension GL_GOOGLE_include_directive : require
+#extension GL_KHR_shader_subgroup_basic : require
+#extension GL_KHR_shader_subgroup_ballot : require
+#extension GL_KHR_shader_subgroup_arithmetic : require
+// Response glyph: one threadling per parsed message. Runs GPU-resident tool
+// spells, then serializes the JSON-RPC reply into the response reliquary.
+// Host spells are queued in the host-call sigil instead.
+//
+// Each reply is emitted twice: a dry run to measure it, then (after reserving
+// space) the real write. Space and host-call slots are reserved once per
+// subgroup: an exclusive scan gives each threadling its offset and one elected
+// threadling does the atomicAdd, so every threadling must reach the subgroup ops
+// (threadlings with nothing to reserve contribute 0). Writes are clamped to the
+// reservation so a concurrent change between passes can never corrupt a neighbor.
+// A GPU reply's span is recorded in its message: aux0 = byte offset, aux1 = length
+// (aux1 stays 0 when there is no GPU reply).
+
+layout(local_size_x = 64) in;
+#include "common.glsl"
+#include "json.glsl"
+
+uint wp;
+uint wlimit;
+bool wr;
+
+void put(uint c) {
+    if (wr && wp < wlimit) atomicOr(out_words[wp >> 2], (c & 0xFFu) << ((wp & 3u) * 8u));
+    wp++;
+}
+
+void put_frag(uint f) {
+    uvec2 fr = gr.frags[f];
+    for (uint k = 0u; k < fr.y; k++) put(tb(fr.x + k));
+}
+
+void put_span(uint a, uint b) {
+    for (uint p = a; p < b; p++) put(rb(p));
+}
+
+void put_uint(uint v) {
+    uint d[10];
+    uint n = 0u;
+    do { d[n] = v % 10u; v /= 10u; n++; } while (v > 0u);
+    while (n > 0u) { n--; put(48u + d[n]); }
+}
+
+bool get_uint_arg(MsgRecord r, int key, uint dflt, out uint v) {
+    v = dflt;
+    if (r.args_e <= r.args_s) return true;
+    uint s, e;
+    if (!find_member(r.args_s, r.args_e, gr.keys[key], s, e)) return true;
+    return parse_uint(s, e, v);
+}
+
+uvec4 status;  // tick, messages, bytes, host spells — snapshotted once
+
+void emit(MsgRecord r, uint spell, uint a, uint b) {
+    put_frag(F_HEAD);
+    if (r.id_e > r.id_s) put_span(r.id_s, r.id_e); else put_frag(F_NULL);
+
+    if (spell == SP_PARSE_ERR)    { put_frag(F_ERR_PARSE);   return; }
+    if (spell == SP_INVALID)      { put_frag(F_ERR_INVALID); return; }
+    if (spell == SP_UNKNOWN)      { put_frag(F_ERR_METHOD);  return; }
+    if (spell == SP_UNKNOWN_TOOL) { put_frag(F_ERR_TOOL);    return; }
+    if (spell == SP_BAD_ARGS)     { put_frag(F_ERR_ARGS);    return; }
+
+    put_frag(F_RESULT);
+    if (spell == SP_INITIALIZE)      put_frag(F_INIT);
+    else if (spell == SP_PING)       put_frag(F_EMPTY);
+    else if (spell == SP_TOOLS_LIST) put_frag(F_TOOLS);
+    else {
+        put_frag(F_TEXT_OPEN);
+        if (spell == SP_AGENT_STATUS) {
+            put_frag(F_ST_TICKS); put_uint(status.x);
+            put_frag(F_ST_MSGS);  put_uint(status.y);
+            put_frag(F_ST_BYTES); put_uint(status.z);
+            put_frag(F_ST_HOST);  put_uint(status.w);
+        } else if (spell == SP_READ_RELIQ) {
+            put(91u);
+            for (uint k = 0u; k < b; k++) {
+                if (k > 0u) put(44u);
+                put_uint(scratch[a + k]);
+            }
+            put(93u);
+        } else if (spell == SP_WRITE_RELIQ) {
+            put_frag(F_WROTE); put_uint(b);
+            put_frag(F_VALUES); put_uint(a);
+        }
+        put_frag(F_TEXT_CLOSE);
+    }
+    put_frag(F_END);
+}
+
+// One reservation per subgroup: returns this threadling's first unit of `n`.
+uint reserve_host(uint n) {
+    uint total = subgroupAdd(n);
+    uint offset = subgroupExclusiveAdd(n);
+    uint first = 0u;
+    if (total > 0u && subgroupElect()) {
+        first = atomicAdd(ctl.host_call_count, total);
+        atomicAdd(ctl.total_host_calls, total);
+    }
+    return subgroupBroadcastFirst(first) + offset;
+}
+
+uint reserve_out(uint n) {
+    uint total = subgroupAdd(n);
+    uint offset = subgroupExclusiveAdd(n);
+    uint first = 0u;
+    if (total > 0u && subgroupElect()) first = atomicAdd(ctl.out_len, total);
+    return subgroupBroadcastFirst(first) + offset;
+}
+
+void main() {
+    uint i = gl_GlobalInvocationID.x;
+    bool live = i < min(ctl.msg_count, MAX_MSGS);
+
+    MsgRecord r;
+    uint spell = SP_NONE;
+    if (live) {
+        r = msgs[i];
+        spell = r.spell;
+    }
+    bool host = spell >= SP_HOST_BASE;
+    bool gpu = spell != SP_NONE && !host;
+
+    uint slot = reserve_host(host ? 1u : 0u);
+    if (host) host_calls[slot] = uvec2(i, spell);
+
+    uint a = 0u, b = 0u, len = 0u;
+    if (gpu) {
+        // ---- GPU-resident tool spells ----
+        if (spell == SP_READ_RELIQ) {
+            if (!get_uint_arg(r, K_OFFSET, 0u, a) || !get_uint_arg(r, K_COUNT, 16u, b)
+                || b == 0u || b > 256u || a >= SCRATCH_WORDS || a + b > SCRATCH_WORDS) {
+                spell = SP_BAD_ARGS;
+            }
+        } else if (spell == SP_WRITE_RELIQ) {
+            uint vs, ve;
+            if (!get_uint_arg(r, K_OFFSET, 0u, a) || r.args_e <= r.args_s
+                || !find_member(r.args_s, r.args_e, gr.keys[K_VALUES], vs, ve) || rb(vs) != 91u) {
+                spell = SP_BAD_ARGS;
+            } else {
+                uint p = vs + 1u;
+                uint end = ve - 1u;
+                bool ok = true;
+                for (uint g = 0u; g < SCRATCH_WORDS; g++) {
+                    p = skip_ws(p, end);
+                    if (p >= end) break;
+                    uint q = skip_value(p, end);
+                    uint v;
+                    if (!parse_uint(p, q, v) || a + b >= SCRATCH_WORDS) { ok = false; break; }
+                    scratch[a + b] = v;
+                    b++;
+                    p = skip_ws(q, end);
+                    if (p < end && rb(p) == 44u) p++;
+                }
+                if (!ok) spell = SP_BAD_ARGS;
+            }
+        }
+        status = uvec4(ctl.tick, ctl.total_msgs, ctl.total_bytes, ctl.total_host_calls);
+
+        // ---- Serialize: measure ----
+        wr = false; wp = 0u; wlimit = 0u;
+        emit(r, spell, a, b);
+        len = wp;
+    }
+
+    // ---- Reserve, then write ----
+    uint base = reserve_out(len);
+    if (!gpu) return;
+    if (base + len > OUT_CAP) { atomicOr(ctl.flags, 2u); return; }
+    msgs[i].aux0 = base;
+    msgs[i].aux1 = len;
+    wr = true; wp = base; wlimit = base + len;
+    emit(r, spell, a, b);
+}

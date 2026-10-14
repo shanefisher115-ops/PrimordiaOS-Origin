@@ -1,0 +1,56 @@
+#version 450
+#extension GL_GOOGLE_include_directive : require
+#extension GL_KHR_shader_subgroup_basic : require
+#extension GL_KHR_shader_subgroup_ballot : require
+#extension GL_KHR_shader_subgroup_arithmetic : require
+// Framing glyph: one threadling per 4-byte word of the request reliquary.
+// Every '\n' ends one newline-delimited JSON-RPC message (MCP stdio framing).
+// Message order within a tick is not preserved; JSON-RPC matches replies by id.
+//
+// Slots are reserved once per subgroup: each threadling counts its newlines,
+// an exclusive scan gives its offset, and one elected threadling does the
+// atomicAdd. Every threadling reaches the subgroup ops (out-of-range ones count 0).
+
+layout(local_size_x = 256) in;
+#include "common.glsl"
+
+void main() {
+    uint w = gl_GlobalInvocationID.x;
+    if (w == 0u) atomicAdd(ctl.tick, 1u);
+    uint in_len = ctl.in_len;
+    uint base = w * 4u;
+    uint word = base < in_len ? in_words[w] : 0u;
+
+    uint nl = 0u;  // bit k set: byte base+k is an in-range '\n'
+    for (uint k = 0u; k < 4u; k++) {
+        if (base + k < in_len && ((word >> (k * 8u)) & 0xFFu) == 10u) nl |= 1u << k;
+    }
+    uint n = bitCount(nl);
+
+    uint total = subgroupAdd(n);
+    uint offset = subgroupExclusiveAdd(n);
+    uint first = 0u;
+    if (total > 0u && subgroupElect()) first = atomicAdd(ctl.msg_count, total);
+    first = subgroupBroadcastFirst(first);
+
+    uint slot = first + offset;
+    uint last = 0u;
+    bool over = false;
+    for (uint k = 0u; k < 4u; k++) {
+        if ((nl & (1u << k)) == 0u) continue;
+        if (slot < MAX_MSGS) {
+            msgs[slot].end = base + k;
+            last = base + k + 1u;
+        } else {
+            over = true;
+        }
+        slot++;
+    }
+
+    uint consumed = subgroupMax(last);
+    uint overflow = subgroupOr(over ? 1u : 0u);
+    if (subgroupElect()) {
+        if (consumed > 0u) atomicMax(ctl.consumed, consumed);
+        if (overflow != 0u) atomicOr(ctl.flags, 1u);
+    }
+}
