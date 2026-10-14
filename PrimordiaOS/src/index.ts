@@ -1,117 +1,166 @@
-import fs from 'fs';
-import path from 'path';
-import sqlite3 from 'sqlite3';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { z } from 'zod';
-import { BusNode } from '../core/bus/bus_node.js';
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
+import express, { Request, Response } from "express";
 
-const DB_PATH = path.resolve(process.cwd(), 'primordia_memory.sqlite');
-const SCHEMA_PATH = path.resolve(process.cwd(), 'core/bus/memory/schema.sql');
+const PORT = process.env.WEBHOOK_PORT || 3000;
+const AFFILIATE_ID = process.env.MAXBOUNTY_AFFILIATE_ID || "12345";
 
-async function bootstrap() {
-  console.log('⚡ Bootstrapping PrimordiaOS Memory Layer...');
-
-  if (!fs.existsSync(SCHEMA_PATH)) {
-    throw new Error(`Schema file not found at: ${SCHEMA_PATH}`);
-  }
-
-  const db = new sqlite3.Database(DB_PATH);
-  const schemaSql = fs.readFileSync(SCHEMA_PATH, 'utf-8');
-
-  await new Promise<void>((resolve, reject) => {
-    db.exec(schemaSql, (err) => {
-      if (err) {
-        console.error('Failed to execute schema.sql', err);
-        reject(err);
-      } else {
-        console.log('✅ SQLite Schema applied successfully.');
-        resolve();
-      }
-    });
-  });
-
-  const realmId = process.env.REALM_ID || 'local_realm';
-  const busNode = new BusNode(realmId, DB_PATH);
-
-  const mcpServer = new McpServer({
-    name: 'primordiaos-memory',
-    version: '1.0.0'
-  });
-
-  mcpServer.tool(
-    'memory_query',
-    {
-      query: z.string().describe('Search phrase or keyword'),
-      min_trust_level: z.number().optional(),
-      limit: z.number().optional()
-    },
-    async (args) => {
-      const results = await busNode.memoryServer.memory_query({
-        query: args.query,
-        min_trust_level: args.min_trust_level,
-        limit: args.limit
-      });
-      return {
-        content: [{ type: 'text', text: JSON.stringify(results, null, 2) }]
-      };
-    }
-  );
-
-  mcpServer.tool(
-    'memory_propose',
-    {
-      agent_id: z.string(),
-      type: z.enum(['FACT', 'DECISION', 'FAILURE', 'DEPRECATION']),
-      content: z.string(),
-      subject_chunk_id: z.string().optional()
-    },
-    async (args) => {
-      const res = await busNode.memoryServer.memory_propose(args);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res) }]
-      };
-    }
-  );
-
-  mcpServer.tool(
-    'memory_log_failure',
-    {
-      task_id: z.string(),
-      realm_id: z.string(),
-      error_signature: z.string(),
-      attempted_approach: z.string(),
-      root_cause: z.string().optional(),
-      suggested_bypass: z.string().optional()
-    },
-    async (args) => {
-      const res = await busNode.memoryServer.memory_log_failure(args);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res) }]
-      };
-    }
-  );
-
-  mcpServer.tool(
-    'memory_check_warnings',
-    {
-      error_signature: z.string(),
-      realm_id: z.string()
-    },
-    async (args) => {
-      const res = await busNode.memoryServer.memory_check_warnings(args.error_signature, args.realm_id);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(res) }]
-      };
-    }
-  );
-
-  const transport = new StdioServerTransport();
-  await mcpServer.connect(transport);
-  console.log('🚀 PrimordiaOS Memory MCP Server listening via STDIO.');
+interface ConversionRecord {
+  id: string;
+  offerId: string;
+  payout: string;
+  subId1: string;
+  subId2?: string;
+  ip: string;
+  timestamp: string;
 }
 
-bootstrap().catch((err) => {
-  console.error('Fatal error during boot:', err);
+const conversionLogs: ConversionRecord[] = [];
+
+// Express Server
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.get("/api/maxbounty/postback", (req: Request, res: Response) => {
+  const { offer_id, rate, subid1, subid2, ip } = req.query;
+
+  const record: ConversionRecord = {
+    id: Math.random().toString(36).substring(2, 9),
+    offerId: (offer_id as string) || "unknown",
+    payout: (rate as string) || "0.00",
+    subId1: (subid1 as string) || "direct",
+    subId2: (subid2 as string) || undefined,
+    ip: (ip as string) || (req.ip as string),
+    timestamp: new Date().toISOString(),
+  };
+
+  conversionLogs.unshift(record);
+  if (conversionLogs.length > 100) conversionLogs.pop();
+
+  console.error(`[S2S Postback Received] Offer: ${record.offerId} | Payout: $${record.payout} | Sub1: ${record.subId1}`);
+  res.status(200).send("OK_POSTBACK_RECEIVED");
+});
+
+app.listen(PORT, () => {
+  console.error(`[Express] MaxBounty webhook listener active on port ${PORT}`);
+});
+
+// MCP Server
+const mcpServer = new Server(
+  { name: "maxbounty-mcp-bridge", version: "1.0.0" },
+  { capabilities: { tools: {}, resources: {} } }
+);
+
+mcpServer.setRequestHandler(ListToolsRequestSchema, async () => {
+  return {
+    tools: [
+      {
+        name: "generate_tracking_link",
+        description: "Generates an optimized MaxBounty tracking URL with embedded SubID campaign attribution.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            offerId: { type: "string", description: "The MaxBounty Offer ID" },
+            subId1: { type: "string", description: "Campaign tag, traffic source, or outreach channel identifier" },
+            subId2: { type: "string", description: "Unique click UUID or session identifier for S2S reconciliation" },
+          },
+          required: ["offerId", "subId1"],
+        },
+      },
+      {
+        name: "get_conversion_stats",
+        description: "Queries recent recorded conversions and revenue metrics from local memory.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            limit: { type: "number", description: "Max records to return (default 10)" },
+          },
+        },
+      },
+    ],
+  };
+});
+
+mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+
+  if (name === "generate_tracking_link") {
+    const { offerId, subId1, subId2 } = args as { offerId: string; subId1: string; subId2?: string };
+    
+    let trackingUrl = `https://www.maxbounty.com/c.aspx?a=${AFFILIATE_ID}&o=${offerId}&s1=${encodeURIComponent(subId1)}`;
+    if (subId2) {
+      trackingUrl += `&s2=${encodeURIComponent(subId2)}`;
+    }
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ status: "success", trackingUrl, affiliateId: AFFILIATE_ID }, null, 2),
+        },
+      ],
+    };
+  }
+
+  if (name === "get_conversion_stats") {
+    const { limit = 10 } = (args as { limit?: number }) || {};
+    const results = conversionLogs.slice(0, limit);
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ totalLogged: conversionLogs.length, conversions: results }, null, 2),
+        },
+      ],
+    };
+  }
+
+  throw new Error(`Unknown tool: ${name}`);
+});
+
+mcpServer.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return {
+    resources: [
+      {
+        uri: "maxbounty://conversions/recent",
+        name: "Recent Postback Conversions",
+        mimeType: "application/json",
+        description: "Live feed of captured S2S conversion events.",
+      },
+    ],
+  };
+});
+
+mcpServer.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  if (request.params.uri === "maxbounty://conversions/recent") {
+    return {
+      contents: [
+        {
+          uri: request.params.uri,
+          mimeType: "application/json",
+          text: JSON.stringify(conversionLogs, null, 2),
+        },
+      ],
+    };
+  }
+  throw new Error(`Resource not found: ${request.params.uri}`);
+});
+
+async function main() {
+  const transport = new StdioServerTransport();
+  await mcpServer.connect(transport);
+  console.error("[MCP] MaxBounty Stdio Server running successfully");
+}
+
+main().catch((error) => {
+  console.error("Fatal error running MCP server:", error);
   process.exit(1);
 });

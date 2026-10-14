@@ -1,29 +1,28 @@
 {
-    "FileVersion": 3,
-    "EngineAssociation": "5.4",
-    "Category": "",
-    "Description": "PrimordiaOS Unreal Simulation Realm",
-
-    "Modules": [
-        {
-            "Name": "PrimordiaUnreal",
-            "Type": "Runtime",
-            "LoadingPhase": "Default"
-        }
-    ],
-
-    "Plugins": [
-        {
-            "Name": "PythonScriptPlugin",
-            "Enabled": true
-        },
-        {
-            "Name": "EditorScriptingUtilities",
-            "Enabled": true
-        }
-    ],
-
-    "TargetPlatforms": [
-        "Win64"
-    ]
+  "FileVersion": 3,
+  "EngineAssociation": "5.4",
+  "Category": "",
+  "Description": "PrimordiaOS Unreal Simulation Realm",
+  "Modules": [
+    {
+      "Name": "PrimordiaUnreal",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    },
+    {
+      "Name": "PrimordiaUnrealEditor",
+      "Type": "Editor",
+      "LoadingPhase": "Default"
+    },
+    {
+      "Name": "PrimordiaBridge",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ],
+  "Plugins": [],
+  "TargetPlatforms": [],
+  "AdditionalRootDirectories": [],
+  "AdditionalPluginDirectories": [],
+  "EpicSampleNameHash": ""
 }

@@ -1,0 +1,23 @@
+{
+  "Description": "PrimordiaOS Spatial Telemetry Viewport",
+  "Category": "",
+  "FileVersion": 3,
+  "EngineAssociation": "",
+  "Plugins": [
+    {
+      "Name": "RemoteControl",
+      "Enabled": true
+    },
+    {
+      "Name": "WebControl",
+      "Enabled": true
+    }
+  ],
+  "Modules": [
+    {
+      "Name": "PrimordiaUnreal",
+      "LoadingPhase": "Default",
+      "Type": "Runtime"
+    }
+  ]
+}
