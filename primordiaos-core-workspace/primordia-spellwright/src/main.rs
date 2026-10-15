@@ -1,35 +1,93 @@
-use std::path::Path;
-use std::sync::Arc;
-use tokio::sync::Mutex;
-use primordia_spellwright::ring_buffer::ZeroCopyRingBuffer;
-use primordia_spellwright::dispatcher::ComputeDispatcher;
-use primordia_spellwright::daemon::EngineDaemon;
-use primordia_spellwright::api::create_router;
+//! primordia-spellwright: a GPU-resident MCP server over stdio.
+//!
+//! The host is only a conduit: it moves stdin bytes into the request reliquary,
+//! submits the ritual, and copies the response reliquary to stdout. Framing,
+//! JSON-RPC parsing, method/tool routing and reply serialization all run in
+//! Vulkan compute glyphs. Logs go to stderr; stdout carries only JSON-RPC.
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("--- [Primordia Engine] Initializing HTTP Ingestion & Compute Core ---");
+use primordia_spellwright::grimoire::IN_CAP;
+use primordia_spellwright::{host_spells, ritual};
+use std::io::{Read, Write};
+use std::sync::mpsc;
 
-    let mmap_path = Path::new("primordia_stream.mmap");
-    let capacity = 1024 * 1024; // 1 MB ring buffer
+fn main() {
+    if let Err(e) = run() {
+        eprintln!("spellwright: {e}");
+        std::process::exit(1);
+    }
+}
 
-    // Initialize memory-mapped ring buffer ONCE
-    let ring = ZeroCopyRingBuffer::new(mmap_path, capacity)?;
-    let shared_ring = Arc::new(Mutex::new(ring));
+fn run() -> Result<(), Box<dyn std::error::Error>> {
+    let mut ritual = ritual::Ritual::new()?;
+    eprintln!("spellwright: glyphs bound on {}", ritual.device_name);
 
-    // Initialize dispatcher with a 1024-byte CPU/GPU threshold
-    let dispatcher = ComputeDispatcher::new(1024);
+    let (tx, rx) = mpsc::channel::<Vec<u8>>();
+    std::thread::spawn(move || {
+        let mut stdin = std::io::stdin().lock();
+        let mut buf = vec![0u8; 64 * 1024];
+        while let Ok(n) = stdin.read(&mut buf) {
+            if n == 0 || tx.send(buf[..n].to_vec()).is_err() {
+                break;
+            }
+        }
+    });
 
-    // 1. Spin up the background worker daemon using the shared ring Arc
-    let daemon = EngineDaemon::new(Arc::clone(&shared_ring), dispatcher);
-    daemon.run_background_worker().await;
+    let mut stdout = std::io::stdout().lock();
+    let mut pending: Vec<u8> = Vec::new();
+    let mut eof = false;
+    let mut need_more = true;
 
-    // 2. Spin up the Axum HTTP Webhook Ingestion server on port 8080
-    let app = create_router(shared_ring);
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:8080").await?;
-    
-    println!("[Primordia API] Webhook ingestion active on http://127.0.0.1:8080/ingest");
-    axum::serve(listener, app).await?;
+    loop {
+        if need_more || pending.is_empty() {
+            if eof {
+                break;
+            }
+            match rx.recv() {
+                Ok(chunk) => pending.extend(chunk),
+                Err(_) => {
+                    eof = true;
+                    if pending.is_empty() {
+                        break;
+                    }
+                }
+            }
+        }
+        while let Ok(chunk) = rx.try_recv() {
+            pending.extend(chunk);
+        }
 
+        // Too many messages or replies for one tick: retry with half the input.
+        let mut n = pending.len().min(IN_CAP);
+        let result = loop {
+            let r = ritual.tick(&pending[..n])?;
+            if r.overflow && n > 1 {
+                n /= 2;
+                continue;
+            }
+            break r;
+        };
+
+        stdout.write_all(&result.out)?;
+        for call in &result.host_calls {
+            stdout.write_all(&host_spells::cast(&ritual, call))?;
+        }
+        stdout.flush()?;
+
+        if result.consumed == 0 {
+            if n == IN_CAP {
+                // One line larger than the request reliquary: drop it and report.
+                let cut = pending.iter().position(|&b| b == b'\n').map_or(pending.len(), |p| p + 1);
+                pending.drain(..cut);
+                stdout.write_all(b"{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Message exceeds request reliquary\"}}\n")?;
+                stdout.flush()?;
+                need_more = false;
+            } else {
+                need_more = true;
+            }
+        } else {
+            pending.drain(..result.consumed);
+            need_more = false;
+        }
+    }
     Ok(())
 }

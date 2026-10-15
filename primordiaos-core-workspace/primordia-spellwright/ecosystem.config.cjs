@@ -1,8 +1,8 @@
 module.exports = {
   apps: [
     {
-      name: 'primordia-spellwright-engine',
-      script: './target/verify/release/primordia-spellwright.exe',
+      name: 'primordia-ingest',
+      script: './target/release/primordia-ingest.exe',
       instances: 1,
       autorestart: true,
       watch: false,

@@ -2,11 +2,17 @@ use std::time::Instant;
 use crate::ring_buffer::ZeroCopyRingBuffer;
 use lz4_flex::decompress_size_prepended;
 
+/// Largest decoded size accepted from a size-prepended LZ4 payload. Also bounds
+/// the allocation when an uncompressed payload's first bytes are misread as a size.
+const MAX_DECODED: usize = 64 * 1024 * 1024;
+/// LZ4 cannot expand input by more than about 255x.
+const MAX_RATIO: usize = 255;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PayloadType {
-    /// Variable length, JSON-heavy, jagged data (Optimized for All-Core CPU ~4.6 GB/s)
+    /// Variable length, JSON-heavy, jagged data
     VariableJson = 0x01,
-    /// Uniform bulk binary, dense spatial geometry, textures (Optimized for GPU ~1.07 GB/s)
+    /// Uniform bulk binary, dense spatial geometry, textures
     BulkBinary = 0x02,
 }
 
@@ -39,7 +45,11 @@ impl ComputeDispatcher {
         }
     }
 
-    /// Dispatches the decompression task to the winning silicon
+    /// Strips the type tag and decodes the payload.
+    ///
+    /// Both routes decode on the CPU for now: `decoder::GpuDecoder` works on
+    /// `.ppk` block jobs and measured about 7.6x slower than four CPU threads
+    /// (see README, "Compressed chunk store").
     pub fn dispatch(&self, data: &[u8]) -> Result<Vec<u8>, String> {
         let route = self.classify(data);
         let start = Instant::now();
@@ -60,33 +70,25 @@ impl ComputeDispatcher {
     }
 
     fn decompress_cpu(&self, data: &[u8]) -> Result<Vec<u8>, String> {
-        // Try LZ4 decompression; if it fails (e.g. raw uncompressed JSON webhook), return raw bytes as-is
+        // Size-prepended LZ4 if it decodes; otherwise (e.g. a raw JSON webhook) the bytes as-is.
         if data.len() >= 4 {
-            match decompress_size_prepended(data) {
-                Ok(decompressed) => Ok(decompressed),
-                Err(_) => Ok(data.to_vec()), // Graceful fallback for raw uncompressed webhooks
+            let size = u32::from_le_bytes([data[0], data[1], data[2], data[3]]) as usize;
+            if size <= MAX_DECODED && size <= (data.len() - 4).saturating_mul(MAX_RATIO) {
+                if let Ok(decompressed) = decompress_size_prepended(data) {
+                    return Ok(decompressed);
+                }
             }
-        } else {
-            Ok(data.to_vec())
         }
-    }
-
-    fn decompress_gpu(&self, data: &[u8]) -> Result<Vec<u8>, String> {
         Ok(data.to_vec())
     }
 
-    /// Zero-copy dispatch directly from a memory-mapped ring buffer region
-    pub fn dispatch_mmap(&self, ring: &ZeroCopyRingBuffer, len: usize) -> Result<Vec<u8>, String> {
-        let bytes = ring.as_bytes();
-        if bytes.len() < len {
-            return Err("Requested length exceeds ring buffer bounds".into());
-        }
-        self.dispatch(&bytes[..len])
+    fn decompress_gpu(&self, data: &[u8]) -> Result<Vec<u8>, String> {
+        self.decompress_cpu(data)
     }
 
     /// Pops the next chunk directly from the zero-copy ring buffer and dispatches it
     pub fn process_next_from_ring(&self, ring: &mut ZeroCopyRingBuffer) -> Result<Vec<u8>, String> {
-        let mut buf = vec![0u8; ring.capacity()];
+        let mut buf = vec![0u8; ring.peek_len().ok_or("Ring buffer empty")?];
         let len = ring.pop(&mut buf).map_err(|e| e.to_string())?;
         self.dispatch(&buf[..len])
     }
@@ -119,5 +121,24 @@ mod tests {
         let result = dispatcher.dispatch(&tagged_packet);
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), raw_data);
+    }
+
+    #[test]
+    fn test_bulk_lz4_is_decoded() {
+        let dispatcher = ComputeDispatcher::new(512);
+        let raw_data = vec![7u8; 10_000];
+        let mut packet = vec![0x02];
+        packet.extend_from_slice(&compress_prepend_size(&raw_data));
+        assert_eq!(dispatcher.dispatch(&packet).unwrap(), raw_data);
+    }
+
+    #[test]
+    fn test_raw_json_passes_through() {
+        // '{"sy' read as a little-endian size is ~2 GB; must not be trusted.
+        let dispatcher = ComputeDispatcher::new(512);
+        let raw = b"{\"system\": \"primordia\"}";
+        let mut packet = vec![0x01];
+        packet.extend_from_slice(raw);
+        assert_eq!(dispatcher.dispatch(&packet).unwrap(), raw);
     }
 }

@@ -33,12 +33,19 @@ async fn ingest_handler(
 
     let mut ring = state.ring.lock().await;
     
-    // Automatically prepend tag 0x01 (VariableJson / CPU route) if untagged
-    let mut packet = vec![0x01];
+    // Prepend tag 0x01 (VariableJson) unless the body already carries a type tag
+    let tagged = matches!(body[0], 0x01 | 0x02);
+    let mut packet = Vec::with_capacity(body.len() + 1);
+    if !tagged {
+        packet.push(0x01);
+    }
     packet.extend_from_slice(&body);
 
+    if packet.len() + 4 > ring.capacity() {
+        return StatusCode::PAYLOAD_TOO_LARGE;
+    }
     match ring.push(&packet) {
         Ok(_) => StatusCode::ACCEPTED,
-        Err(_) => StatusCode::INSUFFICIENT_STORAGE, // Ring full under high contention
+        Err(_) => StatusCode::INSUFFICIENT_STORAGE, // Ring full until the daemon drains it
     }
 }

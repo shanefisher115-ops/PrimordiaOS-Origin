@@ -117,6 +117,22 @@ client to it. The wire format is still newline-delimited JSON-RPC.
 cat tests/session.jsonl | ./target/release/primordia-pipe-bridge
 ```
 
+## HTTP ingest
+
+`primordia-ingest` is a separate, CPU-only path for webhooks. `POST /ingest`
+on `127.0.0.1:$PORT` (default 8080) queues the body in a 1 MiB file-backed ring
+(`primordia_stream.mmap` in the working directory) and returns 202, or 507
+while the ring is full. A background worker drains the ring every 10 ms and
+decodes each payload: size-prepended LZ4 if it decodes, otherwise the raw
+bytes. A first byte of `0x01` (JSON) or `0x02` (bulk binary) is taken as a type
+tag; untagged bodies are tagged `0x01`. Both types decode on the CPU (the GPU
+decoder is slower, see below). Queued records are not kept across restarts.
+`ecosystem.config.cjs` runs it under pm2.
+
+```bash
+./target/release/primordia-ingest
+```
+
 ## Transport benchmark
 
 `cargo run --release --example transport_bench` runs the same request mix over
