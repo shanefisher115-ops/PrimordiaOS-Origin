@@ -13,6 +13,36 @@ const TOPOLOGIES = ['small_world', 'scale_free', 'lattice', 'toroidal', 'fractal
 
 const pick = (rng, arr) => arr[Math.floor(rng() * arr.length)];
 
+// Glyph intents (PRS-1 §3.6): what a glyph is *for*, written as a short statement.
+// Consumers inscribe the intent into the glyph's shape, so the words are the design.
+// The verb follows the glyph's kind; the object is whichever metaphysic dominated
+// the realm when the glyph was born.
+const INTENT_VERBS = {
+  sigil: ['CALL', 'KINDLE', 'REMEMBER', 'WEAVE', 'NAME', 'AWAKEN'],
+  ward: ['GUARD', 'SHIELD', 'HOLD', 'KEEP', 'BIND', 'STILL'],
+  gate: ['OPEN', 'CROSS', 'UNSEAL', 'RETURN', 'ASCEND', 'PASS'],
+};
+const INTENT_OBJECTS = {
+  entropy: 'THE STORM',
+  coherence: 'THE PATTERN',
+  resonance: 'THE CHORUS',
+  inversion: 'THE SHADOW',
+  lucidity: 'THE DREAM',
+  luminosity: 'THE DAWN',
+};
+
+function dominantMetaphysic(state) {
+  return Object.keys(INTENT_OBJECTS).reduce((best, k) => (state[k] > state[best] ? k : best), 'entropy');
+}
+
+// Drawn from its own stream (label `glyph:<id>`) so adding intents never shifts the
+// realm stream: existing seeds still produce the same layers, glyphs and topology.
+function intentFor(seed, id, kind, state, realmName) {
+  const rng = mulberry32(subSeed(seed, `glyph:${id}`));
+  const place = realmName.split(' ')[0].toUpperCase();
+  return `${pick(rng, INTENT_VERBS[kind])} ${INTENT_OBJECTS[dominantMetaphysic(state)]} OF ${place}`;
+}
+
 function layer(rng, kind, order, altitude, radius, density, params = {}) {
   return {
     id: `${kind}-${order}`,
@@ -29,16 +59,19 @@ function layer(rng, kind, order, altitude, radius, density, params = {}) {
   };
 }
 
-function sigil(rng, index, ringRadius) {
+function sigil(rng, index, ringRadius, seed, state, realmName) {
   const a = rng() * Math.PI * 2;
+  const id = `sigil-${index}`;
+  const kind = pick(rng, ['sigil', 'ward', 'gate']);
   return {
-    id: `sigil-${index}`,
-    kind: pick(rng, ['sigil', 'ward', 'gate']),
+    id,
+    kind,
     position: v3(Math.cos(a) * ringRadius, Math.sin(a) * ringRadius, 4 + rng() * 10),
     scale: r4(2 + rng() * 4),
     symmetry: 3 + Math.floor(rng() * 9),
     complexity: r4(rng()),
     hue: r4(rng()),
+    intent: intentFor(seed, id, kind, state, realmName),
   };
 }
 
@@ -79,9 +112,11 @@ export function genesis(seed, state) {
     complexity: 0.5,
     hue: 0.62,
     bound_to: 'soul',
+    // The soul's intent is the realm's own name: it wears it as a crown.
+    intent: realm_name.toUpperCase(),
   }];
   const sigils = 2 + Math.floor(rng() * 3);
-  for (let i = 0; i < sigils; i++) glyphs.push(sigil(rng, i, 32));
+  for (let i = 0; i < sigils; i++) glyphs.push(sigil(rng, i, 32, seed, state, realm_name));
 
   return {
     prs: '1.0',
@@ -125,7 +160,7 @@ export function evolve(prev, state, rng) {
       next.glyphs = next.glyphs.filter((g) => g !== victim);
     } else if (sigils.length < 8) {
       const maxIndex = Math.max(-1, ...sigils.map((g) => Number(g.id.split('-')[1]) || 0));
-      next.glyphs.push(sigil(rng, maxIndex + 1, 32));
+      next.glyphs.push(sigil(rng, maxIndex + 1, 32, next.seed, state, next.realm_name));
     }
   }
 

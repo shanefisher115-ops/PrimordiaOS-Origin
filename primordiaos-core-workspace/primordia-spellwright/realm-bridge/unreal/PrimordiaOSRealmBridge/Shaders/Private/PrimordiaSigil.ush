@@ -1,0 +1,427 @@
+// PrimordiaOS volumetric sigils (docs/MATERIALS_AND_NIAGARA.md §6).
+//
+// Included by M_PrimordiaSigilVolume's Custom node and called once per pixel of
+// a 100 uu cube. The glyph lives inside the unit sphere of the cube's local
+// space; the ray is marched through that sphere and every step adds the glow
+// of the nearest luminous structure, so strokes have soft, light-filled depth
+// instead of being painted on a card.
+//
+// Each glyph kind is an archetype with its own meaning:
+//   0 soul  - heart of unification: a kaleidoscopic fractal that clarifies into
+//             a crystal as Unity rises, crowned by the realm's name.
+//   1 sigil - written intent: the intent's letter-wheel monogram drawn in light,
+//             circle at the first letter, bar at the last, ink flowing along it.
+//   2 ward  - armillary of protection: counter-rotating rings bearing the intent's
+//             letters as beads, around the monogram, inside a faint shield.
+//   3 gate  - threshold: a vertical portal ring whose aperture is a spiral vortex
+//             falling away into depth, keyed by the monogram above it.
+//
+// The monogram comes from PrimordiaSigil::Inscribe (C++): up to 12 points in
+// [-1, 1]^2 packed two per float4, in the order the letters are written.
+
+#pragma once
+
+#define PSV_TAU 6.28318530718
+#define PSV_MAX_POINTS 12
+
+struct FPSVScript
+{
+	float2 P[PSV_MAX_POINTS];
+	int N;
+};
+
+struct FPSVParams
+{
+	float Time;
+	float Kind;
+	float Symmetry;
+	float Complexity;
+	float Unity;
+	float Spin;
+	float Seed;
+	float Entropy;
+	float Coherence;
+	float Inversion;
+	float Resonance;
+	float Lucidity;
+	float3 Ink;      // glyph hue
+	float3 Essence;  // realm signature hue
+	FPSVScript Script;
+};
+
+// --- Helpers ------------------------------------------------------------------
+
+float PSV_Hash31(float3 p)
+{
+	p = frac(p * 0.1031);
+	p += dot(p, p.yzx + 33.33);
+	return frac((p.x + p.y) * p.z);
+}
+
+float3 PSV_HueToRgb(float h)
+{
+	return saturate(abs(frac(h + float3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0) - 1.0);
+}
+
+float2 PSV_Rot(float2 p, float a)
+{
+	float c = cos(a), s = sin(a);
+	return float2(c * p.x - s * p.y, s * p.x + c * p.y);
+}
+
+// Folds the plane into one mirrored wedge of N-fold symmetry.
+float2 PSV_Fold(float2 p, float N)
+{
+	float seg = PSV_TAU / max(N, 1.0);
+	float a = atan2(p.y, p.x);
+	a = abs(fmod(a + 64.0 * seg, seg) - 0.5 * seg);
+	return float2(cos(a), sin(a)) * length(p);
+}
+
+float PSV_Segment(float3 p, float3 a, float3 b, out float h)
+{
+	float3 pa = p - a, ba = b - a;
+	h = saturate(dot(pa, ba) / max(dot(ba, ba), 1e-6));
+	return length(pa - ba * h);
+}
+
+// Distance to a circle of radius R in the plane z = 0.
+float PSV_Ring(float3 p, float R)
+{
+	return length(float2(length(p.xy) - R, p.z));
+}
+
+// --- The written monogram -----------------------------------------------------
+
+// Distance to the monogram written in the xy plane of q (q.z is depth). The
+// strokes rise and fall in depth like a pen lifted through air. OutFlow is the
+// distance along the writing (0 at the first letter, 1 at the last) at the
+// nearest point, used for the ink pulse.
+float PSV_Monogram(float3 q, FPSVParams S, float Scale, out float OutFlow)
+{
+	OutFlow = 0.0;
+	int N = S.Script.N;
+	if (N <= 0)
+	{
+		return 1e3;
+	}
+	q /= Scale;
+	float Lift = 0.22 + 0.25 * S.Complexity;
+	float d = 1e3;
+	float3 Prev = float3(S.Script.P[0], Lift * sin(S.Seed * PSV_TAU));
+	if (N == 1)
+	{
+		d = length(q - Prev);
+	}
+	[loop] for (int i = 1; i < PSV_MAX_POINTS; i++)
+	{
+		if (i >= N)
+		{
+			break;
+		}
+		float3 Cur = float3(S.Script.P[i], Lift * sin(S.Seed * PSV_TAU + i * 2.39996));
+		float h;
+		float ds = PSV_Segment(q, Prev, Cur, h);
+		if (ds < d)
+		{
+			d = ds;
+			OutFlow = (i - 1 + h) / max(N - 1, 1);
+		}
+		Prev = Cur;
+	}
+
+	// Traditional sigil marks: a circle where the writing begins, a bar where it ends.
+	float3 Start = float3(S.Script.P[0], Lift * sin(S.Seed * PSV_TAU));
+	float Circle = PSV_Ring(q - Start, 0.07);
+	float3 End = Prev;
+	float3 Dir = (N > 1) ? normalize(End - float3(S.Script.P[N - 2], Lift * sin(S.Seed * PSV_TAU + (N - 2) * 2.39996))) : float3(1, 0, 0);
+	float3 Across = normalize(float3(-Dir.y, Dir.x, 0.0) + 1e-4);
+	float hb;
+	float Bar = PSV_Segment(q, End - Across * 0.09, End + Across * 0.09, hb);
+	if (Circle < d) { d = Circle; OutFlow = 0.0; }
+	if (Bar < d) { d = Bar; OutFlow = 1.0; }
+	return d * Scale;
+}
+
+// --- Archetypes ---------------------------------------------------------------
+// Each returns the distance to its brightest structure (d), a secondary soft
+// "aura" field in [0, 1] (fog), and the color at that point.
+
+float PSV_Soul(float3 p, FPSVParams S, out float Fog, out float3 Col)
+{
+	float r = length(p);
+	float3 q = p;
+	q.xy = PSV_Fold(PSV_Rot(q.xy, S.Spin), S.Symmetry);
+
+	// Kaleidoscopic inversion fractal: orbit traps become luminous shells.
+	// Low unity: diffuse, restless filaments. High unity: a crisp crystal.
+	float k = 0.48 + 0.3 * S.Unity + 0.02 * sin(S.Time * 0.4);
+	int Iters = 3 + (int)(S.Complexity * 4.0);
+	float Trap = 1e3;
+	float Acc = 0.0;
+	float3 z = q * 1.35;
+	[loop] for (int i = 0; i < 7; i++)
+	{
+		if (i >= Iters)
+		{
+			break;
+		}
+		z = abs(z) / max(dot(z, z), 1e-3) - k;
+		Trap = min(Trap, abs(length(z) - 0.9));
+		Acc += exp(-abs(length(z) - 1.0) * 3.0);
+	}
+	float Body = 1.0 - smoothstep(0.45, 0.78, r);
+	float dFractal = Trap * 0.5 + (1.0 - Body) * 0.6;
+
+	// The realm's name as a crown: its sigil repeated Symmetry times around the soul,
+	// each seal standing upright and facing outward.
+	float3 c = p;
+	c.xy = PSV_Rot(c.xy, -S.Spin * 0.6);
+	float CrownR = 0.86;
+	float Seg = PSV_TAU / S.Symmetry;
+	float Wedge = fmod(atan2(c.y, c.x) + 64.0 * Seg, Seg) - 0.5 * Seg;
+	float3 Seal = float3(Wedge * CrownR, c.z, length(c.xy) - CrownR);  // tangent, up, outward
+	float Flow;
+	float dCrown = PSV_Monogram(Seal, S, min(0.3 * Seg * CrownR, 0.14), Flow);
+
+	// The heart itself: a bright core that grows as the fragments unify.
+	float dCore = max(r - 0.025 - 0.05 * S.Unity, 0.0);
+
+	Fog = saturate(Acc / Iters) * Body * (1.2 - S.Unity) * 0.35;
+	float d = min(min(dFractal, dCrown), dCore);
+	float3 Inner = lerp(S.Essence, float3(1, 1, 1), 0.35 + 0.5 * S.Unity);
+	Col = (d == dCore) ? Inner * 1.5 : (d == dCrown) ? lerp(S.Ink, float3(1, 1, 1), 0.4) * (1.0 + 2.0 * Flow) : lerp(S.Ink, S.Essence, saturate(Trap * 4.0)) * 0.6;
+	return d;
+}
+
+float PSV_Sigil(float3 p, FPSVParams S, out float Fog, out float3 Col)
+{
+	// Written upright (xz plane), so it reads from the ground; depth is y.
+	float3 q = float3(p.x, p.z, p.y);
+	float Flow;
+	float dInk = PSV_Monogram(q, S, 0.78, Flow);
+
+	// Echo: a fainter, mirrored second writing behind the first (more with complexity).
+	float FlowEcho;
+	float dEcho = PSV_Monogram(float3(-q.x, q.y, -q.z - 0.35) * 1.25, S, 0.78, FlowEcho) / 1.25 + 0.04 * (1.0 - S.Complexity);
+
+	// Containment circle with Symmetry notches, like a seal around the name.
+	float3 c = float3(p.x, p.z, p.y);
+	float dRing = PSV_Ring(c, 0.9);
+	float a = atan2(c.y, c.x) + S.Spin * 0.2;
+	float Notch = abs(frac(a / PSV_TAU * S.Symmetry) - 0.5);
+	float dNotch = length(float2(max(abs(length(c.xy) - 0.9) - 0.06, 0.0), c.z)) + smoothstep(0.0, 0.08, Notch) * 0.2;
+
+	// Ink pulse: light runs along the writing in the order it was written.
+	float Pulse = exp(-pow((frac(S.Time * (0.12 + 0.35 * S.Resonance)) * 1.3 - 0.15 - Flow) * 7.0, 2.0));
+
+	Fog = exp(-dInk * 16.0) * 0.3;
+	float d = min(min(dInk, dEcho + 0.015), min(dRing + 0.01, dNotch));
+	Col = (d == dInk) ? lerp(S.Ink, float3(1, 1, 1), 0.25 + 0.75 * Pulse) * (1.0 + 3.0 * Pulse)
+	    : (d == dEcho + 0.015) ? S.Ink * 0.45
+	    : lerp(S.Ink, S.Essence, 0.5) * 0.8;
+	return d;
+}
+
+float PSV_Ward(float3 p, FPSVParams S, out float Fog, out float3 Col)
+{
+	int Rings = clamp(2 + (int)(S.Symmetry / 3.0), 2, 6);
+	float d = 1e3;
+	float dBeads = 1e3;
+	[loop] for (int k = 0; k < 6; k++)
+	{
+		if (k >= Rings)
+		{
+			break;
+		}
+		// Each ring tilts on its own golden-angle axis and turns against its neighbour.
+		float3 q = p;
+		float Dir = (k % 2 == 0) ? 1.0 : -1.0;
+		q.yz = PSV_Rot(q.yz, 1.1 + k * 2.39996);
+		q.xy = PSV_Rot(q.xy, S.Spin * (0.6 + 0.37 * k) * Dir + k);
+		q.xz = PSV_Rot(q.xz, 0.7 * k);
+		float R = 0.88 - 0.09 * k;
+		d = min(d, PSV_Ring(q, R));
+
+		// The intent's letters ride the rings as beads, one letter per ring in turn.
+		[loop] for (int i = k; i < PSV_MAX_POINTS; i += Rings)
+		{
+			if (i >= S.Script.N)
+			{
+				break;
+			}
+			float Ang = atan2(S.Script.P[i].y, S.Script.P[i].x);
+			float3 B = float3(cos(Ang) * R, sin(Ang) * R, 0.0);
+			dBeads = min(dBeads, length(q - B) - 0.025);
+		}
+	}
+
+	// The monogram held at the centre.
+	float Flow;
+	float dCore = PSV_Monogram(float3(p.x, p.z, p.y), S, 0.32, Flow);
+
+	// A faint protective shell: hexagonal cells on the sphere.
+	float r = length(p);
+	float3 n = p / max(r, 1e-4);
+	float Cells = abs(sin(n.x * 14.0) * sin(n.y * 14.0) * sin(n.z * 14.0));
+	Fog = exp(-abs(r - 0.96) * 90.0) * (0.15 + 0.85 * smoothstep(0.7, 0.98, Cells)) * 0.25;
+
+	float dMin = min(min(d, dBeads), dCore);
+	Col = (dMin == dBeads) ? float3(1, 1, 1) * 2.5 : (dMin == dCore) ? lerp(S.Ink, float3(1, 1, 1), 0.5) * 1.5 : lerp(S.Ink, S.Essence, 0.35);
+	return dMin;
+}
+
+float PSV_Gate(float3 p, FPSVParams S, out float Fog, out float3 Col)
+{
+	// Upright portal: the ring lies in xz, its aperture faces +-y.
+	float3 g = float3(p.x, p.z, p.y);
+	g.xy = PSV_Rot(g.xy, S.Spin * 0.25);
+	float R = 0.62;
+	float dRing = PSV_Ring(g, R) - 0.03;
+
+	// Symmetry pillars of light standing on the ring.
+	float a = atan2(g.y, g.x);
+	float Seg = PSV_TAU / max(S.Symmetry, 1.0);
+	float aw = abs(fmod(a + 64.0 * Seg, Seg) - 0.5 * Seg);
+	float3 Pillar = float3(length(g.xy) - R, aw * length(g.xy), g.z);
+	float dPillar = length(float2(max(abs(Pillar.x) - 0.1, 0.0), length(Pillar.yz))) + 0.005;
+
+	// The vortex: spiral arms that fall away into the gate's depth.
+	float rr = length(g.xy);
+	float Funnel = (1.0 - saturate(rr / R)) * 0.7;
+	float Spiral = cos(S.Symmetry * a + log(max(rr, 1e-3)) * 6.0 - S.Time * (0.8 + 2.0 * S.Resonance));
+	float InDisk = 1.0 - smoothstep(R * 0.92, R, rr);
+	float Depth = exp(-abs(g.z + Funnel * 0.5) * (8.0 - 5.0 * Funnel));
+	Fog = InDisk * Depth * smoothstep(0.2, 1.0, Spiral) * (1.5 + 1.5 * S.Lucidity);
+
+	// Keystone: the monogram above the ring.
+	float Flow;
+	float dKey = PSV_Monogram(g - float3(0.0, R + 0.17, 0.0), S, 0.12, Flow);
+
+	// Light at the far end of the way through.
+	float dBeyond = length(g - float3(0.0, 0.0, -0.45)) - 0.02;
+
+	float d = min(min(dRing, dPillar), min(dKey, dBeyond));
+	Col = (d == dKey) ? float3(1, 1, 1) * 1.8
+	    : (d == dBeyond) ? lerp(S.Essence, float3(1, 1, 1), 0.6) * 1.2
+	    : (d == dRing) ? lerp(S.Ink, S.Essence, 0.3) : S.Ink * 1.3;
+	return d;
+}
+
+// --- Entry point --------------------------------------------------------------
+
+float4 PrimordiaSigilVolume(
+	float3 CamLocal, float3 DirLocal, float SceneDistWorld, float FrontFace, float Time,
+	float Kind, float Symmetry, float Complexity, float Unity, float Spin, float Hue,
+	float Seed, float StrokeCount,
+	float4 S0, float4 S1, float4 S2, float4 S3, float4 S4, float4 S5,
+	float Entropy, float Coherence, float Inversion, float Luminosity, float Resonance, float Lucidity,
+	float3 Essence, float RetireAlpha, float Steps)
+{
+	// Cube mesh local space is +-50 uu; the glyph lives in the unit sphere.
+	float3 ro = CamLocal / 50.0;
+	float3 rdUnits = DirLocal / 50.0;          // per world unit
+	float LocalPerWorld = length(rdUnits);
+	float3 rd = rdUnits / max(LocalPerWorld, 1e-8);
+	float SceneT = SceneDistWorld * LocalPerWorld;
+
+	// Two-sided cube: shade the front faces from outside, the back faces from inside, never both.
+	bool bInside = all(abs(ro) < 1.0);
+	if (bInside != (FrontFace < 0.0) || RetireAlpha <= 0.001)
+	{
+		return float4(0, 0, 0, 0);
+	}
+
+	// Ray / unit sphere.
+	float b = dot(ro, rd);
+	float c = dot(ro, ro) - 1.0;
+	float h = b * b - c;
+	if (h <= 0.0)
+	{
+		return float4(0, 0, 0, 0);
+	}
+	h = sqrt(h);
+	float tNear = max(-b - h, 0.0);
+	float tFar = min(-b + h, SceneT);
+	if (tFar <= tNear)
+	{
+		return float4(0, 0, 0, 0);
+	}
+
+	FPSVParams S;
+	S.Time = Time;
+	S.Kind = Kind;
+	S.Symmetry = max(round(Symmetry), 1.0);
+	S.Complexity = saturate(Complexity);
+	S.Unity = saturate(Unity);
+	S.Spin = Spin;
+	S.Seed = Seed;
+	S.Entropy = saturate(Entropy);
+	S.Coherence = saturate(Coherence);
+	S.Inversion = saturate(Inversion);
+	S.Resonance = saturate(Resonance);
+	S.Lucidity = saturate(Lucidity);
+	S.Ink = lerp(float3(1, 1, 1), PSV_HueToRgb(Hue), 0.75);
+	S.Essence = Essence;
+	S.Script.N = clamp((int)round(StrokeCount), 0, PSV_MAX_POINTS);
+	S.Script.P[0] = S0.xy; S.Script.P[1] = S0.zw;
+	S.Script.P[2] = S1.xy; S.Script.P[3] = S1.zw;
+	S.Script.P[4] = S2.xy; S.Script.P[5] = S2.zw;
+	S.Script.P[6] = S3.xy; S.Script.P[7] = S3.zw;
+	S.Script.P[8] = S4.xy; S.Script.P[9] = S4.zw;
+	S.Script.P[10] = S5.xy; S.Script.P[11] = S5.zw;
+
+	// Coherence sharpens light into lines; entropy makes it shiver.
+	float Sharp = lerp(28.0, 110.0, S.Coherence);
+	float Gain = (0.4 + 1.0 * Luminosity) * RetireAlpha;
+	float Breath = 1.0 + 0.25 * S.Resonance * sin(Time * (1.5 + 3.0 * S.Resonance));
+
+	// Distance-adaptive march: big strides through empty space, fine steps near light.
+	// Steps is the step budget, not a fixed count, so integrated GPUs stay interactive.
+	const float MinStep = 0.012;
+	const float MaxStep = 0.16;
+	int StepCount = clamp((int)Steps, 16, 128);
+	float Jitter = PSV_Hash31(rd * 917.0 + frac(Time * 7.13));
+	float t = tNear + Jitter * MinStep;
+	float T = 1.0;
+	float3 L = 0;
+
+	[loop] for (int i = 0; i < 128; i++)
+	{
+		if (i >= StepCount || t >= tFar || T < 0.02)
+		{
+			break;
+		}
+		float3 p = ro + rd * t;
+		// Entropy: a cheap travelling shiver rather than noise lookups.
+		p += sin(p.yzx * 9.0 + Time * float3(1.3, 1.7, 1.1)) * (0.03 * S.Entropy);
+
+		float Fog;
+		float3 Col;
+		float d;
+		if (S.Kind < 0.5)      d = PSV_Soul(p, S, Fog, Col);
+		else if (S.Kind < 1.5) d = PSV_Sigil(p, S, Fog, Col);
+		else if (S.Kind < 2.5) d = PSV_Ward(p, S, Fog, Col);
+		else                   d = PSV_Gate(p, S, Fog, Col);
+
+		// Volumetric light: a sharp core along the structure plus a wide halo.
+		float Glow = exp(-d * Sharp) + exp(-d * Sharp * 0.2) * 0.04;
+		float3 Emit = Col * Glow * 24.0 + lerp(S.Ink, S.Essence, 0.5) * Fog * 1.5;
+
+		// Inversion: the glyph's light turns to its complement and its aura swallows light.
+		float3 Complement = max(max(max(Col.r, Col.g), Col.b) - Col, 0.0) + 0.05;
+		Emit = lerp(Emit, Complement * Glow * 24.0, S.Inversion * 0.6);
+		float Absorb = (Fog * (0.6 + 4.0 * S.Inversion) + Glow * 0.4) * 2.0;
+
+		// Fog has no distance bound, so keep steps short wherever it is present.
+		float Step = clamp(d * 0.5, MinStep, Fog > 0.01 ? 0.03 : MaxStep);
+		Step = min(Step, tFar - t);
+		L += T * max(Emit, 0.0) * Step * Gain * Breath;
+		T *= exp(-Absorb * Step);
+		t += Step;
+	}
+
+	// Premultiplied (AlphaComposite): rgb is added, alpha darkens what lies behind.
+	float Alpha = saturate(1.0 - T) * RetireAlpha;
+	return float4(L, Alpha);
+}

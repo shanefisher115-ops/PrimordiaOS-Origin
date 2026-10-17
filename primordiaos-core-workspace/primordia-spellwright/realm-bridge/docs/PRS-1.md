@@ -206,9 +206,11 @@ Layers are generated in ascending `order`. The `id` is the diff key. Kinds and t
 
 ### 3.6 Glyphs
 
-`{ id, kind: soul|sigil|ward|gate, position, scale (diameter m), symmetry: 1–64, complexity, hue, bound_to? }`
+`{ id, kind: soul|sigil|ward|gate, position, scale (diameter m), symmetry: 1–64, complexity, hue, bound_to?, intent? }`
 
 `bound_to` names a live entity id of the matching stream (for `kind: soul`, that is `soul_unification`). A consumer MUST render a bound glyph and its live entity as **one** object: the static spec seeds it, and the live stream drives it afterwards.
+
+`intent` is what the glyph is *for*, as a short statement in capitals (`"GUARD THE DREAM OF LUMENNE"`). Consumers SHOULD inscribe it into the glyph's form, so that different intents look different and the same intent looks the same everywhere. The reference consumer reduces it to its distinct consonants and writes them on a letter wheel (see MATERIALS_AND_NIAGARA.md §6). A glyph without an intent is inscribed from its `id`. A `soul_unification` packet MAY carry `glyph.intent` to re-inscribe its glyph live.
 
 ---
 
@@ -224,6 +226,7 @@ All randomness MUST derive from `seed` through **mulberry32** seeded with `subSe
 | Worldforge evolution | `worldforge.evolve` |
 | Topology synthesis | `topology` |
 | Layer scatter | `layer:<layer id>` |
+| Glyph intent | `glyph:<glyph id>` |
 
 Reference implementations: `node-bridge/src/prng.js` and `FPrimordiaRandom` (`PrimordiaTopology.cpp`). They are bit-identical, so the same manifest produces the same realm on every machine and in every engine.
 
@@ -266,7 +269,7 @@ Worldforge owns the manifest. Every other module writes to the shared **metaphys
 1. `rng = mulberry32(subSeed(seed, "realm"))`.
 2. Name: prefix + suffix + epithet, drawn from fixed syllable tables.
 3. Layers: a `ground` (70%) or an `ocean` first, then a `sky`, then 1–3 extra kinds drawn **without replacement** from {ring, lattice, void, spire_field}, each with kind-specific params.
-4. Glyphs: the bound `soul` glyph at `[0, 0, 14]`, plus 2–4 sigils/wards/gates on a 32 m circle.
+4. Glyphs: the bound `soul` glyph at `[0, 0, 14]`, plus 2–4 sigils/wards/gates on a 32 m circle. The soul's intent is the realm name. Every other glyph's intent is `<VERB> <OBJECT> OF <PLACE>`. The verb is drawn from the glyph's kind (sigil: CALL, KINDLE, REMEMBER, WEAVE, NAME, AWAKEN; ward: GUARD, SHIELD, HOLD, KEEP, BIND, STILL; gate: OPEN, CROSS, UNSEAL, RETURN, ASCEND, PASS) using its own `glyph:<id>` stream. The object names the metaphysic that dominated when the glyph was born (entropy THE STORM, coherence THE PATTERN, resonance THE CHORUS, inversion THE SHADOW, lucidity THE DREAM, luminosity THE DAWN). The place is the first word of the realm name. Glyphs born during evolution use the same rule.
 5. Topology: random kind, 32–95 nodes, `edge_density` 0.2–0.8, radius 18 m.
 6. Metaphysics: a snapshot of the state bus.
 7. The result MUST pass `validateManifest` before it is published. A producer MUST NOT emit an invalid manifest.

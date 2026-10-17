@@ -238,6 +238,7 @@ export const payloadSchemas = {
             complexity: unit,
             hue: unit,
             bound_to: { type: 'string' },
+            intent: { type: 'string' },
           },
         },
       },

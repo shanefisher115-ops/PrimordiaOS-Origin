@@ -34,6 +34,19 @@ test('genesis is deterministic and PRS-1 valid', () => {
   assert.notEqual(genesis(99, createMetaState()).realm_name + genesis(98, createMetaState()).realm_name, '');
 });
 
+test('every glyph carries a deterministic intent', () => {
+  const m = genesis(1234, createMetaState());
+  const soul = m.glyphs.find((g) => g.kind === 'soul');
+  assert.equal(soul.intent, m.realm_name.toUpperCase());
+  const place = m.realm_name.split(' ')[0].toUpperCase();
+  for (const g of m.glyphs.filter((x) => x.kind !== 'soul')) {
+    assert.match(g.intent, new RegExp(`^[A-Z]+ THE [A-Z]+ OF ${place}$`), g.id);
+  }
+  // The dominant metaphysic at birth names the object of the intent.
+  const stormy = genesis(1234, { ...createMetaState(), entropy: 0.99 });
+  assert.ok(stormy.glyphs.filter((g) => g.kind !== 'soul').every((g) => g.intent.includes('THE STORM')));
+});
+
 test('evolution keeps manifests valid and bumps revision', () => {
   const state = createMetaState();
   const rng = mulberry32(7);

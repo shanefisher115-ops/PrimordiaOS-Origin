@@ -117,8 +117,15 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category = "Assets|FateWeave") TSoftObjectPtr<UNiagaraSystem> FateRibbonSystem;
 
+	/**
+	 * Render glyphs as raymarched volumes inside a cube (M_PrimordiaSigilVolume, shipped with the plugin)
+	 * instead of a camera-facing plane. Turn off to use a flat GlyphMaterial on GlyphMesh.
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Assets|Soul") bool bVolumetricGlyphs = true;
+	/** Plane mode only (bVolumetricGlyphs off). Volume mode always uses a cube. */
 	UPROPERTY(Config, EditAnywhere, Category = "Assets|Soul") TSoftObjectPtr<UStaticMesh> GlyphMesh;
-	UPROPERTY(Config, EditAnywhere, Category = "Assets|Soul") TSoftObjectPtr<UMaterialInterface> GlyphMaterial;
+	UPROPERTY(Config, EditAnywhere, Category = "Assets|Soul") TSoftObjectPtr<UMaterialInterface> GlyphMaterial =
+		TSoftObjectPtr<UMaterialInterface>(FSoftObjectPath(TEXT("/PrimordiaOSRealmBridge/Materials/M_PrimordiaSigilVolume.M_PrimordiaSigilVolume")));
 	UPROPERTY(Config, EditAnywhere, Category = "Assets|Soul") TSoftObjectPtr<UMaterialInterface> FragmentMaterial;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Assets|Dream") TSoftObjectPtr<UStaticMesh> NebulaMesh;

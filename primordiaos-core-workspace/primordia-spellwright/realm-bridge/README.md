@@ -136,7 +136,7 @@ Expect roughly `heart_beat=60/s cosmic_web=30/s fate_weave=30/s soul_unification
 2. Press **Play**. With `bAutoConnect` on (the default), the bridge connects to `ws://127.0.0.1:7777`, receives the manifest, spawns `ARealmRootActor`, and streams entities into it. The bridge terminal prints `UnrealEngine says hello`.
 3. In the console (`~`), `Primordia.Stats` should show packets flowing, about 6 live entities, and a latency of a few ms on localhost.
 
-At this stage everything renders with engine basic shapes: the heart sphere, node spheres with cylinder edges, glyph planes, ground discs, monoliths and stars. FateWeave threads need `NS_PrimordiaFateWeave` before they appear, and the nebula cube stays hidden until it has a translucent material.
+At this stage most things render with engine basic shapes: the heart sphere, node spheres with cylinder edges, ground discs, monoliths and stars. Glyphs are the exception: the plugin ships `M_PrimordiaSigilVolume`, so sigils, wards, gates and the soul appear as volumetric light from the first run, each inscribed with its manifest `intent`. FateWeave threads need `NS_PrimordiaFateWeave` before they appear, and the nebula cube stays hidden until it has a translucent material.
 
 ### Step 4: build the art
 
@@ -145,11 +145,12 @@ Follow [`docs/MATERIALS_AND_NIAGARA.md`](docs/MATERIALS_AND_NIAGARA.md) and assi
 1. `MPC_PrimordiaMetaphysics`
 2. `M_PrimordiaHeart`
 3. `NS_PrimordiaFateWeave`
-4. `M_PrimordiaSoulGlyph`
-5. `M_PrimordiaDreamNebula`
-6. the shadow pair
-7. the cosmic node and edge materials
-8. the layer materials
+4. `M_PrimordiaDreamNebula`
+5. the shadow pair
+6. the cosmic node and edge materials
+7. the layer materials
+
+The glyph material ships with the plugin (see [§6 of the materials guide](docs/MATERIALS_AND_NIAGARA.md#6-volumetric-sigils-m_primordiasigilvolume)); nothing to build.
 
 For the shadow inversion post-process, also set *Project Settings → Rendering → Custom Depth-Stencil Pass = Enabled with Stencil*.
 
@@ -233,9 +234,9 @@ All derive from `APrimordiaVisualActor`. That base provides an ordering guard on
 | Actor | Stream | Components | Notes |
 |---|---|---|---|
 | `AHeartActor` | heart_beat | sphere + point light | dead-reckoned lub-dub pulse, phase-corrected toward the server; emissive and light swell on the beat |
-| `ACosmicWebActor` | cosmic_web | instanced nodes + pooled spline-mesh edges | per-instance resonance/mass/kind; edges rebuilt only when `rev` changes and bowed toward the centroid |
+| `ACosmicWebActor` | cosmic_web | instanced nodes + instanced edge segments (2 draw calls total) | per-instance resonance/mass/kind; edges rebuilt only when `rev` changes and bowed toward the centroid |
 | `AFateWeaveActor` | fate_weave | Niagara ribbons | Catmull-Rom resampling into stable slots; bound/frayed/severed states; fades threads in and out |
-| `ASoulGlyphActor` | soul_unification (+ manifest glyphs) | billboarded plane + instanced fragments | accumulated spin; fragments matched by id and emerging from the centre |
+| `ASoulGlyphActor` | soul_unification (+ manifest glyphs) | raymarched volume in a cube (or a billboarded plane) + instanced fragments | accumulated spin; intent inscribed as a letter-wheel monogram; fragments matched by id and emerging from the centre |
 | `ADreamNebulaActor` | dream_nebula | raymarch shell + optional Niagara volumetric motes | slow easing; accumulated drift; transient reveries spawned and retired by the server |
 | `AShadowInversionActor` | shadow_inversion | reverse-culled hull + stencil core + post-process | one post-process owner per world, so overlaps never invert twice |
 | `ARealmRootActor` | realm_manifest | realm container | layers, glyphs and topology; eases metaphysics; time dilation on every child |
@@ -329,7 +330,8 @@ UnitsPerMeter=100.0
 bAutoSpawnRealmFromManifest=True
 HeartMaterial=/PrimordiaOSRealmBridge/Materials/M_PrimordiaHeart.M_PrimordiaHeart
 FateRibbonSystem=/PrimordiaOSRealmBridge/Niagara/NS_PrimordiaFateWeave.NS_PrimordiaFateWeave
-GlyphMaterial=/PrimordiaOSRealmBridge/Materials/M_PrimordiaSoulGlyph.M_PrimordiaSoulGlyph
+bVolumetricGlyphs=True
+GlyphMaterial=/PrimordiaOSRealmBridge/Materials/M_PrimordiaSigilVolume.M_PrimordiaSigilVolume
 NebulaMaterial=/PrimordiaOSRealmBridge/Materials/M_PrimordiaDreamNebula.M_PrimordiaDreamNebula
 ShadowMaterial=/PrimordiaOSRealmBridge/Materials/M_PrimordiaShadowHull.M_PrimordiaShadowHull
 ShadowPostProcessMaterial=/PrimordiaOSRealmBridge/Materials/PP_PrimordiaInversion.PP_PrimordiaInversion

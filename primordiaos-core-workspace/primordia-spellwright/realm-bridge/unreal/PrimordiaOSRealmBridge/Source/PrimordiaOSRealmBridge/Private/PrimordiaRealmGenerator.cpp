@@ -532,6 +532,15 @@ void UPrimordiaRealmGenerator::ApplyMetaphysics(ARealmRootActor* Root, const FPr
 		}
 	}
 
+	// Glyphs: volumetric sigils take their light and motion from the realm's state.
+	for (TPair<FString, TObjectPtr<ASoulGlyphActor>>& Pair : Root->Glyphs)
+	{
+		if (IsValid(Pair.Value))
+		{
+			Pair.Value->SetMetaphysics(M);
+		}
+	}
+
 	// 3. Time: every realm entity runs at the realm's dilation.
 	TArray<AActor*> Attached;
 	Root->GetAttachedActors(Attached, true, true);

@@ -313,6 +313,7 @@ bool FPrimordiaRealmManifest::FromJson(const TSharedPtr<FJsonObject>& J, float U
 			Glyph.Complexity = FMath::Clamp<float>(Num(G, TEXT("complexity")), 0.f, 1.f);
 			Glyph.Hue = FMath::Frac(Num(G, TEXT("hue")));
 			Glyph.BoundTo = Str(G, TEXT("bound_to"));
+			Glyph.Intent = Str(G, TEXT("intent"));
 		}
 	}
 
