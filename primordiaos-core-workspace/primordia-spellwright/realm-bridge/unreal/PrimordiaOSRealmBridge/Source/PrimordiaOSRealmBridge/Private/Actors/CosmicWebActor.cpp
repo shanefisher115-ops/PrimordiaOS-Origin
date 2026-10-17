@@ -3,9 +3,13 @@
 #include "PrimordiaJson.h"
 #include "PrimordiaTopology.h"
 #include "Components/InstancedStaticMeshComponent.h"
-#include "Components/SplineMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInstanceDynamic.h"
+
+namespace
+{
+	constexpr int32 MaxEdgeSegments = 16;
+}
 
 ACosmicWebActor::ACosmicWebActor()
 {
@@ -15,15 +19,27 @@ ACosmicWebActor::ACosmicWebActor()
 	Nodes->SetMobility(EComponentMobility::Movable);
 	Nodes->NumCustomDataFloats = 4;
 	Nodes->CastShadow = false;
+
+	EdgeInstances = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("EdgeInstances"));
+	EdgeInstances->SetupAttachment(SceneRoot);
+	EdgeInstances->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	EdgeInstances->SetMobility(EComponentMobility::Movable);
+	EdgeInstances->NumCustomDataFloats = 4;
+	EdgeInstances->CastShadow = false;
 	Smoothing = 0.f; // the actor itself stays at the realm origin; nodes smooth individually
 }
 
 void ACosmicWebActor::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
+	const UPrimordiaBridgeSettings* S = UPrimordiaBridgeSettings::Get();
 	if (!Nodes->GetStaticMesh())
 	{
-		Nodes->SetStaticMesh(UPrimordiaBridgeSettings::LoadOr(UPrimordiaBridgeSettings::Get()->NodeMesh, PrimordiaAssets::Sphere));
+		Nodes->SetStaticMesh(UPrimordiaBridgeSettings::LoadOr(S->NodeMesh, PrimordiaAssets::Sphere));
+	}
+	if (!EdgeInstances->GetStaticMesh())
+	{
+		EdgeInstances->SetStaticMesh(UPrimordiaBridgeSettings::LoadOr(S->EdgeMesh, PrimordiaAssets::Cylinder));
 	}
 }
 
@@ -36,8 +52,7 @@ void ACosmicWebActor::EnsureAssets()
 	}
 	if (!EdgeMID)
 	{
-		UMaterialInterface* EdgeMaterial = UPrimordiaBridgeSettings::LoadOr(S->EdgeMaterial, PrimordiaAssets::BasicMaterial);
-		EdgeMID = UMaterialInstanceDynamic::Create(EdgeMaterial, this);
+		EdgeMID = MakeMID(EdgeInstances, UPrimordiaBridgeSettings::LoadOr(S->EdgeMaterial, nullptr));
 		EdgeMID->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.4f, 0.7f, 1.f));
 	}
 }
@@ -125,7 +140,7 @@ void ACosmicWebActor::BuildFromGraph(const FPrimordiaTopologyGraph& Graph, const
 	{
 		Edges.Add({ E.Get<0>(), E.Get<1>(), E.Get<2>() });
 	}
-	SyncEdgePool();
+	SyncEdgeInstances();
 	TopologyRevision = -1; // any live revision replaces the offline graph
 	bInstancesDirty = true;
 }
@@ -148,45 +163,43 @@ void ACosmicWebActor::RebuildEdges(const TArray<TSharedPtr<FJsonValue>>& EdgeArr
 			Edges.Add({ A, B, static_cast<float>((*Triple)[2]->AsNumber()) });
 		}
 	}
-	SyncEdgePool();
+	SyncEdgeInstances();
 }
 
-void ACosmicWebActor::SyncEdgePool()
+void ACosmicWebActor::SyncEdgeInstances()
 {
-	UStaticMesh* EdgeMesh = UPrimordiaBridgeSettings::LoadOr(UPrimordiaBridgeSettings::Get()->EdgeMesh, PrimordiaAssets::Cylinder);
-
-	while (EdgePool.Num() < Edges.Num())
+	UStaticMesh* EdgeMesh = EdgeInstances->GetStaticMesh();
+	if (!EdgeMesh)
 	{
-		USplineMeshComponent* Spline = NewObject<USplineMeshComponent>(this, NAME_None, RF_Transient);
-		Spline->SetMobility(EComponentMobility::Movable);
-		Spline->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		Spline->CastShadow = false;
-		Spline->SetStaticMesh(EdgeMesh);
-		// The basic cylinder runs along Z.
-		Spline->SetForwardAxis(ESplineMeshAxis::Z, false);
-		Spline->SetMaterial(0, EdgeMID);
-		Spline->SetupAttachment(SceneRoot);
-		Spline->RegisterComponent();
-		EdgePool.Add(Spline);
+		EdgeMesh = UPrimordiaBridgeSettings::LoadOr(UPrimordiaBridgeSettings::Get()->EdgeMesh, PrimordiaAssets::Cylinder);
+		EdgeInstances->SetStaticMesh(EdgeMesh);
 	}
-	for (int32 i = 0; i < EdgePool.Num(); ++i)
+	if (EdgeMesh)
 	{
-		const bool bActive = i < Edges.Num();
-		EdgePool[i]->SetVisibility(bActive);
-		if (bActive)
+		// Segments are fitted to the mesh's own bounds, so a custom EdgeMesh only has to run along Z.
+		const FBox Box = EdgeMesh->GetBoundingBox();
+		if (Box.IsValid)
 		{
-			const float W = FMath::Max(0.05f, Edges[i].Weight);
-			const float Scale = EdgeThickness * W / 100.f;
-			EdgePool[i]->SetStartScale(FVector2D(Scale, Scale), false);
-			EdgePool[i]->SetEndScale(FVector2D(Scale, Scale), false);
-			EdgePool[i]->SetCustomPrimitiveDataFloat(0, W);
+			EdgeMeshCenter = Box.GetCenter();
+			EdgeMeshExtent = Box.GetExtent().ComponentMax(FVector(0.01));
 		}
 	}
+
+	SegmentsPerEdge = FMath::Clamp(EdgeSegments, 1, MaxEdgeSegments);
+	const int32 Count = Edges.Num() * SegmentsPerEdge;
+	if (EdgeInstances->GetInstanceCount() != Count)
+	{
+		EdgeInstances->ClearInstances();
+		TArray<FTransform> Transforms;
+		Transforms.Init(FTransform::Identity, Count);
+		EdgeInstances->AddInstances(Transforms, false);
+	}
 }
 
-void ACosmicWebActor::UpdateEdgeSplines()
+void ACosmicWebActor::UpdateEdgeInstances()
 {
-	if (Edges.IsEmpty())
+	const int32 Segments = SegmentsPerEdge;
+	if (Edges.IsEmpty() || EdgeInstances->GetInstanceCount() != Edges.Num() * Segments)
 	{
 		return;
 	}
@@ -198,6 +211,12 @@ void ACosmicWebActor::UpdateEdgeSplines()
 	}
 	Centroid /= FMath::Max(1, CurrentPositions.Num());
 
+	const float Span = 1.f / Segments;
+	const double MeshRadius = FMath::Max(EdgeMeshExtent.X, EdgeMeshExtent.Y);
+	const double MeshLength = 2.0 * EdgeMeshExtent.Z;
+
+	TArray<FTransform> Transforms;
+	Transforms.SetNum(Edges.Num() * Segments);
 	for (int32 i = 0; i < Edges.Num(); ++i)
 	{
 		const FEdge& E = Edges[i];
@@ -205,12 +224,33 @@ void ACosmicWebActor::UpdateEdgeSplines()
 		const FVector End = CurrentPositions[E.B];
 		const FVector Mid = (Start + End) * 0.5f;
 		const FVector Sag = (Centroid - Mid) * EdgeCurvature;
-		const FVector Chord = End - Start;
-		USplineMeshComponent* Spline = EdgePool[i];
-		Spline->SetStartAndEnd(Start, Chord + Sag * 2.f, End, Chord - Sag * 2.f, false);
-		Spline->SetCustomPrimitiveDataFloat(1, 0.5f * (Resonance[E.A] + Resonance[E.B]));
-		Spline->UpdateMesh();
+		// Quadratic Bezier with its control point at Mid + Sag (end tangents Chord ± 2 Sag).
+		const FVector Control = Mid + Sag;
+
+		const float W = FMath::Max(0.05f, E.Weight);
+		const double Thickness = 0.5 * EdgeThickness * W / MeshRadius;
+		float Data[4] = { W, 0.5f * (Resonance[E.A] + Resonance[E.B]), 0.f, Span };
+
+		FVector Prev = Start;
+		for (int32 s = 0; s < Segments; ++s)
+		{
+			const double T = (s + 1) * static_cast<double>(Span);
+			const FVector Next = (1.0 - T) * (1.0 - T) * Start + 2.0 * T * (1.0 - T) * Control + T * T * End;
+			const FVector Axis = Next - Prev;
+			const double Length = Axis.Size();
+			const FQuat Rotation = Length > UE_KINDA_SMALL_NUMBER ? FQuat::FindBetweenNormals(FVector::UpVector, Axis / Length) : FQuat::Identity;
+			const FVector Scale(Thickness, Thickness, Length / MeshLength);
+			// Center the mesh's bounds on the segment midpoint.
+			const FVector Location = (Prev + Next) * 0.5 - Rotation.RotateVector(Scale * EdgeMeshCenter);
+
+			const int32 Index = i * Segments + s;
+			Transforms[Index] = FTransform(Rotation, Location, Scale);
+			Data[2] = s * Span;
+			EdgeInstances->SetCustomData(Index, MakeArrayView(Data), false);
+			Prev = Next;
+		}
 	}
+	EdgeInstances->BatchUpdateInstancesTransforms(0, Transforms, false, true, false);
 }
 
 void ACosmicWebActor::Tick(float DeltaSeconds)
@@ -230,6 +270,11 @@ void ACosmicWebActor::Tick(float DeltaSeconds)
 		bMoved |= !Next.Equals(CurrentPositions[i], 0.01);
 		CurrentPositions[i] = Next;
 	}
+	if (FMath::Clamp(EdgeSegments, 1, MaxEdgeSegments) != SegmentsPerEdge)
+	{
+		SyncEdgeInstances(); // live-tunable, so 1 vs N segments can be compared in one session
+		bMoved = true;
+	}
 	if (!bMoved)
 	{
 		return;
@@ -246,7 +291,7 @@ void ACosmicWebActor::Tick(float DeltaSeconds)
 		Nodes->SetCustomDataValue(i, 2, Kind[i], false);
 	}
 	Nodes->BatchUpdateInstancesTransforms(0, Transforms, false, true, false);
-	UpdateEdgeSplines();
+	UpdateEdgeInstances();
 	bInstancesDirty = false;
 }
 
