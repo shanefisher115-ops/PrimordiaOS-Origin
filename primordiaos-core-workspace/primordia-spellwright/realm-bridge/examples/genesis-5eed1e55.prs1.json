@@ -1,0 +1,202 @@
+{
+  "prs": "1.0",
+  "realm_id": "realm-5eed1e55",
+  "realm_name": "Lumenne Hollow",
+  "seed": 1592598101,
+  "revision": 0,
+  "transition_seconds": 4,
+  "units": {
+    "length": "meter",
+    "up": "+Z",
+    "handedness": "left"
+  },
+  "bounds": {
+    "radius": 120
+  },
+  "layers": [
+    {
+      "id": "ground-0",
+      "kind": "ground",
+      "order": 0,
+      "altitude": 0,
+      "radius": 120,
+      "density": 0.7832,
+      "palette": [
+        [
+          0.5045,
+          0.3291,
+          0.5686
+        ],
+        [
+          0.0282,
+          0.259,
+          0.4971
+        ]
+      ],
+      "params": {
+        "roughness": 0.2185,
+        "terrace_count": 5
+      }
+    },
+    {
+      "id": "sky-1",
+      "kind": "sky",
+      "order": 1,
+      "altitude": 80,
+      "radius": 180,
+      "density": 0.5039,
+      "palette": [
+        [
+          0.9399,
+          0.7745,
+          0.2229
+        ],
+        [
+          0.2304,
+          0.0297,
+          0.4487
+        ]
+      ],
+      "params": {
+        "star_count": 1978
+      }
+    },
+    {
+      "id": "lattice-2",
+      "kind": "lattice",
+      "order": 2,
+      "altitude": 53.4736,
+      "radius": 20.7153,
+      "density": 0.8572,
+      "palette": [
+        [
+          0.2991,
+          0.3309,
+          0.6701
+        ],
+        [
+          0.3044,
+          0.3146,
+          0.135
+        ]
+      ],
+      "params": {
+        "cell_size": 12.7469
+      }
+    },
+    {
+      "id": "ring-3",
+      "kind": "ring",
+      "order": 3,
+      "altitude": 48.1333,
+      "radius": 88.1837,
+      "density": 0.4341,
+      "palette": [
+        [
+          0.5658,
+          0.992,
+          0.5268
+        ],
+        [
+          0.1397,
+          0.3707,
+          0.5385
+        ]
+      ],
+      "params": {
+        "thickness": 2.7416,
+        "tilt_deg": 25.9662
+      }
+    },
+    {
+      "id": "spire_field-4",
+      "kind": "spire_field",
+      "order": 4,
+      "altitude": 25.0306,
+      "radius": 34.3102,
+      "density": 0.3172,
+      "palette": [
+        [
+          0.4307,
+          0.2022,
+          0.6305
+        ],
+        [
+          0.0053,
+          0.2316,
+          0.0948
+        ]
+      ],
+      "params": {
+        "max_height": 40.2995
+      }
+    }
+  ],
+  "metaphysics": {
+    "entropy": 0.35,
+    "luminosity": 0.7,
+    "coherence": 0.6,
+    "resonance": 0.5,
+    "inversion": 0.2,
+    "lucidity": 0.55,
+    "time_dilation": 1,
+    "essence": [
+      1,
+      0.42,
+      0.28
+    ]
+  },
+  "topology": {
+    "kind": "small_world",
+    "node_count": 36,
+    "edge_density": 0.344,
+    "radius": 18,
+    "center": [
+      0,
+      0,
+      22
+    ]
+  },
+  "glyphs": [
+    {
+      "id": "soul",
+      "kind": "soul",
+      "position": [
+        0,
+        0,
+        14
+      ],
+      "scale": 6,
+      "symmetry": 6,
+      "complexity": 0.5,
+      "hue": 0.62,
+      "bound_to": "soul"
+    },
+    {
+      "id": "sigil-0",
+      "kind": "gate",
+      "position": [
+        -3.805,
+        -31.773,
+        10.9224
+      ],
+      "scale": 3.0666,
+      "symmetry": 3,
+      "complexity": 0.3999,
+      "hue": 0.6349
+    },
+    {
+      "id": "sigil-1",
+      "kind": "gate",
+      "position": [
+        17.3164,
+        26.9099,
+        12.6142
+      ],
+      "scale": 4.0822,
+      "symmetry": 8,
+      "complexity": 0.3323,
+      "hue": 0.4538
+    }
+  ]
+}

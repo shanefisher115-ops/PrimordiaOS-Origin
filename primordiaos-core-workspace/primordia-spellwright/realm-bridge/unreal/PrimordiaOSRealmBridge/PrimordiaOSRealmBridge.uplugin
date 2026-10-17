@@ -1,0 +1,32 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0.0",
+	"FriendlyName": "PrimordiaOS Realm Bridge",
+	"Description": "Visualizes the PrimordiaOS metaphysical substrate: WebSocket bridge, PRS-1 realm generator, and Heart/CosmicWeb/FateWeave/Soul/Dream/Shadow visualization actors.",
+	"Category": "PrimordiaOS",
+	"CreatedBy": "PrimordiaOS",
+	"EngineVersion": "5.4.0",
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "PrimordiaOSRealmBridge",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [ "Win64", "Mac", "Linux" ]
+		},
+		{
+			"Name": "PrimordiaOSRealmBridgeEditor",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "Niagara",
+			"Enabled": true
+		}
+	]
+}
