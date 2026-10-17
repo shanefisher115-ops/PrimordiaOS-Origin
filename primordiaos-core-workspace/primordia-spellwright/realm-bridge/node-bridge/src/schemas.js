@@ -1,0 +1,286 @@
+// PRS-1 wire schemas. These are JSON-Schema-shaped objects checked by the tiny
+// validator below (no external dependency). The Unreal parser in
+// PrimordiaPacket.cpp reads exactly these field names; change both together.
+
+const num = (minimum, maximum) => ({ type: 'number', ...(minimum !== undefined && { minimum }), ...(maximum !== undefined && { maximum }) });
+const unit = num(0, 1);
+const vec3 = { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3 };
+const rgb = { type: 'array', items: num(0, 64), minItems: 3, maxItems: 3 }; // linear HDR
+
+export const PACKET_TYPES = [
+  'hello',
+  'heart_beat',
+  'cosmic_web',
+  'fate_weave',
+  'soul_unification',
+  'dream_nebula',
+  'shadow_inversion',
+  'realm_manifest',
+  'ack',
+  'pong',
+];
+
+export const envelopeSchema = {
+  type: 'object',
+  required: ['prs', 'type', 'op', 'id', 'seq', 't', 'ts', 'payload'],
+  properties: {
+    prs: { type: 'integer', enum: [1] },
+    type: { type: 'string', enum: PACKET_TYPES },
+    op: { type: 'string', enum: ['upsert', 'retire'] },
+    id: { type: 'string' },
+    realm: { type: 'string' },
+    seq: { type: 'integer', minimum: 0 },
+    t: { type: 'number' },
+    ts: { type: 'integer' },
+    payload: { type: 'object' },
+  },
+};
+
+export const payloadSchemas = {
+  hello: {
+    type: 'object',
+    required: ['server', 'version', 'streams', 'units'],
+    properties: {
+      server: { type: 'string' },
+      version: { type: 'string' },
+      streams: { type: 'object' },
+      units: { type: 'object' },
+    },
+  },
+
+  heart_beat: {
+    type: 'object',
+    required: ['bpm', 'phase', 'amplitude', 'coherence', 'essence', 'position', 'scale'],
+    properties: {
+      bpm: num(1, 400),
+      phase: unit,
+      amplitude: unit,
+      coherence: unit,
+      essence: rgb,
+      position: vec3,
+      scale: num(0),
+    },
+  },
+
+  cosmic_web: {
+    type: 'object',
+    required: ['rev', 'nodes'],
+    properties: {
+      rev: { type: 'integer', minimum: 0 },
+      radius: num(0),
+      nodes: {
+        type: 'array',
+        items: {
+          type: 'object',
+          required: ['id', 'p', 'resonance', 'mass'],
+          properties: {
+            id: { type: 'string' },
+            p: vec3,
+            resonance: unit,
+            mass: num(0),
+            kind: { type: 'string' },
+          },
+        },
+      },
+      // [a, b, weight] with a/b indexing into nodes[] of the same rev.
+      edges: {
+        type: 'array',
+        items: { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3 },
+      },
+    },
+  },
+
+  fate_weave: {
+    type: 'object',
+    required: ['threads', 'loom_speed', 'weave_density'],
+    properties: {
+      loom_speed: num(0),
+      weave_density: unit,
+      threads: {
+        type: 'array',
+        items: {
+          type: 'object',
+          required: ['id', 'points', 'tension', 'color', 'fate'],
+          properties: {
+            id: { type: 'string' },
+            points: { type: 'array', items: vec3, minItems: 2 },
+            tension: unit,
+            color: rgb,
+            width: num(0),
+            fate: { type: 'string', enum: ['bound', 'frayed', 'severed'] },
+          },
+        },
+      },
+    },
+  },
+
+  soul_unification: {
+    type: 'object',
+    required: ['unity', 'fragments', 'glyph', 'position'],
+    properties: {
+      unity: unit,
+      position: vec3,
+      fragments: {
+        type: 'array',
+        items: {
+          type: 'object',
+          required: ['id', 'angle', 'radius', 'essence'],
+          properties: { id: { type: 'string' }, angle: { type: 'number' }, radius: num(0), essence: rgb },
+        },
+      },
+      glyph: {
+        type: 'object',
+        required: ['symmetry', 'complexity', 'rotation_speed', 'hue'],
+        properties: {
+          symmetry: { type: 'integer', minimum: 1, maximum: 64 },
+          complexity: unit,
+          rotation_speed: { type: 'number' },
+          hue: unit,
+        },
+      },
+    },
+  },
+
+  dream_nebula: {
+    type: 'object',
+    required: ['density', 'turbulence', 'noise_scale', 'drift', 'palette', 'lucidity', 'extent', 'position'],
+    properties: {
+      density: unit,
+      turbulence: unit,
+      noise_scale: num(0),
+      drift: vec3,
+      palette: { type: 'array', items: rgb, minItems: 2, maxItems: 4 },
+      lucidity: unit,
+      extent: vec3,
+      position: vec3,
+    },
+  },
+
+  shadow_inversion: {
+    type: 'object',
+    required: ['inversion', 'depth', 'threshold', 'pulse', 'extent', 'position'],
+    properties: {
+      inversion: unit,
+      depth: unit,
+      threshold: unit,
+      pulse: unit,
+      extent: vec3,
+      position: vec3,
+      mirror_of: { type: 'string' },
+    },
+  },
+
+  // Full PRS-1 manifest; see docs/PRS-1.md §3.
+  realm_manifest: {
+    type: 'object',
+    required: ['prs', 'realm_id', 'realm_name', 'seed', 'revision', 'layers', 'metaphysics', 'topology', 'glyphs'],
+    properties: {
+      prs: { type: 'string', enum: ['1.0'] },
+      realm_id: { type: 'string' },
+      realm_name: { type: 'string' },
+      seed: { type: 'integer', minimum: 0, maximum: 4294967295 },
+      revision: { type: 'integer', minimum: 0 },
+      transition_seconds: num(0),
+      bounds: { type: 'object', required: ['radius'], properties: { radius: num(1) } },
+      layers: {
+        type: 'array',
+        items: {
+          type: 'object',
+          required: ['id', 'kind', 'order', 'altitude', 'radius', 'density'],
+          properties: {
+            id: { type: 'string' },
+            kind: { type: 'string', enum: ['ground', 'ocean', 'sky', 'ring', 'lattice', 'void', 'spire_field'] },
+            order: { type: 'integer' },
+            altitude: { type: 'number' },
+            radius: num(0),
+            density: unit,
+            palette: { type: 'array', items: rgb },
+            params: { type: 'object' },
+          },
+        },
+      },
+      metaphysics: {
+        type: 'object',
+        required: ['entropy', 'luminosity', 'coherence', 'resonance', 'inversion', 'lucidity', 'time_dilation', 'essence'],
+        properties: {
+          entropy: unit,
+          luminosity: unit,
+          coherence: unit,
+          resonance: unit,
+          inversion: unit,
+          lucidity: unit,
+          time_dilation: num(0.05, 8),
+          essence: rgb,
+        },
+      },
+      topology: {
+        type: 'object',
+        required: ['kind', 'node_count', 'edge_density', 'radius'],
+        properties: {
+          kind: { type: 'string', enum: ['lattice', 'small_world', 'scale_free', 'toroidal', 'fractal_tree'] },
+          node_count: { type: 'integer', minimum: 1, maximum: 4096 },
+          edge_density: unit,
+          radius: num(0),
+          center: vec3,
+        },
+      },
+      glyphs: {
+        type: 'array',
+        items: {
+          type: 'object',
+          required: ['id', 'kind', 'position', 'scale', 'symmetry', 'complexity', 'hue'],
+          properties: {
+            id: { type: 'string' },
+            kind: { type: 'string', enum: ['soul', 'sigil', 'ward', 'gate'] },
+            position: vec3,
+            scale: num(0),
+            symmetry: { type: 'integer', minimum: 1, maximum: 64 },
+            complexity: unit,
+            hue: unit,
+            bound_to: { type: 'string' },
+          },
+        },
+      },
+    },
+  },
+};
+
+// Minimal JSON-Schema subset: type, required, properties, items, enum,
+// minimum, maximum, minItems, maxItems. Returns an array of error strings.
+export function validate(value, schema, path = '$', errors = []) {
+  if (!schema) return errors;
+  const t = schema.type;
+  if (t) {
+    const ok =
+      (t === 'object' && value !== null && typeof value === 'object' && !Array.isArray(value)) ||
+      (t === 'array' && Array.isArray(value)) ||
+      (t === 'string' && typeof value === 'string') ||
+      (t === 'boolean' && typeof value === 'boolean') ||
+      (t === 'number' && typeof value === 'number' && Number.isFinite(value)) ||
+      (t === 'integer' && Number.isInteger(value));
+    if (!ok) {
+      errors.push(`${path}: expected ${t}`);
+      return errors;
+    }
+  }
+  if (schema.enum && !schema.enum.includes(value)) errors.push(`${path}: not one of ${schema.enum.join('|')}`);
+  if (schema.minimum !== undefined && value < schema.minimum) errors.push(`${path}: < ${schema.minimum}`);
+  if (schema.maximum !== undefined && value > schema.maximum) errors.push(`${path}: > ${schema.maximum}`);
+  if (Array.isArray(value)) {
+    if (schema.minItems !== undefined && value.length < schema.minItems) errors.push(`${path}: fewer than ${schema.minItems} items`);
+    if (schema.maxItems !== undefined && value.length > schema.maxItems) errors.push(`${path}: more than ${schema.maxItems} items`);
+    if (schema.items) value.forEach((v, i) => validate(v, schema.items, `${path}[${i}]`, errors));
+  } else if (t === 'object') {
+    for (const key of schema.required ?? []) if (!(key in value)) errors.push(`${path}.${key}: required`);
+    for (const [key, sub] of Object.entries(schema.properties ?? {})) {
+      if (key in value) validate(value[key], sub, `${path}.${key}`, errors);
+    }
+  }
+  return errors;
+}
+
+export function validatePacket(packet) {
+  const errors = validate(packet, envelopeSchema);
+  if (errors.length || packet.op === 'retire') return errors;
+  return validate(packet.payload, payloadSchemas[packet.type], '$.payload', errors);
+}

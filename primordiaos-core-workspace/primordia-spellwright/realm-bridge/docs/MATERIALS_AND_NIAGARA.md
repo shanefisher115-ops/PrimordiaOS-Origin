@@ -1,0 +1,366 @@
+# Materials and Niagara systems
+
+This guide covers every asset the visualizers drive, with build recipes for UE 5.4. **Parameter names are a contract.** The C++ sets exactly these names, so spelling and case must match. A missing parameter is silently ignored, which is why you can ship a simple material first and grow it later.
+
+Until you build these assets, the plugin falls back to engine basic shapes with `BasicShapeMaterial` tinted through its `Color` parameter, so the pipeline is visible from the first run.
+
+## Content layout
+
+```
+Plugins/PrimordiaOSRealmBridge/Content/        (or your project's Content/Primordia/)
+├── MPC_PrimordiaMetaphysics
+├── Materials/
+│   ├── M_PrimordiaHeart
+│   ├── M_PrimordiaCosmicNode
+│   ├── M_PrimordiaCosmicEdge
+│   ├── M_PrimordiaFateRibbon
+│   ├── M_PrimordiaSoulGlyph
+│   ├── M_PrimordiaSoulFragment
+│   ├── M_PrimordiaDreamNebula
+│   ├── M_PrimordiaDreamMote          (Volume domain)
+│   ├── M_PrimordiaShadowHull
+│   ├── PP_PrimordiaInversion         (Post Process domain)
+│   └── M_PrimordiaLayer              (+ instances per layer kind)
+└── Niagara/
+    ├── NS_PrimordiaFateWeave
+    └── NS_PrimordiaDreamMotes
+```
+
+Wire the assets up in **Project Settings → Plugins → PrimordiaOS Realm Bridge → Assets**, or put them in `Config/DefaultGame.ini` (see the [README](../README.md#configuration)).
+
+## Conventions shared by every material
+
+- **`RetireAlpha`** (scalar, default 1) fades an entity out over its retire time. On opaque materials, use **Blend Mode = Masked** with `Opacity Mask = DitherTemporalAA(RetireAlpha)` for a fade that needs no translucency sorting. On translucent and additive materials, multiply it into emissive or opacity.
+- **`Color`** (vector) is set on everything as a fallback tint. Your materials can ignore it.
+- **The metaphysics collection.** Add a `CollectionParameter` node that references `MPC_PrimordiaMetaphysics` wherever a material should react to global state.
+
+## 0. `MPC_PrimordiaMetaphysics` (Material Parameter Collection)
+
+| Scalar | Default | | Vector | Default |
+|---|---|---|---|---|
+| Entropy | 0.35 | | Essence | (1, 0.42, 0.28, 1) |
+| Luminosity | 0.7 | | | |
+| Coherence | 0.6 | | | |
+| Resonance | 0.5 | | | |
+| Inversion | 0.2 | | | |
+| Lucidity | 0.55 | | | |
+| TimeDilation | 1.0 | | | |
+
+`UPrimordiaRealmGenerator::ApplyMetaphysics` writes these every frame while a transition is easing.
+
+---
+
+## 1. Emissive heartbeat material: `M_PrimordiaHeart`
+
+**Applied to:** `AHeartActor::Core` (sphere). **Domain:** Surface · **Blend:** Masked · **Shading:** Default Lit.
+
+| Param | Type | Driven by |
+|---|---|---|
+| Pulse | scalar 0–1 | lub-dub envelope, at frame rate |
+| Intensity | scalar | `EmissiveBase + EmissivePulseGain × pulse × amplitude` (8 → ~48) |
+| Coherence | scalar 0–1 | `heart_beat.coherence` |
+| EssenceColor | vector | `heart_beat.essence` |
+| RetireAlpha | scalar | fade |
+
+**Graph**
+
+1. `Rim = Fresnel(ExponentIn = Lerp(5, 1.5, Pulse), BaseReflectFraction = 0.04)`.
+2. `Veins` = a `Noise` node (Simplex, 3D, Levels 4, Scale 0.02) on `AbsoluteWorldPosition + Time × (1 − Coherence) × 40`. Remap it to 0–1 and raise it to the power `Lerp(4, 1, Pulse)`. Incoherent hearts churn; coherent hearts are glassy.
+3. `Emissive = EssenceColor × Intensity × (0.35 + 0.65 × Rim + 0.4 × Veins) × MPC.Luminosity`.
+4. `BaseColor = EssenceColor × 0.05`, `Roughness = 0.2`, `Metallic = 0`.
+5. **World Position Offset** = `VertexNormalWS × Pulse × 6 × Veins`, so the surface ripples on each beat.
+6. `OpacityMask = DitherTemporalAA(RetireAlpha)`.
+
+Pair this with a **Bloom** intensity of about 1.0 and **Lumen**, so the core lights the realm through `AHeartActor::Glow` (a point light pulsing 2 000 → 32 000 unitless).
+
+---
+
+## 2. Cosmic node and edge materials
+
+### 2a. `M_PrimordiaCosmicNode`
+
+**Applied to:** `ACosmicWebActor::Nodes` (instanced spheres; `NumCustomDataFloats = 4`). **Blend:** Masked · **Shading:** Unlit.
+
+| Input | Source |
+|---|---|
+| PerInstanceCustomData[0] | resonance (0–1) |
+| PerInstanceCustomData[1] | mass (1, 1.6, 3) |
+| PerInstanceCustomData[2] | kind: 0 mote, 1 star, 2 nexus |
+| RetireAlpha | fade |
+
+**Graph**
+
+1. `KindColor`: `Lerp(Lerp(MoteBlue (0.3,0.6,1), StarGold (1,0.85,0.5), saturate(Kind)), MPC.Essence, saturate(Kind − 1))`.
+2. `Core = Fresnel(Exponent 2)` inverted (`1 − Fresnel`), so the centres are hot and the edges soft.
+3. `Emissive = KindColor × (2 + 18 × Resonance) × (0.6 + 0.4 × Core) × MPC.Luminosity`.
+4. Optional twinkle: `× (0.85 + 0.15 × sin(Time × (3 + Resonance × 9) + PerInstanceRandom × 6.28))`.
+5. `OpacityMask = DitherTemporalAA(RetireAlpha)`.
+
+### 2b. `M_PrimordiaCosmicEdge`
+
+**Applied to:** pooled `USplineMeshComponent`s (forward axis Z, basic cylinder). **Blend:** Additive · **Shading:** Unlit · Two Sided.
+
+| Input | Source |
+|---|---|
+| CustomPrimitiveData[0] | edge weight |
+| CustomPrimitiveData[1] | mean endpoint resonance |
+| RetireAlpha | fade |
+
+**Graph**
+
+1. `Flow = frac(TexCoord[0].y × 4 − Time × (0.5 + MPC.Resonance × 2))`. Energy packets travel the edge.
+2. `Packet = smoothstep(0.0, 0.08, Flow) × (1 − smoothstep(0.08, 0.25, Flow))`.
+3. `Emissive = (0.4, 0.7, 1.0) × Weight × (0.4 + 4 × Resonance × Packet) × RetireAlpha × MPC.Luminosity`.
+
+---
+
+## 3. Fate ribbon Niagara system: `NS_PrimordiaFateWeave`
+
+**Driven by:** `AFateWeaveActor::PushToNiagara`. Threads are resampled to `PointsPerThread` points in C++ and written into **fixed slots**. A particle is a ribbon vertex, and a ribbon is a slot.
+
+### User parameters (System → User Exposed)
+
+| Name | Type | Contents |
+|---|---|---|
+| ThreadPoints | **Array Position** (Niagara Position Array data interface) | `[Slot × PointsPerThread + k]`, local space, cm |
+| ThreadColors | **Array Color** | `[Slot]`, linear HDR |
+| ThreadParams | **Array Vector 4** | `[Slot]` = (tension, width cm, alpha, fate 0 bound / 1 frayed / 2 severed) |
+| ThreadSlots | int | `MaxThreads` (default 16) |
+| PointsPerThread | int | default 32 |
+| LoomSpeed | float | `fate_weave.loom_speed` |
+| WeaveDensity | float | `fate_weave.weave_density` |
+
+### Emitter `Threads`
+
+- **Sim target: CPU.** Ribbons with deterministic per-particle IDs are simplest on CPU, and at most 16 × 32 = 512 particles is trivial.
+- **Local Space: ON.** Positions are relative to the actor.
+- **Determinism:** ON.
+- **Emitter Update:** *Emitter State* (Life Cycle: Self, Loop Behavior: Infinite). *Spawn Burst Instantaneous*: Spawn Count = `ThreadSlots × PointsPerThread`, Spawn Time 0.
+- **Particle Spawn**
+  - *Initialize Particle*: Lifetime Mode = **Infinite** (uncheck "Kill particles when lifetime has elapsed").
+  - Scratch Pad module `InitThreadVertex`. Add a `Custom HLSL` node with inputs `ExecIndex` (Engine.ExecutionIndex) and `PointsPerThread`, and outputs `Slot` and `K`:
+
+    ```hlsl
+    Slot = ExecIndex / PointsPerThread;
+    K    = ExecIndex - Slot * PointsPerThread;
+    ```
+
+    Write `Particles.ThreadSlot = Slot` (int), `Particles.RibbonID = Slot` (int), and `Particles.RibbonLinkOrder = (float)K`.
+- **Particle Update**
+  - Scratch Pad module `FollowThread`:
+    1. `ThreadPoints.Get(Particles.ThreadSlot × PointsPerThread + K)`, written to `Particles.Position`. Store `K` as `Particles.ThreadPoint` at spawn so it is available here.
+    2. `ThreadParams.Get(Particles.ThreadSlot)` gives `P`. Set `Particles.RibbonWidth = P.y × (P.w == 1 ? 0.6 + 0.4 × sin(Engine.Time × 13 + K) : 1)`, which jitters frayed threads.
+    3. `ThreadColors.Get(Particles.ThreadSlot)` gives `C`. Set `Particles.Color = float4(C.rgb × (1 + 2 × (1 − P.x)), P.z)`. Slack threads glow hotter; alpha carries the sever fade.
+    4. Frayed and severed threads: add `CurlNoise(Position × 0.01 + Time) × (1 − P.x) × 30` to the position.
+  - *Dynamic Material Parameters* (index 0): `x = User.LoomSpeed`, `y = P.w` (fate), `z = User.WeaveDensity`.
+- **Ribbon Renderer**
+  - Material `M_PrimordiaFateRibbon`. Ribbon ID binding → `Particles.RibbonID`. Ribbon Link Order binding → `Particles.RibbonLinkOrder`. Width → `Particles.RibbonWidth`.
+  - Facing: **Screen**. Shape: Plane. Tessellation: Custom, factor 4, curvature threshold 0.
+  - UV0: Mode *Normalized Link Order* (U runs along the thread, V across it).
+
+### `M_PrimordiaFateRibbon`
+
+**Blend:** Additive · **Shading:** Unlit · Two Sided · *Used with Niagara Ribbons* checked.
+
+1. `Core = pow(1 − abs(TexCoord.y × 2 − 1), 3)`: a bright filament with soft falloff.
+2. `Shimmer = 0.7 + 0.3 × sin(TexCoord.x × 40 − Time × DynamicParameter.x × 6)`: light running along the loom.
+3. `Fray = DynamicParameter.y ≥ 1 ? Noise(TexCoord × (30, 4) + Time) : 1`: a broken filament for frayed and severed threads.
+4. `Emissive = ParticleColor.rgb × Core × Shimmer × Fray × ParticleColor.a × MPC.Luminosity`.
+
+---
+
+## 4. Dream nebula volumetric material: `M_PrimordiaDreamNebula`
+
+**Applied to:** `ADreamNebulaActor::Volume` (a 100 uu cube scaled to `extent`). **Domain:** Surface · **Blend:** Translucent · **Shading:** Unlit · **Two Sided:** ON (so the nebula still renders when the camera is inside it) · *Disable Depth Test:* OFF · *Output Velocity:* OFF.
+
+| Param | Type | Meaning |
+|---|---|---|
+| Density | scalar 0–1 | eased `dream_nebula.density` × RetireAlpha |
+| Turbulence | scalar | fBm warp amount |
+| NoiseScale | scalar | features per meter |
+| Lucidity | scalar | sharpness: lucid dreams have crisp edges |
+| DriftOffset | vector (cm) | accumulated `drift`, so the cloud flows |
+| ExtentUnits | vector (cm) | full box size |
+| ColorA / ColorB | vector | palette |
+| RetireAlpha | scalar | fade |
+
+**Graph:** one `Custom` node, output `Float4` (rgb = emissive, a = opacity).
+
+Inputs:
+
+- `Origin = CameraPositionWS − ObjectPositionWS`: the camera position relative to the box centre (do the subtraction in LWC, then *LWC To Float*).
+- `RayDir = −CameraVectorWS`.
+- `SceneDist = SceneDepth / dot(RayDir, CameraForwardWS)`. `CameraForwardWS` = `TransformVector(View→World, (0,0,1))`.
+- `HalfExtent = ExtentUnits × 0.5`, plus `Density`, `NoiseScale`, `Turbulence`, `Lucidity`, `DriftOffset`, `ColorA`, `ColorB`, `Time`, and `Steps = 48`.
+
+```hlsl
+// Box-space raymarch (axis-aligned; nebulae are never rotated by the bridge).
+struct N {
+    float h(float3 p) { p = frac(p * 0.3183099 + 0.1); p *= 17.0; return frac(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+    float vn(float3 x) {
+        float3 i = floor(x), f = frac(x); f = f * f * (3.0 - 2.0 * f);
+        return lerp(lerp(lerp(h(i), h(i + float3(1,0,0)), f.x), lerp(h(i + float3(0,1,0)), h(i + float3(1,1,0)), f.x), f.y),
+                    lerp(lerp(h(i + float3(0,0,1)), h(i + float3(1,0,1)), f.x), lerp(h(i + float3(0,1,1)), h(i + float3(1,1,1)), f.x), f.y), f.z);
+    }
+    float fbm(float3 p) { float a = 0.5, s = 0; for (int o = 0; o < 5; o++) { s += a * vn(p); p *= 2.03; a *= 0.5; } return s; }
+};
+N n;
+
+float3 inv = 1.0 / RayDir;
+float3 t0 = (-HalfExtent - Origin) * inv, t1 = (HalfExtent - Origin) * inv;
+float3 tmn = min(t0, t1), tmx = max(t0, t1);
+float tNear = max(max(max(tmn.x, tmn.y), tmn.z), 0.0);
+float tFar  = min(min(min(tmx.x, tmx.y), tmx.z), SceneDist);
+if (tFar <= tNear || Density <= 0.001) return float4(0, 0, 0, 0);
+
+float stepLen = (tFar - tNear) / Steps;
+float T = 1.0;           // transmittance
+float3 L = 0;            // radiance
+for (int i = 0; i < 64; i++) {
+    if (i >= (int)Steps || T < 0.01) break;
+    float3 p = Origin + RayDir * (tNear + (i + 0.5) * stepLen);
+    float3 q = (p + DriftOffset) * NoiseScale * 0.01;                    // cm -> m frequency
+    q += Turbulence * float3(n.fbm(q + 11.3), n.fbm(q + 7.1), n.fbm(q + 3.7));  // domain warp
+    float d = n.fbm(q);
+    float edge = 1.0 - smoothstep(0.6, 1.0, length(p / HalfExtent));     // fade at the box walls
+    d = smoothstep(0.55 - 0.25 * Lucidity, 0.75, d) * edge * Density;    // lucidity sharpens
+    float a = 1.0 - exp(-d * stepLen * 0.004);
+    float3 c = lerp(ColorB, ColorA, saturate(d * 2.0));
+    L += T * a * c;
+    T *= 1.0 - a;
+}
+return float4(L * RetireAlpha, (1.0 - T) * RetireAlpha);
+```
+
+Connect `rgb` to **Emissive** and `a` to **Opacity**. Raise `Steps` for quality, or lower it to 24 on low-end hardware.
+
+### `NS_PrimordiaDreamMotes` + `M_PrimordiaDreamMote` (optional, volumetric fog)
+
+This makes nebulae light and occlude the world through **Volumetric Fog**. It requires an `ExponentialHeightFog` with *Volumetric Fog* enabled.
+
+- **User params:** Density (float), Turbulence (float), Extent (vector, cm), ColorA, ColorB (linear color).
+- **Emitter (GPU):** *Spawn Rate* = `200 × Density`. *Shape Location*: Box, size = `Extent`. Lifetime 4–8 s. *Curl Noise Force*: strength `Turbulence × 300`, frequency 0.002. Color = `Lerp(ColorA, ColorB, Random)`. Sprite size 300–900 cm.
+- **Sprite Renderer** with `M_PrimordiaDreamMote`: **Material Domain = Volume**, Blend Additive. Set `Albedo = ParticleColor.rgb`, `Extinction = ParticleColor.a × 0.02 × SphereMask(ParticleRadius)`, and `Emissive = ParticleColor.rgb × 0.05`.
+
+---
+
+## 5. Shadow inversion shaders
+
+### 5a. `M_PrimordiaShadowHull`: inverted-normal negative space
+
+**Applied to:** `AShadowInversionActor::Hull`, a sphere with **reverse culling**: only the inner faces render, so it reads as a cavity cut into space. **Blend:** Masked · **Shading:** Unlit.
+
+| Param | Meaning |
+|---|---|
+| Inversion | eased strength × RetireAlpha |
+| Depth | how deep the cavity appears |
+| Threshold | edge sharpness |
+| Pulse | anti-beat (1 − heart pulse) |
+| RetireAlpha | fade |
+
+**Graph**
+
+1. `N = normalize(VertexNormalWS)`. On interior faces, N points away from the viewer.
+2. `Rim = pow(1 − abs(dot(N, CameraVectorWS)), Lerp(1.5, 6, Threshold))`.
+3. `Abyss`: scroll the 3D noise *inward*. `Noise(AbsoluteWorldPosition × 0.01 + N × Time × (0.2 + Depth))` raised to `Lerp(1, 6, Depth)`.
+4. `EdgeColor = 1 − MPC.Essence`: the negative of the realm's essence.
+5. `Emissive = EdgeColor × Rim × Inversion × (2 + 6 × Pulse) + (0.02, 0, 0.04) × Abyss × Inversion`.
+6. `OpacityMask = DitherTemporalAA(RetireAlpha)`.
+
+### 5b. `PP_PrimordiaInversion`: post-process negative space
+
+**Domain:** Post Process · **Blendable Location:** After Tonemapping · *Output Alpha:* OFF. It masks on the custom-depth **stencil** written by `StencilCore`. The actor sets `r.CustomDepth=3` at BeginPlay; for packaged builds also set *Project Settings → Rendering → Custom Depth-Stencil Pass = Enabled with Stencil*.
+
+| Param | Meaning |
+|---|---|
+| Inversion | strength (0 disables the post-process volume entirely) |
+| Threshold | luminance pivot |
+| Pulse | edge flare |
+| StencilValue | from settings (default 200) |
+
+**Graph**
+
+1. `Scene = SceneTexture:PostProcessInput0.rgb`, `Stencil = SceneTexture:CustomStencil.r`.
+2. `Mask = 1 − saturate(abs(Stencil − StencilValue) − 0.5)`. This is 1 inside the shadow core.
+3. Outline: sample `CustomStencil` at ±2 px (with `ViewSize` / `SceneTexelSize`). Set `Edge = Mask × (1 − min of the 4 neighbour masks)`.
+4. `Luma = dot(Scene, (0.2126, 0.7152, 0.0722))`. Set `Negative = lerp(1 − Scene, (1 − Luma).xxx, smoothstep(Threshold − 0.2, Threshold + 0.2, Luma))`, so bright areas desaturate into negative.
+5. `Out = lerp(Scene, Negative, Mask × Inversion) + Edge × (1 − MPC.Essence) × Pulse × 3`.
+
+---
+
+## 6. Soul glyph animated fractal material: `M_PrimordiaSoulGlyph`
+
+**Applied to:** `ASoulGlyphActor::GlyphPlane` (a plane billboarded to the viewer). **Blend:** Additive · **Shading:** Unlit · **Two Sided:** ON.
+
+| Param | Meaning |
+|---|---|
+| Symmetry | n-fold mirror symmetry (int as float) |
+| Complexity | fractal iterations (2–8) |
+| Hue | base hue |
+| Unity | soul unification: sharper, brighter, more ordered |
+| Spin | accumulated rotation (radians), so speed changes never jump |
+| GlyphKind | 0 soul, 1 sigil, 2 ward, 3 gate |
+| RetireAlpha | fade |
+
+**Graph:** a `Custom` node returning `Float3`. Inputs: `UV` (TexCoord0), Symmetry, Complexity, Hue, Unity, Spin, GlyphKind, `Time`.
+
+```hlsl
+float2 p = (UV - 0.5) * 2.0;
+float r = length(p);
+float seg = 6.2831853 / max(Symmetry, 1.0);
+float a = atan2(p.y, p.x) + Spin;
+a = abs(fmod(a + 64.0 * seg, seg) - 0.5 * seg);           // fold into one mirrored wedge
+p = float2(cos(a), sin(a)) * r;
+
+// Kali-set inversion fractal: each fold adds filigree; Unity tightens it.
+int iters = 2 + (int)(Complexity * 6.0);
+float glow = 0.0, w = 1.0;
+float c = 0.62 + 0.16 * Unity + 0.03 * sin(Time * 0.3);
+for (int i = 0; i < 8; i++) {
+    if (i >= iters) break;
+    p = abs(p) / max(dot(p, p), 1e-3) - c;
+    glow += w * exp(-abs(length(p) - 1.0) * (4.0 + 12.0 * Unity));
+    w *= 0.72;
+}
+
+// Containment rings; wards get a third ring, gates get a gap.
+float ring = exp(-abs(r - 0.86) * 60.0) + 0.6 * exp(-abs(r - 0.94) * 120.0);
+if (GlyphKind > 1.5 && GlyphKind < 2.5) ring += 0.6 * exp(-abs(r - 0.7) * 90.0);
+if (GlyphKind > 2.5) ring *= step(0.15, abs(sin(atan2(UV.y - 0.5, UV.x - 0.5) * 0.5)));
+
+float mask = 1.0 - smoothstep(0.96, 1.0, r);
+float I = (glow * 0.35 + ring) * mask;
+
+// Hue -> RGB (HSV with S = 0.65, V = 1), sweeping slightly outward.
+float h = frac(Hue + r * 0.08);
+float3 rgb = saturate(abs(frac(h + float3(0, 2.0/3.0, 1.0/3.0)) * 6.0 - 3.0) - 1.0);
+rgb = lerp(1.0.xxx, rgb, 0.65);
+return rgb * I;
+```
+
+`Emissive = Custom × (2 + 20 × Unity) × MPC.Luminosity × RetireAlpha`.
+
+### `M_PrimordiaSoulFragment`
+
+**Applied to:** the orbiting fragment instances. **Shading:** Unlit, Opaque. Set `Emissive = float3(PerInstanceCustomData[0], [1], [2]) × 8`.
+
+---
+
+## 7. Layer material: `M_PrimordiaLayer`
+
+One parent material, with one material instance per kind assigned in *Settings → Assets → Realm → Layer Materials*. The generator sets:
+
+| Param | Source |
+|---|---|
+| Color, SecondaryColor | `palette[0]`, `palette[1]` |
+| Density, Radius | layer fields (radius in cm) |
+| Entropy, Luminosity, Coherence, Inversion, Essence | metaphysics, eased |
+| every numeric `params` key, by exact name | e.g. `roughness`, `terrace_count`, `wave_height` (cm), `wave_speed`, `star_count`, `tilt_deg`, `thickness` (cm), `cell_size` (cm), `aperture`, `max_height` (cm) |
+
+Suggested per-kind looks:
+
+- **ground:** `BaseColor = lerp(SecondaryColor, Color, Noise(WorldPos × 0.001))`, `Roughness = 0.6 + 0.4 × roughness`. Mix in a little `Emissive = Essence × Inversion × 0.2` along crack masks.
+- **ocean:** WPO waves `= sin(dot(WorldPos.xy, dir) × 0.002 + Time × wave_speed) × wave_height`. Low roughness, Fresnel tinted by `Color`.
+- **sky:** unlit and emissive, `Color × (5 + 20 × Luminosity)`, twinkling with `PerInstanceRandom`.
+- **ring / lattice / spire_field:** lit and metallic, with emissive edges `= Color × Fresnel × (1 + 4 × Coherence)`.
+- **void:** unlit, `Emissive = SecondaryColor × 0.02`, plus a faint `1 − Essence` rim. The mesh uses reverse culling, so this paints the inside of the hollow.
