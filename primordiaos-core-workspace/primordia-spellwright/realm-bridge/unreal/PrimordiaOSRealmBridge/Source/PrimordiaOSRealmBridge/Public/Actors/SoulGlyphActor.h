@@ -95,6 +95,8 @@ private:
 	float GlyphDiameter = 600.f;
 	bool bVolumetric = false;
 	bool bInscribed = false;
+	/** The live stream has inscribed this glyph; manifest revisions no longer override its intent. */
+	bool bLiveIntent = false;
 	/** Inscribed when the intent is empty: the manifest glyph id, else the entity id. */
 	FString InscriptionFallback;
 	TArray<FVector2D> SigilPoints;

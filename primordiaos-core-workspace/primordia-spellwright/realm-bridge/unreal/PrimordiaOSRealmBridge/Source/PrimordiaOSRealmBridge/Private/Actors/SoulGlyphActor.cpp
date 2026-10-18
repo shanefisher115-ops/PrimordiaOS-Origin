@@ -70,17 +70,22 @@ void ASoulGlyphActor::EnsureMaterials()
 
 void ASoulGlyphActor::ApplyGlyphSpec(const FPrimordiaGlyphSpec& Spec)
 {
-	Symmetry = Spec.Symmetry;
-	Complexity = Spec.Complexity;
-	Hue = Spec.Hue;
 	GlyphDiameter = Spec.Scale;
 	GlyphKind = Spec.Kind == TEXT("soul") ? 0.f : Spec.Kind == TEXT("sigil") ? 1.f : Spec.Kind == TEXT("ward") ? 2.f : 3.f;
 	ApplyGlyphScale();
 	InscriptionFallback = Spec.Id;
-	SetIntent(Spec.Intent);
+	// PRS-1 §3.6: the static spec seeds a bound glyph; once its live stream speaks, the stream
+	// drives it, so later manifest revisions must not snap it back.
 	if (!bHasReceivedPacket)
 	{
+		Symmetry = Spec.Symmetry;
+		Complexity = Spec.Complexity;
+		Hue = Spec.Hue;
 		SetTargetLocation(Spec.Position, true);
+	}
+	if (!bLiveIntent)
+	{
+		SetIntent(Spec.Intent);
 	}
 	// Look right immediately, even where actors don't tick (a non-realtime editor viewport).
 	UpdateMaterial();
@@ -131,6 +136,7 @@ void ASoulGlyphActor::ApplyPayload(const TSharedPtr<FJsonObject>& P)
 		// Optional: a live stream may re-inscribe its glyph; otherwise the manifest's intent stands.
 		if (Glyph->HasField(TEXT("intent")))
 		{
+			bLiveIntent = true;
 			SetIntent(Str(Glyph, TEXT("intent")));
 		}
 	}

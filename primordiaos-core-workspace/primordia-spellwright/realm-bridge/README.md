@@ -136,7 +136,7 @@ Expect roughly `heart_beat=60/s cosmic_web=30/s fate_weave=30/s soul_unification
 2. Press **Play**. With `bAutoConnect` on (the default), the bridge connects to `ws://127.0.0.1:7777`, receives the manifest, spawns `ARealmRootActor`, and streams entities into it. The bridge terminal prints `UnrealEngine says hello`.
 3. In the console (`~`), `Primordia.Stats` should show packets flowing, about 6 live entities, and a latency of a few ms on localhost.
 
-At this stage most things render with engine basic shapes: the heart sphere, node spheres with cylinder edges, ground discs, monoliths and stars. Glyphs are the exception: the plugin ships `M_PrimordiaSigilVolume`, so sigils, wards, gates and the soul appear as volumetric light from the first run, each inscribed with its manifest `intent`. FateWeave threads need `NS_PrimordiaFateWeave` before they appear, and the nebula cube stays hidden until it has a translucent material.
+At this stage most things render with engine basic shapes: the heart sphere, node spheres with cylinder edges, ground discs, monoliths and stars. Glyphs are the exception: the plugin ships `M_PrimordiaSigilVolume`, so sigils, wards, gates and the soul appear as volumetric light from the first run, each inscribed with its manifest `intent`. FateWeave threads draw as built-in glowing tubes (`M_PrimordiaThreadGlow`, also shipped) until you assign `NS_PrimordiaFateWeave`. The nebula cube stays hidden until it has a translucent material.
 
 ### Step 4: build the art
 
@@ -171,6 +171,28 @@ Blueprints can do the same (see §7).
 ### Step 6 (optional): live preview in the editor viewport
 
 Set *Run In Editor World = true* in the plugin settings and reopen the level. Then use *Tools → PrimordiaOS → Connect Editor World*. Live entities are spawned transient, so they never get saved into the level.
+
+### The processing layer: your machine as a realm
+
+```bash
+npm start -- --modules realms/machine
+```
+
+This replaces all nine reference modules with ones that read the computer the bridge runs on. The result is **"<Host> Crucible"**, a realm that lives at the pace of your hardware. Everything below is live telemetry: per-core CPU load, RAM, the process tree, and network bytes.
+
+| What you see | What it is |
+|---|---|
+| Heart | The processor's pulse: 48 bpm idle, 180 at full load, cool cyan turning white-hot amber |
+| FateWeave threads | One thread per logical core, spinning as fast as that core works and fraying when it's pinned. Two thin outer threads carry network traffic in and out. |
+| Cosmic web | The live process tree around a kernel nexus. Mass is memory and glow is CPU; the hungrier a process, the closer it's pulled to the centre. |
+| Soul | The machine itself, crowned with the name of whatever program has dominated the CPU for the last few seconds. The top six processes orbit it. Unity is how evenly the cores share the work. |
+| Core sigils | `ZERO CORE RUNS THE THREADS`…, one per core, each with its own monogram. Each grows, heats and gains symmetry with its core's load. |
+| Memory ward, bus gate | `GUARD THE MEMORY OF <HOST>` and `OPEN THE BUS OF <HOST>` |
+| Layers | Wafer ground (a terrace per cache level), a transistor lattice that fills with RAM, a spire per core as tall as the clock, the bus ring, the idle-loop void, and a sky of stars |
+| Nebulae and shadow | RAM as a standing nebula. Network bursts arrive as transient clouds (cyan in, magenta out). Memory pressure deepens the shadow and inverts the realm's light. |
+| Time | Realm time runs from 0.7× idle to 2× under load |
+
+Run `node examples/machine-check.js` against a running bridge to see what it's reading. The modules live in `node-bridge/realms/machine/`. Process sampling uses `Win32_Process` on Windows and `ps` elsewhere. Network traffic is Windows-only (`netstat -e`) for now.
 
 ### Offline realms
 
