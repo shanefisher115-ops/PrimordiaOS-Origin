@@ -786,4 +786,102 @@ export const gable: Generator = {
     },
 };
 
-export const GENERATORS: Record<string, Generator> = { spire, pinnacle, lancet, rose, gable, buttress, balustrade, lamp };
+// ---------------------------------------------------------------- tower
+
+const towerParams: ParamSpecs = {
+    height: { default: 60, min: 8, max: 150, doc: "tower body height to the top of its parapet (m)" },
+    width: { default: 20, min: 4, max: 40, doc: "width of the square tower (m); capped at 0.6 x height" },
+    spireHeight: { default: 60, min: 0, max: 150, doc: "octagonal spire on top (m); 0 for a flat top" },
+    lancets: { default: 2, min: 0, max: 4, integer: true, doc: "glazed twin-light belfry lancets on each face" },
+    pinnacles: { default: 1, min: 0, max: 1, integer: true, doc: "pinnacles on the parapet corners (0/1)" },
+    crockets: { default: 12, min: 0, max: 40, integer: true, doc: "crockets along each arris of the spire" },
+    glass: { default: 1, min: 0, max: 1, integer: true, doc: "belfry glazing in the 'Glass' material slot (0/1)" },
+};
+
+function towerLayout(p: Params) {
+    const w = Math.min(p.width, 0.6 * p.height), Hb = p.height;
+    const hp = clamp(0.06 * w, 0.6, 2.0); // parapet
+    const wall = Hb - hp; // top of the walls
+    const zb = 0.55 * wall; // belfry stage starts here
+    const pinH = clamp(0.35 * w, 2, 14);
+    const spireBase = Hb - 0.5 * hp;
+    const spireH = p.spireHeight > 0 ? clamp(p.spireHeight, spire.params.height.min, spire.params.height.max) : 0;
+    const top = Math.max(spireH > 0 ? spireBase + spireH : Hb, p.pinnacles ? Hb + pinH : Hb);
+    return { w, Hb, hp, wall, zb, pinH, spireBase, spireH, top };
+}
+
+export const tower: Generator = {
+    name: "tower",
+    title: "Tower",
+    doc: "Square Gothic tower: stepped corner buttresses, a string course, glazed belfry lancets on every face, a parapet with corner pinnacles, and a crocketed octagonal spire.",
+    material: "Stone",
+    params: towerParams,
+    bounds(p) {
+        const L = towerLayout(p);
+        const half = 0.61 * L.w;
+        return box3(-half, -half, 0, half, half, L.top);
+    },
+    sockets(p) {
+        const L = towerLayout(p);
+        return { tip: [0, 0, L.top], belfry: [0, 0, (L.zb + L.wall) / 2] };
+    },
+    build(p, warn) {
+        const L = towerLayout(p);
+        const { w, Hb, hp, wall, zb } = L;
+        if (w < p.width) warn(`width: capped at ${w.toFixed(2)} m (0.6 x height)`);
+        const h2 = w / 2;
+        const body: Solid[] = [box([-h2, -h2, 0], [h2, h2, wall])];
+        // Stepped buttresses clasping each corner, a string course under the belfry, and a parapet.
+        for (const sx of [-1, 1]) {
+            for (const sy of [-1, 1]) {
+                const lower = 0.1 * w, upper = 0.07 * w;
+                body.push(box([sx * h2 - lower, sy * h2 - lower, 0], [sx * h2 + lower, sy * h2 + lower, zb]));
+                body.push(box([sx * h2 - upper, sy * h2 - upper, zb - 0.01], [sx * h2 + upper, sy * h2 + upper, wall]));
+            }
+        }
+        const course = 0.02 * w;
+        body.push(box([-h2 - course, -h2 - course, zb - 0.6], [h2 + course, h2 + course, zb]));
+        body.push(box([-h2 - 0.03 * w, -h2 - 0.03 * w, wall - 0.01], [h2 + 0.03 * w, h2 + 0.03 * w, Hb]));
+        let solid = union(body);
+
+        // Belfry: twin-light lancets set into recesses on all four faces.
+        const parts: Solid[] = [];
+        if (p.lancets > 0) {
+            const belfry = wall - zb, m = 0.06 * belfry;
+            const slot = (w - 0.24 * w) / p.lancets;
+            const lp = resolveParams(lancet.params, {
+                width: 0.5 * slot, height: belfry - 2 * m, pointedness: 1.2, lights: 2, frameWidth: 0.08 * slot,
+                depth: 1.0, foils: 4, glass: p.glass,
+            }).params;
+            const ll = lancetLayout(lp);
+            const outline = section(pointedArch(ll.a, ll.spring, ll.R, ll.sill).outline);
+            // The glass sits at the back of a shallow recess; a deeper recess would leave a sealed void behind it.
+            const recess = 0.3;
+            const window = lancet.build(lp, warn);
+            const cutters: Solid[] = [], windows: Solid[] = [];
+            for (let i = 0; i < p.lancets; i++) {
+                const x = -h2 + 0.12 * w + slot * (i + 0.5);
+                cutters.push(extrudeElevation(outline, 2 * recess).translate([x, -h2, zb + m]));
+                windows.push(window.translate([x, -h2 + recess, zb + m]));
+            }
+            const faceCut = union(cutters), faceWindows = union(windows);
+            solid = solid.subtract(union([0, 90, 180, 270].map((d) => faceCut.rotate([0, 0, d]))));
+            parts.push(...[0, 90, 180, 270].map((d) => faceWindows.rotate([0, 0, d])));
+        }
+        if (p.pinnacles) {
+            const pin = pinnacle.build({ height: L.pinH, width: 0.1 * w, crockets: 3, gablets: 1, panels: 1 }, warn);
+            const c = h2 - 0.06 * w;
+            for (const sx of [-1, 1]) for (const sy of [-1, 1]) parts.push(pin.translate([sx * c, sy * c, Hb - 0.02]));
+        }
+        if (L.spireH > 0) {
+            const sp = resolveParams(spire.params, {
+                height: L.spireH, baseWidth: 0.82 * w, sides: 8, crockets: p.crockets, crocketSize: clamp(0.07 * w, 0.3, 2.5),
+                bands: 3, lucarnes: 1, finialHeight: clamp(0.06 * L.spireH, 1, 8),
+            }).params;
+            parts.push(spire.build(sp, warn).translate([0, 0, L.spireBase]));
+        }
+        return union([solid, ...parts]);
+    },
+};
+
+export const GENERATORS: Record<string, Generator> = { spire, pinnacle, lancet, rose, gable, tower, buttress, balustrade, lamp };
