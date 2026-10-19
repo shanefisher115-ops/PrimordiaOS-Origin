@@ -448,8 +448,11 @@ The model is *Gothic Revival Church - White - 3D Model* by **EFADKZ** on Fab, li
 2. Import `source/Church_2024_PBR_White_Lite.fbx` to `/Game/ThirdParty/GothicRevivalChurch` as a **static** mesh with Nanite on, no materials and no textures. The FBX carries a rig, so in a scripted import turn off `automated_import_should_detect_type`, or Unreal brings it in as a skeletal mesh.
 
 3. Optional, for carved detail and lit windows: import the model's `textures/Church_Diffuse_4K.png` to the same folder as `T_Church_Diffuse`. The script then uses it as the stone albedo and turns on window glow (below).
+4. Optional, for surface relief: import the model's normal map as `T_Church_Normal` (TC_Normalmap, sRGB off) and its roughness map as `T_Church_Roughness` (TC_Masks, sRGB off). If you only have the diffuse, `Scripts/derive_surface_maps.py` approximates both from it (outside Unreal; needs numpy and pillow): brightness stands in for height, so carved lines and mortar become recesses, and glass stays flat and glossy. The model's real maps replace them later under the same names.
 
 The "Lite" model's towers end in open belfries, so the script caps each with a spire and four corner pinnacles, placed from the tower tops measured off the mesh (`CHURCH_TOWERS`).
+
+**Surface maps.** `M_CathedralStone` takes `StoneNormal` (flat by default) and `StoneRoughness` (linear white by default; dry roughness = map × `RoughnessDry`), so untextured surfaces keep the procedural look.
 
 **Window glow.** `M_CathedralStone` can light windows on any textured building, controlled by `WindowEmissive` (0, so off, by default). It glows where the albedo is darker than `WindowThreshold` and the surface is close to vertical (`WindowVertical`), which picks out glass and skips dark roofs. The glow is cut into leaded diamond panes (`LeadSize`, in cm), and each 12 m column of the building is cyan (`WindowColorA`) or, for a `WindowColorMix` share, magenta (`WindowColorB`). With the church textured, every one of its windows lights up, and the separate window planes are skipped.
 

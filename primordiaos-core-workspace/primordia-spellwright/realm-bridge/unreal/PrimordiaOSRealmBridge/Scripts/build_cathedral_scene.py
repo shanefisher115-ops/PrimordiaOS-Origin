@@ -47,6 +47,9 @@ PLANE = "/Engine/BasicShapes/Plane"
 # FBX here as a static Nanite mesh (see docs §9). Its twin-tower facade faces -Y in model space.
 CHURCH_MESH = "/Game/ThirdParty/GothicRevivalChurch/SM_GothicRevivalChurch"
 CHURCH_TEXTURE = "/Game/ThirdParty/GothicRevivalChurch/T_Church_Diffuse"  # optional: carved detail + window glow
+# Optional surface maps (linear). Generated approximations work; the model's own maps drop in under the same names.
+CHURCH_NORMAL = "/Game/ThirdParty/GothicRevivalChurch/T_Church_Normal"
+CHURCH_ROUGHNESS = "/Game/ThirdParty/GothicRevivalChurch/T_Church_Roughness"
 CHURCH_SCALE = 3.0
 # Tower tops in model space (cm), measured from the mesh: (x range, y range), all ending at z 3024.
 # The model's towers end in open belfries, so the script caps each with a spire.
@@ -163,6 +166,40 @@ def custom_node(m, description, code, inputs, output=unreal.CustomMaterialOutput
 
 # ---------------------------------------------------------------- materials
 
+def linear_white():
+    """A tiny linear white mask texture: the neutral default for the stone's roughness map."""
+    name = "T_CathedralLinearWhite"
+    tex = unreal.load_asset(f"{PACKAGE_DIR}/{name}")
+    if tex:
+        return tex
+    import os, struct, tempfile, zlib
+    def chunk(t, b):
+        return struct.pack(">I", len(b)) + t + b + struct.pack(">I", zlib.crc32(t + b) & 0xFFFFFFFF)
+    png = (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", 4, 4, 8, 0, 0, 0, 0))
+           + chunk(b"IDAT", zlib.compress(b"\x00\xff\xff\xff\xff" * 4)) + chunk(b"IEND", b""))
+    path = os.path.join(tempfile.gettempdir(), f"{name}.png")
+    with open(path, "wb") as f:
+        f.write(png)
+    task = unreal.AssetImportTask()
+    for k, v in (("filename", path), ("destination_path", PACKAGE_DIR), ("destination_name", name),
+                 ("automated", True), ("replace_existing", True), ("save", False)):
+        task.set_editor_property(k, v)
+    TOOLS.import_asset_tasks([task])
+    tex = unreal.load_asset(f"{PACKAGE_DIR}/{name}")
+    tex.set_editor_property("srgb", False)
+    tex.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_MASKS)
+    save(tex)
+    return tex
+
+
+def texture_param(g, name, texture, sampler):
+    e = g.node(unreal.MaterialExpressionTextureSampleParameter2D, -900)
+    e.set_editor_property("parameter_name", name)
+    e.set_editor_property("texture", texture)
+    e.set_editor_property("sampler_type", sampler)
+    return e
+
+
 def build_stone():
     m = new_material("M_CathedralStone")
     m.set_editor_property("blend_mode", unreal.BlendMode.BLEND_OPAQUE)
@@ -188,10 +225,18 @@ def build_stone():
     wet = g.node(unreal.MaterialExpressionSaturate, -500)
     connect(noise, "", wet, "")
 
+    # Surface maps: flat and neutral by default, so untextured surfaces keep the procedural look.
+    normal = texture_param(g, "StoneNormal", unreal.load_asset("/Engine/EngineMaterials/DefaultNormal"),
+                           unreal.MaterialSamplerType.SAMPLERTYPE_NORMAL)
+    rough_map = texture_param(g, "StoneRoughness", linear_white(), unreal.MaterialSamplerType.SAMPLERTYPE_MASKS)
+
     dry_rough = g.scalar("RoughnessDry", 0.80)
+    dry = g.node(unreal.MaterialExpressionMultiply, -500)
+    connect(rough_map, "R", dry, "A")
+    connect(dry_rough, "", dry, "B")
     wet_rough = g.scalar("RoughnessWet", 0.2)
     rough = g.node(unreal.MaterialExpressionLinearInterpolate, -300)
-    connect(dry_rough, "", rough, "A")
+    connect(dry, "", rough, "A")
     connect(wet_rough, "", rough, "B")
     connect(wet, "", rough, "Alpha")
 
@@ -227,6 +272,7 @@ def build_stone():
 
     MEL.connect_material_property(color, "", unreal.MaterialProperty.MP_BASE_COLOR)
     MEL.connect_material_property(rough, "", unreal.MaterialProperty.MP_ROUGHNESS)
+    MEL.connect_material_property(normal, "RGB", unreal.MaterialProperty.MP_NORMAL)
     MEL.connect_material_property(glow, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
     finish(m)
     return m
@@ -646,11 +692,15 @@ def build():
     if church:
         # Some of the church's faces point inward, so it gets a two-sided copy of the stone.
         texture = unreal.load_asset(CHURCH_TEXTURE)
-        church_stone = instance(stone, "MI_CathedralStone_TwoSided",
-                                scalars={"WindowEmissive": 0.4 if texture else 0.0},
+        maps = {k: t for k, t in (("StoneAlbedo", texture), ("StoneNormal", unreal.load_asset(CHURCH_NORMAL)),
+                                  ("StoneRoughness", unreal.load_asset(CHURCH_ROUGHNESS))) if t}
+        scalars = {"WindowEmissive": 0.4 if texture else 0.0}
+        if "StoneRoughness" in maps:
+            scalars["RoughnessDry"] = 1.0  # the map carries the dry roughness itself
+        church_stone = instance(stone, "MI_CathedralStone_TwoSided", scalars=scalars,
                                 # The church texture is light beige, so the tint is lifted to keep the stone's value.
                                 vectors={"BaseColor": unreal.LinearColor(0.07, 0.072, 0.08, 1.0)} if texture else None,
-                                textures={"StoneAlbedo": texture} if texture else None)
+                                textures=maps)
         overrides = church_stone.get_editor_property("base_property_overrides")
         overrides.set_editor_property("override_two_sided", True)
         overrides.set_editor_property("two_sided", True)
