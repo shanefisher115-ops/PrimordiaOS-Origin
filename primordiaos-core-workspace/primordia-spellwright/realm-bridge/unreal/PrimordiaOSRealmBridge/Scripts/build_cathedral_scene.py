@@ -46,7 +46,12 @@ PLANE = "/Engine/BasicShapes/Plane"
 # The free "Gothic Revival Church - White - 3D Model" by EFADKZ on Fab (CC BY 4.0) fits; import its
 # FBX here as a static Nanite mesh (see docs §9). Its twin-tower facade faces -Y in model space.
 CHURCH_MESH = "/Game/ThirdParty/GothicRevivalChurch/SM_GothicRevivalChurch"
+CHURCH_TEXTURE = "/Game/ThirdParty/GothicRevivalChurch/T_Church_Diffuse"  # optional: carved detail + window glow
 CHURCH_SCALE = 3.0
+# Tower tops in model space (cm), measured from the mesh: (x range, y range), all ending at z 3024.
+# The model's towers end in open belfries, so the script caps each with a spire.
+CHURCH_TOWERS = (((-810, -149), (-1198, -590)), ((124, 785), (-1198, -590)))
+CHURCH_TOWER_TOP = 3024
 
 CYAN = unreal.LinearColor(0.04, 0.50, 1.00, 1.0)
 MAGENTA = unreal.LinearColor(0.85, 0.15, 1.00, 1.0)
@@ -100,7 +105,7 @@ def finish(m):
     save(m)
 
 
-def instance(parent, name, scalars=None, vectors=None):
+def instance(parent, name, scalars=None, vectors=None, textures=None):
     mi = load_or_create(unreal.MaterialInstanceConstant, name, unreal.MaterialInstanceConstantFactoryNew())
     MEL.set_material_instance_parent(mi, parent)
     MEL.clear_all_material_instance_parameters(mi)
@@ -108,6 +113,8 @@ def instance(parent, name, scalars=None, vectors=None):
         MEL.set_material_instance_scalar_parameter_value(mi, k, v)
     for k, v in (vectors or {}).items():
         MEL.set_material_instance_vector_parameter_value(mi, k, v)
+    for k, v in (textures or {}).items():
+        MEL.set_material_instance_texture_parameter_value(mi, k, v)
     MEL.update_material_instance(mi)
     save(mi)
     return mi
@@ -197,10 +204,50 @@ def build_stone():
     connect(wet_base, "", color, "B")
     connect(wet, "", color, "Alpha")
 
+    # Window glow, off by default (WindowEmissive 0). On a textured building, glass is the dark part
+    # of the albedo; requiring a near-vertical surface keeps dark roofs from lighting up.
+    glow = custom_node(m, "StoneWindowGlow", STONE_GLOW_CODE,
+                       ["Albedo", "NormalWS", "WorldPos", "Time", "WindowEmissive", "WindowThreshold",
+                        "WindowSoftness", "WindowVertical", "WindowColorA", "WindowColorB", "WindowColorMix", "LeadSize"])
+    glow.set_editor_property("material_expression_editor_y", 400)
+    gg = Graph(m, glow)
+    gg.y = 300
+    connect(albedo, "RGB", glow, "Albedo")
+    gg.feed(unreal.MaterialExpressionVertexNormalWS, "NormalWS")
+    connect(world, "", glow, "WorldPos")
+    gg.feed(unreal.MaterialExpressionTime, "Time")
+    gg.scalar("WindowEmissive", 0.0)
+    gg.scalar("WindowThreshold", 0.22)
+    gg.scalar("WindowSoftness", 0.08)
+    gg.scalar("WindowVertical", 0.35)
+    gg.vector("WindowColorA", CYAN)
+    gg.vector("WindowColorB", MAGENTA)
+    gg.scalar("WindowColorMix", 0.3)
+    gg.scalar("LeadSize", 120.0)
+
     MEL.connect_material_property(color, "", unreal.MaterialProperty.MP_BASE_COLOR)
     MEL.connect_material_property(rough, "", unreal.MaterialProperty.MP_ROUGHNESS)
+    MEL.connect_material_property(glow, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
     finish(m)
     return m
+
+
+STONE_GLOW_CODE = """
+float lum = dot(Albedo, float3(0.299, 0.587, 0.114));
+float glass = saturate((WindowThreshold - lum) / WindowSoftness);
+float vertical = saturate((WindowVertical - abs(NormalWS.z)) / 0.1);
+// Leaded panes: diamonds laid out across the wall (along the wall's horizontal tangent and up).
+float2 t = normalize(float2(-NormalWS.y, NormalWS.x) + 1e-5);
+float2 d = float2(dot(WorldPos.xy, t) + WorldPos.z, dot(WorldPos.xy, t) - WorldPos.z) / LeadSize;
+float2 f = abs(frac(d) - 0.5);
+float lead = smoothstep(0.42, 0.48, max(f.x, f.y));
+float pane = frac(sin(dot(floor(d), float2(12.9898, 78.233))) * 43758.5453);
+// One colour per 12 m column of the building, so each window is a single colour top to bottom.
+float h = frac(sin(dot(floor(WorldPos.xy / 1200.0), float2(12.9898, 78.233))) * 43758.5453);
+float3 col = (h < WindowColorMix) ? WindowColorB : WindowColorA;
+float flicker = 0.92 + 0.08 * sin(Time * 1.3 + h * 40.0 + pane * 6.0);
+return col * WindowEmissive * glass * vertical * (1.0 - lead) * lerp(0.5, 1.0, pane) * flicker;
+"""
 
 
 WINDOW_CODE = """
@@ -385,7 +432,7 @@ def open_map():
 
 # ---------------------------------------------------------------- scene
 
-def place_church(mesh, material):
+def place_church(mesh, material, spire_material):
     """Turns the church so its facade faces -X, then puts the facade at x = 0 and the base on the plaza."""
     box = mesh.get_bounding_box()
     s = CHURCH_SCALE
@@ -399,15 +446,31 @@ def place_church(mesh, material):
         comp.set_material(i, material)
     actor.set_actor_scale3d(unreal.Vector(s, s, s))
 
+    # Spires on the belfries, using the same model -> world mapping: (x, y) -> (y, -x) * s + loc.
+    top = (CHURCH_TOWER_TOP * s + loc.z) / 100.0
+    for (x0, x1), (y0, y1) in CHURCH_TOWERS:
+        cx = ((y0 + y1) * 0.5 * s + loc.x) / 100.0
+        cy = (-(x0 + x1) * 0.5 * s + loc.y) / 100.0
+        w = min(x1 - x0, y1 - y0) * s / 100.0
+        h = w * 2.4
+        shape(CONE, (cx, cy, top + h * 0.5), (w * 0.82, w * 0.82, h), spire_material, label="Spire",
+              folder="Cathedral/Church")
+        for dx in (-0.38, 0.38):
+            for dy in (-0.38, 0.38):
+                shape(CONE, (cx + dx * w, cy + dy * w, top + w * 0.3), (w * 0.12, w * 0.12, w * 0.6), spire_material,
+                      label="SpirePinnacle", folder="Cathedral/Church")
 
-def build_building(stone, win, church=None, church_stone=None):
+
+def build_building(stone, win, church=None, church_stone=None, church_glows=False):
     """Facade faces -X at x = 0. Units are metres."""
     shape(PLANE, (40, 0, 0), (400, 400, 1), stone, label="Plaza")
     if church:
-        place_church(church, church_stone)
+        place_church(church, church_stone, stone)
     else:
         build_blockout(stone)
-    build_windows(win, facade_only=church is not None)
+    # A textured church lights its own windows through the stone material.
+    if not church_glows:
+        build_windows(win, facade_only=church is not None)
 
 
 def build_blockout(stone):
@@ -582,7 +645,12 @@ def build():
     church_stone = None
     if church:
         # Some of the church's faces point inward, so it gets a two-sided copy of the stone.
-        church_stone = instance(stone, "MI_CathedralStone_TwoSided")
+        texture = unreal.load_asset(CHURCH_TEXTURE)
+        church_stone = instance(stone, "MI_CathedralStone_TwoSided",
+                                scalars={"WindowEmissive": 0.4 if texture else 0.0},
+                                # The church texture is light beige, so the tint is lifted to keep the stone's value.
+                                vectors={"BaseColor": unreal.LinearColor(0.07, 0.072, 0.08, 1.0)} if texture else None,
+                                textures={"StoneAlbedo": texture} if texture else None)
         overrides = church_stone.get_editor_property("base_property_overrides")
         overrides.set_editor_property("override_two_sided", True)
         overrides.set_editor_property("two_sided", True)
@@ -591,7 +659,7 @@ def build():
         save(church_stone)
 
     open_map()
-    build_building(stone_mi, win, church, church_stone)
+    build_building(stone_mi, win, church, church_stone, church_glows=bool(church and unreal.load_asset(CHURCH_TEXTURE)))
     build_rings(ring)
     build_lighting()
     build_post()
