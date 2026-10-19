@@ -262,11 +262,12 @@ for (int i = 0; i < 6; i++)
     float wobble = Wobble * (0.6 * sin(a * 3.0 + t * 1.7 + fi * 2.1) + 0.4 * sin(a * 7.0 - t * 2.3 + fi));
     float d = abs(r - radius - wobble);
     float core = exp(-(d * d) / (Width * Width));
-    float haze = exp(-d / (Width * 3.0)) * 0.04;
+    // Soft halo: a wide, faint gaussian around each line, so the rings sit in their own haze.
+    float halo = exp(-(d * d) / (HaloWidth * HaloWidth)) * Halo;
     float u = a * floor(Streaks) + dir * t * (1.0 + fi * 0.35);
     float s = 0.5 + 0.5 * sin(u + 1.5 * sin(a * 3.0 - dir * t * 0.6 + fi * 1.3));
     s = lerp(1.0 - Breakup, 1.0, smoothstep(0.15, 0.85, s));
-    glow += core * s + haze;
+    glow += core * s + halo * (0.6 + 0.4 * s);
 }
 float edge = 1.0 - smoothstep(0.96, 1.0, r);
 float3 c = lerp(RingColor, float3(1.0, 1.0, 1.0), saturate(glow - 0.8) * CoreWhite);
@@ -280,22 +281,24 @@ def build_ring():
     m.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_UNLIT)
     m.set_editor_property("two_sided", True)
     inputs = ["UV", "Time", "RingColor", "Intensity", "RingCount", "RadiusOuter", "RingSpacing",
-              "Width", "Wobble", "Streaks", "Breakup", "FlowSpeed", "CoreWhite"]
+              "Width", "Wobble", "Streaks", "Breakup", "FlowSpeed", "CoreWhite", "Halo", "HaloWidth"]
     c = custom_node(m, "CathedralRings", RING_CODE, inputs)
     g = Graph(m, c)
     g.feed(unreal.MaterialExpressionTextureCoordinate, "UV")
     g.feed(unreal.MaterialExpressionTime, "Time")
     g.vector("RingColor", unreal.LinearColor(0.20, 0.80, 1.00, 1.0))
     g.scalar("Intensity", 4.0)
-    g.scalar("RingCount", 3.0)
+    g.scalar("RingCount", 5.0)
     g.scalar("RadiusOuter", 0.88)
-    g.scalar("RingSpacing", 0.17)
+    g.scalar("RingSpacing", 0.12)
     g.scalar("Width", 0.025)
     g.scalar("Wobble", 0.012)
     g.scalar("Streaks", 5.0)
     g.scalar("Breakup", 0.75)
     g.scalar("FlowSpeed", 0.6)
     g.scalar("CoreWhite", 0.6)
+    g.scalar("Halo", 0.09)
+    g.scalar("HaloWidth", 0.045)
 
     MEL.connect_material_property(c, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
     finish(m)
@@ -429,17 +432,17 @@ def build_building(stone, win):
 
 
 RINGS = [  # centre (m), diameter (m), tilt, ring count, intensity
-    ((50, 0, 138), 62, rot(pitch=8, roll=-6), 4, 5.0),
-    ((8, -48, 84), 44, rot(pitch=16, roll=14), 3, 4.0),
-    ((14, 50, 80), 36, rot(pitch=-14, roll=-12), 3, 4.0),
-    ((-6, -40, 52), 18, rot(pitch=10, roll=8), 2, 3.0),
+    ((50, 0, 138), 82, rot(pitch=8, roll=-6), 6, 5.0),
+    ((8, -55, 86), 58, rot(pitch=16, roll=14), 5, 4.0),
+    ((14, 56, 82), 48, rot(pitch=-14, roll=-12), 5, 4.0),
+    ((-6, -42, 52), 24, rot(pitch=10, roll=8), 3, 3.0),
 ]
 
 
 def build_rings(parent):
     for i, (centre, diameter, tilt, count, intensity) in enumerate(RINGS):
         # Two stacked layers so each cluster has depth when seen at an angle.
-        for layer, (dz, scale, spacing) in enumerate(((0.0, 1.0, 0.17), (diameter * 0.08, 0.78, 0.21))):
+        for layer, (dz, scale, spacing) in enumerate(((0.0, 1.0, 0.12), (diameter * 0.08, 0.78, 0.15))):
             mi = instance(parent, f"MI_CathedralRing_{i}{layer}",
                           scalars={"RingCount": float(count - layer), "Intensity": intensity * (1.0 - 0.25 * layer),
                                    "RingSpacing": spacing, "FlowSpeed": 0.5 + 0.15 * i * (-1) ** layer})
@@ -450,7 +453,7 @@ def build_rings(parent):
                   label=f"Ring{i}", folder="Cathedral/Rings", shadows=False)
         # God ray: a narrow, bright spot under each ring.
         light(unreal.SpotLight, (centre[0], centre[1], centre[2] - 2), rot(pitch=-90), unreal.LinearColor(0.35, 0.8, 1.0),
-              4.0e5 * (diameter / 60.0) ** 2, "Cathedral/Lights/GodRays", "GodRay", radius_m=centre[2] * 1.6, scatter=6.0)
+              3.0e5 * (diameter / 60.0) ** 2, "Cathedral/Lights/GodRays", "GodRay", radius_m=centre[2] * 1.6, scatter=6.0)
     for comp in [a.get_component_by_class(unreal.SpotLightComponent) for a in ACTORS.get_all_level_actors()
                  if a.get_folder_path() == "Cathedral/Lights/GodRays"]:
         comp.set_inner_cone_angle(2.0)
@@ -486,10 +489,11 @@ def build_lighting():
 
     # Warm ground glow at the base of the facade.
     for y in range(-30, 31, 10):
-        light(unreal.PointLight, (-6, y, 1.2), rot(), WARM, 200.0, f"{folder}/Ground", "GroundGlow", radius_m=25, scatter=3.0)
-    # Distant city: big warm lights low on the horizon tint the fog orange.
-    for x, y in ((-40, -160), (60, -170), (-40, 160), (60, 170), (200, -60), (200, 80)):
-        light(unreal.PointLight, (x, y, 6), rot(), WARM, 3.0e3, f"{folder}/Horizon", "CityGlow", radius_m=160, scatter=2.0)
+        light(unreal.PointLight, (-6, y, 1.2), rot(), WARM, 900.0, f"{folder}/Ground", "GroundGlow", radius_m=30, scatter=3.0)
+    # Distant city: big warm lights on the horizon tint the fog orange. They sit 35 m up so the
+    # glow lands in a camera that looks up at the spires, not below the frame.
+    for x, y in ((-40, -170), (80, -180), (-40, 170), (80, 180), (220, -110), (240, 0), (220, 120)):
+        light(unreal.PointLight, (x, y, 35), rot(), WARM, 7.0e4, f"{folder}/Horizon", "CityGlow", radius_m=260, scatter=4.0)
 
 
 def build_post():
@@ -503,7 +507,7 @@ def build_post():
         "auto_exposure_apply_physical_camera_exposure": False,
         "auto_exposure_bias": EXPOSURE_COMPENSATION,
         "bloom_method": unreal.BloomMethod.BM_FFT if CONVOLUTION_BLOOM else unreal.BloomMethod.BM_SOG,
-        "bloom_intensity": 2.2,
+        "bloom_intensity": 2.6,
         "bloom_size_scale": 6.0,
         "vignette_intensity": 0.75,
         "scene_fringe_intensity": 0.2,
