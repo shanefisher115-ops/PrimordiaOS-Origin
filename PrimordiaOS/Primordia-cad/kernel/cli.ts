@@ -34,7 +34,7 @@ export const DEFAULT_KIT: { name: string; kind: string; params: Record<string, n
     { name: "SM_GothicGableMain", kind: "gable", params: { width: 28, pitch: 60, wallHeight: 4, depth: 2, lancets: 0 } },
     { name: "SM_GothicSpireCrossing", kind: "spire", params: { height: 105, baseWidth: 12, crockets: 14, crocketSize: 1.4, bands: 3, finialHeight: 6 } },
     { name: "SM_GothicTower", kind: "tower", params: {} },
-    { name: "SM_GothicCrossingTower", kind: "tower", params: { height: 60, width: 22, spireHeight: 62, lancets: 2, crockets: 14 } },
+    { name: "SM_GothicCrossingTower", kind: "tower", params: { height: 70, width: 24, spireHeight: 85, lancets: 2, crockets: 18 } },
     { name: "SM_GothicRoseWindowFlank", kind: "rose", params: { diameter: 13, depth: 0.9, petals: 16, rimWidth: 0.8 } },
     { name: "SM_GothicLancetFlank", kind: "lancet", params: { width: 2.2, height: 10, lights: 2, frameWidth: 0.4, depth: 0.9 } },
     { name: "SM_GothicFlyingButtressFlank", kind: "buttress", params: { span: 7, height: 34, pierWidth: 2.2, pierDepth: 3, thickness: 1.6 } },

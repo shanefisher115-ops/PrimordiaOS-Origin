@@ -18,8 +18,13 @@ everything else.
 
 The building is a blockout made from engine basic shapes, in the Cathedral/Blockout outliner
 folder, ready to be swapped for a Nanite kit. A real church mesh replaces it when the project has one
-(CHURCH_MESH), and the generated Gothic kit (KIT: spires, pinnacles, balustrades, street lamps from
-PrimordiaOS/Primordia-cad's gothic.mjs) dresses the towers and the parvis when it has been imported. The rings are shader planes, not Niagara,
+(CHURCH_MESH), and the generated Gothic kit (KIT, from PrimordiaOS/Primordia-cad's gothic.mjs) dresses it
+when it has been imported: spires and pinnacles on the west towers, the great west gable and the wings'
+gables with rose windows, a crossing tower whose spire is the tallest thing in the scene, roses, lancets
+and flying buttresses on the flanks, and a balustraded, lamp-lit parvis.
+
+Cameras: HeroCamera (the look-dev shot), ReferenceCamera (the composition of Shane's reference image, the
+whole cathedral from further back) and FlankCamera (straight on to a flank). The rings are shader planes, not Niagara,
 because Python cannot author Niagara emitters. §9 has the Niagara ribbon recipe for when you
 want particle rings.
 
@@ -71,7 +76,39 @@ CITY_WINDOW = unreal.LinearColor(1.0, 0.48, 0.14, 1.0)  # amber city light, like
 # something human-sized in it.
 KIT = "/Game/ThirdParty/PrimordiaGothicKit"
 KIT_MESHES = {"spire": "SM_GothicSpire", "pinnacle": "SM_GothicPinnacle", "balustrade": "SM_GothicBalustrade",
-              "lamp": "SM_GothicStreetLamp", "lamp_twin": "SM_GothicStreetLampTwin"}
+              "lamp": "SM_GothicStreetLamp", "lamp_twin": "SM_GothicStreetLampTwin", "gable": "SM_GothicGableRose",
+              "main_gable": "SM_GothicGableMain", "crossing_tower": "SM_GothicCrossingTower",
+              "flank_rose": "SM_GothicRoseWindowFlank",
+              "flank_lancet": "SM_GothicLancetFlank", "flank_buttress": "SM_GothicFlyingButtressFlank"}
+# Where the kit dresses the church, from a probe of the church mesh's surfaces (world metres, after
+# place_church's mapping). The wings either side of the towers have west faces at x 29.0 (y 28..44 on each
+# side) whose top band ends at z 48, where a steep roof rises behind: a rose-window gable stands on each.
+# The flanks are blank end walls at |y| 57.8 between corner turrets (x 36..57), plain up to a cornice at
+# 36 m: each gets a big rose over a row of lancets, braced by two flying buttresses.
+WING_GABLES = ((29.0, -36.0), (29.0, 36.0))  # gable centre (x, y) on each wing's west face
+WING_GABLE_BASE = 47.5  # z (m): just inside the wall's top band
+GABLE_ROSE_HEIGHT = 6.42  # rose centre above the gable's base (the kit's "rose" socket in manifest.json)
+# The great west gable: 28 m wide, centred on the junction of the towers and standing just proud of the
+# facade's upper plane (x 1.4..2.4), from above the big tower windows (42 m) to about 70 m, below the
+# belfries. Its rose is the facade's centrepiece, as in the reference.
+MAIN_GABLE = (0.6, 0.5, 42.0)
+MAIN_GABLE_ROSE_HEIGHT = 9.71
+# The crossing tower stands on the ridge of the hall behind the towers (ridge 66 m at x 45..52): a 24 m
+# square tower to 130 m and an 85 m spire whose tip, at about 214 m, towers over everything, the big ring
+# (RINGS[0]) round its top, as the central spire does in the reference. It is 10 m off the centre line:
+# on the axis it hides behind the left tower's spire from the hero camera.
+CROSSING = (48.0, 10.0, 60.0)
+FLANK_WALL = 57.8  # |y| of the flank walls' face
+FLANK_ROSE = (46.5, 16.5)  # x of the rose's centre, z of its base (13 m across: up to 29.5 m)
+FLANK_LANCETS = (40.5, 44.5, 48.5, 52.5)  # x of each lancet (10 m tall, from z 3)
+FLANK_BUTTRESSES = (37.5, 55.5)  # x of each flyer, either side of the rose
+# Cyan searchlights from the plaza, crossing up to the spires through the fog, as in the reference image:
+# (from, to) in metres. The towers' spires are at (13.7, -13.4) and (13.7, 14.4).
+BEAM = unreal.LinearColor(0.30, 0.75, 1.00, 1.0)
+# They graze past the spires into the sky; strong fog scattering, modest intensity, so the air glows more
+# than the stone they touch.
+BEAMS = (((-35, -55, 0.3), (13.7, -30.0, 140)), ((-20, -62, 0.3), (CROSSING[0], CROSSING[1] - 8, 175)),
+         ((-35, 55, 0.3), (13.7, 32.0, 140)), ((-20, 62, 0.3), (CROSSING[0], CROSSING[1] + 8, 175)))
 # The parvis: two balustraded edges parallel to the nave, from beside the camera to just short of the facade.
 # From the hero camera the y < 0 edge recedes from the frame's lower right toward the towers.
 PARVIS_EDGES = (-40.0, 40.0)  # y (m)
@@ -448,13 +485,18 @@ def load_kit(stone):
     kit = {k: mesh for k, name in KIT_MESHES.items() if (mesh := unreal.load_asset(f"{KIT}/{name}"))}
     if not kit:
         return None
+    lamp_glass = build_lamp_glass()
     kit["materials"] = {
-        "Stone": instance(stone, "MI_GothicKitStone", scalars={"RoughnessDry": 0.7, "RoughnessWet": 0.3},
-                          vectors={"BaseColor": unreal.LinearColor(0.05, 0.05, 0.052, 1.0)}),
+        # Dark like the reference, warm like the church's tinted stone so the kit reads as the same building.
+        "Stone": instance(stone, "MI_GothicKitStone", scalars={"RoughnessDry": 0.7, "RoughnessWet": 0.38},
+                          vectors={"BaseColor": unreal.LinearColor(0.055, 0.047, 0.04, 1.0)}),
         "Iron": instance(stone, "MI_GothicKitIron", scalars={"RoughnessDry": 0.35, "RoughnessWet": 0.2, "WetDarkening": 1.0},
                          vectors={"BaseColor": unreal.LinearColor(0.012, 0.012, 0.014, 1.0)}),
-        "Glass": build_lamp_glass(),
+        "Glass": lamp_glass,
     }
+    # Stained glass behind the kit's stone tracery, lit from inside like the church's own windows.
+    kit["glass"] = {name: instance(lamp_glass, f"MI_GothicGlass_{name}", scalars={"Glow": glow}, vectors={"GlowColor": color})
+                    for name, color, glow in (("Rose", ROSE, 1.2), ("Cyan", CYAN, 0.7), ("Magenta", MAGENTA, 1.0))}
     return kit
 
 
@@ -641,6 +683,69 @@ def build_parvis(kit):
             place_lamp(kit["lamp_twin"], (-14.0, y, 0.0), 90.0, materials, "PortalLamp")
 
 
+def glass_light(loc_m, yaw, color, size_m, label):
+    """Coloured light spilling out of a stained-glass window: a rect light just in front of it, facing out."""
+    _, comp = light(unreal.RectLight, loc_m, rot(yaw=yaw), color, 6.0 * size_m * size_m / 40.0,
+                    "Cathedral/Lights/Windows", label, radius_m=size_m * 4, scatter=2.0)
+    comp.set_editor_property("source_width", size_m * 100.0)
+    comp.set_editor_property("source_height", size_m * 100.0)
+    comp.set_editor_property("barn_door_angle", 70.0)
+
+
+def dress_church(kit):
+    """Rose-window gables on the wings' west faces, a crossing spire through the big ring, cyan searchlights,
+    and on each flank a rose over lancets braced by flying buttresses."""
+    mats, glass = kit["materials"], kit["glass"]
+    if "main_gable" in kit:
+        x, y, z = MAIN_GABLE
+        kit_piece(kit["main_gable"], MAIN_GABLE, 1.0, 90.0, dict(mats, Glass=glass["Rose"]), "MainGable", "Cathedral/Church/Gables")
+        glass_light((x - 2.5, y, z + MAIN_GABLE_ROSE_HEIGHT), 180.0, ROSE, 14.0, "MainRoseLight")
+        if "pinnacle" in kit:  # 12 m pinnacles flanking the gable's eaves
+            half = mesh_size_m(kit["main_gable"])[0] / 2
+            for dy in (-half - 0.8, half + 0.8):
+                kit_piece(kit["pinnacle"], (x, y + dy, z), 12.0 / mesh_size_m(kit["pinnacle"])[2], 0.0, mats, "MainGablePinnacle",
+                          "Cathedral/Church/Gables")
+    if "gable" in kit:
+        half = mesh_size_m(kit["gable"])[0] / 2
+        for (x, y), color in zip(WING_GABLES, ("Cyan", "Magenta")):
+            # The gable runs along its own X; yaw 90 lays it across the wing, facing -X.
+            kit_piece(kit["gable"], (x, y, WING_GABLE_BASE), 1.0, 90.0, dict(mats, Glass=glass[color]), "WingGable",
+                      "Cathedral/Church/Gables")
+            glass_light((x - 1.6, y, WING_GABLE_BASE + GABLE_ROSE_HEIGHT), 180.0, CYAN if color == "Cyan" else MAGENTA, 9.0,
+                        "GableRoseLight")
+            if "pinnacle" in kit:  # 8 m pinnacles at the gable's eaves
+                for dy in (-half - 0.4, half + 0.4):
+                    kit_piece(kit["pinnacle"], (x, y + dy, WING_GABLE_BASE), 8.0 / mesh_size_m(kit["pinnacle"])[2], 0.0, mats,
+                              "GablePinnacle", "Cathedral/Church/Gables")
+    if "crossing_tower" in kit:
+        kit_piece(kit["crossing_tower"], CROSSING, 1.0, 0.0, dict(mats, Glass=glass["Cyan"]), "CrossingTower", "Cathedral/Church")
+    for src, dst in BEAMS:
+        _, comp = light(unreal.SpotLight, src, look_at(src, dst), BEAM, 3.0e5, "Cathedral/Lights/Beams", "Searchlight",
+                        radius_m=math.dist(src, dst) * 1.3, scatter=15.0)
+        comp.set_inner_cone_angle(2.0)
+        comp.set_outer_cone_angle(6.0)
+    for side in (-1, 1):
+        face = side * FLANK_WALL
+        out = 0.4 * side  # pieces sit just proud of the wall
+        if "flank_rose" in kit:
+            kit_piece(kit["flank_rose"], (FLANK_ROSE[0], face + out, FLANK_ROSE[1]), 1.0, 0.0, dict(mats, Glass=glass["Rose"]),
+                      "FlankRose", "Cathedral/Church/Flanks")
+            size = mesh_size_m(kit["flank_rose"])[0]
+            glass_light((FLANK_ROSE[0], face + side * 1.5, FLANK_ROSE[1] + size / 2), 90.0 * side, ROSE, size * 0.7,
+                        "FlankRoseLight")
+        if "flank_lancet" in kit:
+            for x in FLANK_LANCETS:
+                kit_piece(kit["flank_lancet"], (x, face + out, 3.0), 1.0, 0.0, dict(mats, Glass=glass["Cyan"]), "FlankLancet",
+                          "Cathedral/Church/Flanks")
+        if "flank_buttress" in kit:
+            # The flyer runs along the piece's +X from the pier to the wall at pierDepth/2 + span (the bounds' max x).
+            box = kit["flank_buttress"].get_bounding_box()
+            reach = box.max.x / 100.0
+            for x in FLANK_BUTTRESSES:
+                kit_piece(kit["flank_buttress"], (x, face + side * reach, 0.0), 1.0, -90.0 * side, mats, "FlyingButtress",
+                          "Cathedral/Church/Flanks")
+
+
 def build_building(stone, win, church=None, church_stone=None, church_glows=False, plaza=None, city_stone=None, kit=None):
     """Facade faces -X at x = 0. Units are metres."""
     shape(PLANE, (40, 0, 0), (600, 600, 1), plaza or stone, label="Plaza")
@@ -648,6 +753,8 @@ def build_building(stone, win, church=None, church_stone=None, church_glows=Fals
         build_parvis(kit)
     if church:
         place_church(church, church_stone, stone, kit)
+        if kit:
+            dress_church(kit)
         if city_stone:
             for i, (x, y, yaw, scale) in enumerate(CITY):
                 place_centered(church, city_stone, x, y, yaw, scale, f"CityChurch{i}", "Cathedral/City")
@@ -715,7 +822,7 @@ def build_windows(win, facade_only=False):
 
 
 RINGS = [  # centre (m), diameter (m), tilt, ring count, intensity
-    ((50, 0, 138), 82, rot(pitch=8, roll=-6), 6, 5.0),
+    ((48, 10, 128), 82, rot(pitch=8, roll=-6), 6, 4.0),  # crowns the crossing tower; its spire rises clear above
     ((8, -55, 86), 58, rot(pitch=16, roll=14), 5, 4.0),
     ((14, 56, 82), 48, rot(pitch=-14, roll=-12), 5, 4.0),
     ((-6, -42, 52), 24, rot(pitch=10, roll=8), 3, 3.0),
@@ -807,12 +914,23 @@ def build_post():
 
 
 def build_camera():
-    # Pitched up ~23 degrees: the plaza and skyline stay in frame, the rings still crown the shot.
-    eye, target = (-95, -35, 1.7), (25, 0, 55)
+    # Pitched up ~26 degrees with a 90 degree lens: the plaza and skyline stay in frame, and the crossing
+    # spire's tip (214 m) just fits under the top edge.
+    eye, target = (-95, -35, 1.7), (25, 0, 62.7)
     cam = spawn(unreal.CameraActor, m_to_cm(*eye), look_at(eye, target), label="HeroCamera")
-    props(cam.camera_component, {"field_of_view": 86.0})
+    props(cam.camera_component, {"field_of_view": 90.0})
     cam.set_editor_property("auto_activate_for_player", unreal.AutoReceiveInput.PLAYER0)
     spawn(unreal.PlayerStart, m_to_cm(*eye), look_at(eye, target), label="PlayerStart")
+    # The reference image's view: further back and to the left, looking up at the whole cathedral, where the
+    # crossing spire stands well clear above the west towers. Render it with -Camera ReferenceCamera.
+    eye, target = (-175, -95, 2), (20, 0, 78)
+    ref = spawn(unreal.CameraActor, m_to_cm(*eye), look_at(eye, target), label="ReferenceCamera")
+    props(ref.camera_component, {"field_of_view": 80.0})
+    # Straight on to the +y flank: its rose over lancets between two flying buttresses. (The -y flank has a city
+    # church 12 m off it.) Render it with the look-dev skill's ue_run.ps1 -Camera FlankCamera.
+    eye, target = (46.5, 92, 3), (46.5, 58, 18)
+    flank = spawn(unreal.CameraActor, m_to_cm(*eye), look_at(eye, target), label="FlankCamera")
+    props(flank.camera_component, {"field_of_view": 80.0})
 
 
 def two_sided(mi):
@@ -861,7 +979,7 @@ def build():
     plaza = instance(stone, "MI_CathedralPlaza", scalars={"RoughnessDry": 0.65, "RoughnessWet": 0.04, "WetDarkening": 0.5},
                      vectors={"BaseColor": unreal.LinearColor(0.03, 0.032, 0.036, 1.0)})
     kit = load_kit(stone)
-    unreal.log(f"PrimordiaCathedral: Gothic kit {'pieces: ' + ', '.join(k for k in kit if k != 'materials') if kit else 'not found'}")
+    unreal.log(f"PrimordiaCathedral: Gothic kit {'pieces: ' + ', '.join(k for k in kit if k not in ('materials', 'glass')) if kit else 'not found'}")
 
     open_map()
     build_building(stone_mi, win, church, church_stone, church_glows=bool(church and unreal.load_asset(CHURCH_TEXTURE)),
