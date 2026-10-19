@@ -1,21 +1,3 @@
-export function stressAgent(metrics, cadParams, timestamp) {
-    const stress = metrics.maxStress ?? 0;
-    const limit = cadParams.stressLimit ?? 100;
-    const over = stress - limit;
-    const needsFix = over > 0;
-    return {
-        agentName: "StressAgent",
-        timestamp,
-        confidence: needsFix ? 0.95 : 0.3,
-        targetParam: "wallThickness",
-        targetRegion: metrics.highStressRegion ?? "global",
-        delta: needsFix ? +0.5 : 0,
-        type: needsFix ? "increase" : "reshape",
-        justification: needsFix
-            ? `Stress exceeds limit by ${over.toFixed(2)} units`
-            : "Stress within safe range",
-        metricsUsed: ["maxStress", "stressMap"],
-        localScore: needsFix ? 0.9 : 0.2,
-        globalImpactEstimate: needsFix ? 0.7 : 0.3
-    };
-}
+// JavaScript entry point for consumers that import the .js file. The implementation is
+// stress-agent.ts, which Node >= 22.18 runs directly (see Primordia-cad/README.md).
+export { stressAgent } from "./stress-agent.ts";

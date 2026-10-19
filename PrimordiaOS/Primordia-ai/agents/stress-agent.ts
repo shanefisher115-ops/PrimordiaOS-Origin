@@ -1,30 +1,34 @@
-import { AgentProposal } from "../schemas/agent-proposal";
+import type { AgentProposal } from "../schemas/agent-proposal.ts";
+import { designLimits } from "../schemas/design-limits.ts";
+import { describeFix, designOf, findFix } from "./levers.ts";
 
 export function stressAgent(metrics: any, cadParams: any, timestamp: number): AgentProposal {
-    const stress = metrics.maxStress ?? 0;
-    const limit = cadParams.stressLimit ?? 100;
+    const stress = metrics.maxStress ?? 0; // MPa
+    const limit = designLimits(cadParams, metrics).stressLimit;
+    const region = metrics.highStressRegion ?? "global";
 
     const over = stress - limit;
-    const needsFix = over > 0;
+    const fix = over > 0 ? findFix("stress", cadParams, region, over / limit) : null;
 
     return {
         agentName: "StressAgent",
         timestamp,
-        confidence: needsFix ? 0.95 : 0.3,
+        confidence: fix ? 0.95 : 0.3,
 
-        targetParam: "wallThickness",
-        targetRegion: metrics.highStressRegion ?? "global",
+        targetParam: fix?.param ?? "",
+        targetRegion: region,
 
-        delta: needsFix ? +0.5 : 0,
-        type: needsFix ? "increase" : "reshape",
+        delta: fix?.delta ?? 0,
+        type: fix?.type ?? "increase",
 
-        justification: needsFix
-            ? `Stress exceeds limit by ${over.toFixed(2)} units`
-            : "Stress within safe range",
+        justification: over <= 0
+            ? `Stress ${stress.toFixed(2)} MPa within the ${limit} MPa limit`
+            : `Stress ${stress.toFixed(2)} MPa exceeds the ${limit} MPa limit by ${over.toFixed(2)} MPa in the ${region} band` +
+              (fix ? `: ${describeFix(fix)}` : `, and no ${designOf(cadParams).kind} parameter is left to lower it`),
 
-        metricsUsed: ["maxStress", "stressMap"],
+        metricsUsed: ["maxStress", "highStressRegion"],
 
-        localScore: needsFix ? 0.9 : 0.2,
-        globalImpactEstimate: needsFix ? 0.7 : 0.3
+        localScore: fix ? 0.9 : 0.2,
+        globalImpactEstimate: fix ? 0.7 : 0.3
     };
 }

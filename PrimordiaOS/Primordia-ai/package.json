@@ -1,0 +1,13 @@
+{
+  "name": "primordia-ai",
+  "version": "0.2.0",
+  "private": true,
+  "description": "PrimordiaOS design agents: propose Primordia-cad parameter mutations from Primordia-sim metrics",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.ts\""
+  }
+}
