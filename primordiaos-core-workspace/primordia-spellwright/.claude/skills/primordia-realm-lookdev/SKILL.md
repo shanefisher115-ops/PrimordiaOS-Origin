@@ -16,6 +16,7 @@ The reference implementation is `Scripts/build_cathedral_scene.py` (map `/Primor
 | Rebuild + render the hero shot | `pwsh scripts/ue_run.ps1 -BuildScript <repo Scripts/build_x.py> -Map <map> -Out <png>` then Read the PNG |
 | Render only (no rebuild) | `pwsh scripts/ue_run.ps1 -Map <map> -Out <png>` |
 | Import an FBX as a static Nanite mesh | `scripts/import_asset.py` (kind `mesh`) via the commandlet — see "Importing" |
+| Make Gothic architecture (spires, pinnacles, windows, buttresses, balustrades, lamps) to measure | `node gothic.mjs kit --out kit` (or one piece: `node gothic.mjs spire --height 40 --out spire.glb`) in `PrimordiaOS/Primordia-cad`, then import each `.glb` with `import_asset.py` into `/Game/ThirdParty/PrimordiaGothicKit/` |
 | Import a texture (colour / normal / mask) | `scripts/import_asset.py` (kind `color`, `normal` or `mask`) |
 | Find features on a mesh (tower tops etc.) | `scripts/measure_mesh_tops.py` via the commandlet |
 | Pull complete files out of a broken zip | `python scripts/zip_salvage.py <zip> <out-dir>` |
@@ -52,6 +53,7 @@ Always look at the PNG yourself (Read it) and compare against the reference befo
 - `LevelEditorSubsystem.editor_request_begin_play` doesn't exist in 5.4 Python.
 - `-ExecutePythonScript` quits the editor when the script returns; use `-ExecCmds="py <script>"` for anything that waits.
 - Automated FBX import re-detects the mesh type and picks **skeletal** if the file has a rig. Set `automated_import_should_detect_type = False` and `original_import_type = FBXIT_STATIC_MESH`.
+- `.glb`/`.gltf` and `.obj` go through **Interchange**, not the FBX importer. glTF comes in right (metres → cm, Y up → Z up, slots named after the glTF materials, Nanite on in this project). Interchange's OBJ translator reads the file as **Z up** (it only flips Y; see `InterchangeOBJTranslator.cpp`), so a Y-up OBJ (Blender's default, and Primordia-cad's) would come in on its side — the `.glb` is the tested path.
 - **Masked** emissive window planes rendered nothing in editor captures; **additive** works (and leaves no square on the wall). Prefer additive for glow decals.
 - In manual exposure with physical camera exposure off, `auto_exposure_bias` is plain exposure compensation (+1 = twice as bright). Negative values made the first renders black.
 - When editing a Python file that contains `\x..` escapes from a shell heredoc, the escapes can land as raw bytes (null bytes broke the script). Read/write with `newline=""` and verify with `ast.parse`.

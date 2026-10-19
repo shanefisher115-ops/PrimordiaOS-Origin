@@ -17,7 +17,9 @@ everything else.
                                               radius wobbles so the rings seem to vibrate.
 
 The building is a blockout made from engine basic shapes, in the Cathedral/Blockout outliner
-folder, ready to be swapped for a Nanite kit. The rings are shader planes, not Niagara,
+folder, ready to be swapped for a Nanite kit. A real church mesh replaces it when the project has one
+(CHURCH_MESH), and the generated Gothic kit (KIT: spires, pinnacles, balustrades, street lamps from
+PrimordiaOS/Primordia-cad's gothic.mjs) dresses the towers and the parvis when it has been imported. The rings are shader planes, not Niagara,
 because Python cannot author Niagara emitters. §9 has the Niagara ribbon recipe for when you
 want particle rings.
 
@@ -61,6 +63,20 @@ CHURCH_TOWER_TOP = 2919
 CITY = ((50, -103, 35, 1.4), (111, -110, 70, 1.8), (214, -118, 120, 1.6),
         (46, 134, 300, 1.5), (73, 214, 250, 1.9), (130, 206, 210, 1.4))
 CITY_WINDOW = unreal.LinearColor(1.0, 0.48, 0.14, 1.0)  # amber city light, like the reference's streets
+
+# Optional generated Gothic kit from PrimordiaOS's CAD kernel (PrimordiaOS/Primordia-cad: `node gothic.mjs kit`),
+# imported from its .glb files as static Nanite meshes. Pieces are in metres, Z up, pivot at the base centre,
+# with material slots named Stone, Glass and Iron. With the kit, crocketed octagonal spires and pinnacles
+# replace the cones on the towers, and balustrades and street lamps line the parvis so the plaza has
+# something human-sized in it.
+KIT = "/Game/ThirdParty/PrimordiaGothicKit"
+KIT_MESHES = {"spire": "SM_GothicSpire", "pinnacle": "SM_GothicPinnacle", "balustrade": "SM_GothicBalustrade",
+              "lamp": "SM_GothicStreetLamp", "lamp_twin": "SM_GothicStreetLampTwin"}
+# The parvis: two balustraded edges parallel to the nave, from beside the camera to just short of the facade.
+# From the hero camera the y < 0 edge recedes from the frame's lower right toward the towers.
+PARVIS_EDGES = (-40.0, 40.0)  # y (m)
+PARVIS_X = (-82.0, -16.0)  # x range (m)
+LAMP_GLOW = unreal.LinearColor(1.0, 0.55, 0.22, 1.0)
 
 CYAN = unreal.LinearColor(0.04, 0.50, 1.00, 1.0)
 MAGENTA = unreal.LinearColor(0.85, 0.15, 1.00, 1.0)
@@ -412,6 +428,36 @@ def build_ring():
     return m
 
 
+def build_lamp_glass():
+    """Glowing lantern glass for the kit's Glass slots: unlit, colour x intensity."""
+    m = new_material("M_GothicLampGlass")
+    m.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_UNLIT)
+    g = Graph(m)
+    color = g.vector("GlowColor", LAMP_GLOW)
+    glow = g.scalar("Glow", 2.5)
+    mul = g.node(unreal.MaterialExpressionMultiply, -300)
+    connect(color, "", mul, "A")
+    connect(glow, "", mul, "B")
+    MEL.connect_material_property(mul, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    finish(m)
+    return m
+
+
+def load_kit(stone):
+    """The generated Gothic kit's meshes that are in the project, plus materials for their slots; None if absent."""
+    kit = {k: mesh for k, name in KIT_MESHES.items() if (mesh := unreal.load_asset(f"{KIT}/{name}"))}
+    if not kit:
+        return None
+    kit["materials"] = {
+        "Stone": instance(stone, "MI_GothicKitStone", scalars={"RoughnessDry": 0.7, "RoughnessWet": 0.3},
+                          vectors={"BaseColor": unreal.LinearColor(0.05, 0.05, 0.052, 1.0)}),
+        "Iron": instance(stone, "MI_GothicKitIron", scalars={"RoughnessDry": 0.35, "RoughnessWet": 0.2, "WetDarkening": 1.0},
+                         vectors={"BaseColor": unreal.LinearColor(0.012, 0.012, 0.014, 1.0)}),
+        "Glass": build_lamp_glass(),
+    }
+    return kit
+
+
 # ---------------------------------------------------------------- level helpers
 
 ACTORS = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
@@ -501,7 +547,25 @@ def place_centered(mesh, material, x_m, y_m, yaw, scale, label, folder):
     return actor
 
 
-def place_church(mesh, material, spire_material):
+def mesh_size_m(mesh):
+    box = mesh.get_bounding_box()
+    return ((box.max.x - box.min.x) / 100.0, (box.max.y - box.min.y) / 100.0, (box.max.z - box.min.z) / 100.0)
+
+
+def kit_piece(mesh, loc_m, scale, yaw, materials, label, folder):
+    """Places a kit mesh by its base-centre pivot; each slot gets the material its name asks for."""
+    actor = spawn(unreal.StaticMeshActor, m_to_cm(*loc_m), rot(yaw=yaw), folder, label)
+    comp = actor.static_mesh_component
+    comp.set_mobility(unreal.ComponentMobility.STATIC)
+    comp.set_static_mesh(mesh)
+    for i, slot in enumerate(mesh.get_editor_property("static_materials")):
+        name = str(slot.material_slot_name)
+        comp.set_material(i, next((mi for key, mi in materials.items() if key in name), materials["Stone"]))
+    actor.set_actor_scale3d(unreal.Vector(scale, scale, scale))
+    return actor
+
+
+def place_church(mesh, material, spire_material, kit=None):
     """Turns the church so its facade faces -X, then puts the facade at x = 0 and the base on the plaza."""
     box = mesh.get_bounding_box()
     s = CHURCH_SCALE
@@ -522,19 +586,68 @@ def place_church(mesh, material, spire_material):
         cy = (-(x0 + x1) * 0.5 * s + loc.y) / 100.0
         w = min(x1 - x0, y1 - y0) * s / 100.0
         h = w * 2.4
-        shape(CONE, (cx, cy, top + h * 0.5), (w * 0.82, w * 0.82, h), spire_material, label="Spire",
-              folder="Cathedral/Church")
+        if kit and "spire" in kit:
+            # The generated spire at the cone's height; its octagon sits inside the corner pinnacles.
+            kit_piece(kit["spire"], (cx, cy, top), h / mesh_size_m(kit["spire"])[2], 0.0, kit["materials"], "Spire",
+                      "Cathedral/Church")
+        else:
+            shape(CONE, (cx, cy, top + h * 0.5), (w * 0.82, w * 0.82, h), spire_material, label="Spire",
+                  folder="Cathedral/Church")
         for dx in (-0.38, 0.38):
             for dy in (-0.38, 0.38):
-                shape(CONE, (cx + dx * w, cy + dy * w, top + w * 0.3), (w * 0.12, w * 0.12, w * 0.6), spire_material,
-                      label="SpirePinnacle", folder="Cathedral/Church")
+                if kit and "pinnacle" in kit:
+                    kit_piece(kit["pinnacle"], (cx + dx * w, cy + dy * w, top), w * 0.6 / mesh_size_m(kit["pinnacle"])[2],
+                              0.0, kit["materials"], "SpirePinnacle", "Cathedral/Church")
+                else:
+                    shape(CONE, (cx + dx * w, cy + dy * w, top + w * 0.3), (w * 0.12, w * 0.12, w * 0.6), spire_material,
+                          label="SpirePinnacle", folder="Cathedral/Church")
 
 
-def build_building(stone, win, church=None, church_stone=None, church_glows=False, plaza=None, city_stone=None):
+def lantern_offsets_m(mesh):
+    """Lantern centres in the lamp's own space (the lamp sockets in the kit's manifest.json), from the bounds:
+    a single lamp's lantern tops the post; a twin lamp's two sit on the ends of its arms along X."""
+    sx, _, sz = mesh_size_m(mesh)
+    if sx < 1.0:
+        return [(0.0, 0.0, sz - 0.35)]
+    reach = sx / 2 - 0.25
+    return [(reach, 0.0, sz - 0.37), (-reach, 0.0, sz - 0.37)]
+
+
+def place_lamp(mesh, loc_m, yaw, materials, label):
+    kit_piece(mesh, loc_m, 1.0, yaw, materials, label, "Cathedral/Parvis")
+    a = math.radians(yaw)
+    for dx, dy, dz in lantern_offsets_m(mesh):
+        x = loc_m[0] + dx * math.cos(a) - dy * math.sin(a)
+        y = loc_m[1] + dx * math.sin(a) + dy * math.cos(a)
+        light(unreal.PointLight, (x, y, loc_m[2] + dz), rot(), LAMP_GLOW, 140.0, "Cathedral/Lights/Lamps", "LampLight",
+              radius_m=14, scatter=2.5)
+
+
+def build_parvis(kit):
+    """Balustraded edges along the approach to the facade, a lamp every 4 segments, twin lamps at the portal."""
+    balustrade, lamp, materials = kit.get("balustrade"), kit.get("lamp"), kit["materials"]
+    if balustrade:
+        seg = mesh_size_m(balustrade)[0]
+        count = int((PARVIS_X[1] - PARVIS_X[0]) / seg)
+        for y in PARVIS_EDGES:
+            inward = -1.2 if y > 0 else 1.2
+            for i in range(count):
+                x = PARVIS_X[0] + seg * (i + 0.5)
+                kit_piece(balustrade, (x, y, 0.0), 1.0, 0.0, materials, "Balustrade", "Cathedral/Parvis")
+                if lamp and i % 4 == 0:
+                    place_lamp(lamp, (x - seg / 2, y + inward, 0.0), 0.0, materials, "StreetLamp")
+    if kit.get("lamp_twin"):
+        for y in (-14.0, 14.0):
+            place_lamp(kit["lamp_twin"], (-14.0, y, 0.0), 90.0, materials, "PortalLamp")
+
+
+def build_building(stone, win, church=None, church_stone=None, church_glows=False, plaza=None, city_stone=None, kit=None):
     """Facade faces -X at x = 0. Units are metres."""
     shape(PLANE, (40, 0, 0), (600, 600, 1), plaza or stone, label="Plaza")
+    if kit:
+        build_parvis(kit)
     if church:
-        place_church(church, church_stone, stone)
+        place_church(church, church_stone, stone, kit)
         if city_stone:
             for i, (x, y, yaw, scale) in enumerate(CITY):
                 place_centered(church, city_stone, x, y, yaw, scale, f"CityChurch{i}", "Cathedral/City")
@@ -747,10 +860,12 @@ def build():
     # Wet plaza: glossy puddles so the windows, rings and city glow reflect in the ground.
     plaza = instance(stone, "MI_CathedralPlaza", scalars={"RoughnessDry": 0.65, "RoughnessWet": 0.04, "WetDarkening": 0.5},
                      vectors={"BaseColor": unreal.LinearColor(0.03, 0.032, 0.036, 1.0)})
+    kit = load_kit(stone)
+    unreal.log(f"PrimordiaCathedral: Gothic kit {'pieces: ' + ', '.join(k for k in kit if k != 'materials') if kit else 'not found'}")
 
     open_map()
     build_building(stone_mi, win, church, church_stone, church_glows=bool(church and unreal.load_asset(CHURCH_TEXTURE)),
-                   plaza=plaza, city_stone=city_stone)
+                   plaza=plaza, city_stone=city_stone, kit=kit)
     build_rings(ring)
     build_lighting()
     build_post()
