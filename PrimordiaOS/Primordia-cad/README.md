@@ -84,6 +84,32 @@ const geo = regenerateGeometry(updated); // vertices, faces, metadata { volume, 
 `{ mode: "reshape", delta }` is read as the generator default + delta. The legacy metadata fields
 (`wallThicknessApplied`, `material`, `topologyMode`, `reshape`) are still filled in.
 
+## Blender finishing
+
+The kernel's meshes are exact CSG: razor-sharp edges, no texture detail. `blender/finish.py` finishes them
+headless in Blender (about 5–20 s a piece on Shane's laptop):
+
+```bash
+node gothic.mjs finish kit/SM_GothicSpire.glb --out kit/finished
+node gothic.mjs finish kit --bake 1024 --lods 0.5,0.25
+```
+
+It welds the kernel's split vertices, bevels edges sharper than `--angle` (35°) with hardened normals
+(default width 0.4% of the piece, 5 mm–5 cm), applies weighted normals, keeps the world-scale tiling UVs
+and adds a packed `Bake` UV set, bakes ambient occlusion and curvature (edge wear) maps with Cycles on the
+CPU, and writes:
+
+- `<name>.glb`: plain glTF for Unreal's Interchange importer
+- `<name>.web.glb`: Draco-compressed for three.js (about a fifth of the size)
+- `<name>.fbx`: for Unreal's FBX importer
+- `<name>_AO.png`, `<name>_Curvature.png`: maps in the `Bake` UVs (`TEXCOORD_1`)
+- `<name>_LOD<n>.glb` with `--lods`, `<name>_preview.png` (EEVEE, with the maps applied), `<name>.finish.json`
+
+From code: `finishMesh(input, outDir, options)` in `kernel/blender.ts`. Blender is found via `PRIMORDIA_BLENDER`,
+then portable installs in `%LOCALAPPDATA%\Programslender-*`, then Program Files. (The Program Files
+Blender 5.2 on Shane's machine is missing `bl_operators/node_editor` and can't load Cycles. The portable
+5.2.2 works.) The finished `.fbx` and `.glb` both import into Unreal at real size, Z up, Nanite on.
+
 ## Into Unreal
 
 Import the `.glb` files with the realm look-dev skill's `scripts/import_asset.py` (kind `mesh`). glTF goes

@@ -17,6 +17,7 @@ The reference implementation is `Scripts/build_cathedral_scene.py` (map `/Primor
 | Render only (no rebuild) | `pwsh scripts/ue_run.ps1 -Map <map> -Out <png>` |
 | Import an FBX as a static Nanite mesh | `scripts/import_asset.py` (kind `mesh`) via the commandlet — see "Importing" |
 | Make Gothic architecture (spires, pinnacles, windows, buttresses, balustrades, lamps) to measure | `node gothic.mjs kit --out kit` (or one piece: `node gothic.mjs spire --height 40 --out spire.glb`) in `PrimordiaOS/Primordia-cad`, then import each `.glb` with `import_asset.py` into `/Game/ThirdParty/PrimordiaGothicKit/` |
+| Finish generated pieces (bevels, AO + curvature bakes, LODs, Draco .glb, .fbx) | `node gothic.mjs finish <file.glb\|dir>` in `PrimordiaOS/Primordia-cad` (headless Blender; see its README) |
 | Import a texture (colour / normal / mask) | `scripts/import_asset.py` (kind `color`, `normal` or `mask`) |
 | Find features on a mesh (tower tops etc.) | `scripts/measure_mesh_tops.py` via the commandlet |
 | Pull complete files out of a broken zip | `python scripts/zip_salvage.py <zip> <out-dir>` |

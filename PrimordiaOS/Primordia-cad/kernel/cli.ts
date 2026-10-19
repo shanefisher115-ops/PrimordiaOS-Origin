@@ -1,14 +1,17 @@
 // gothic CLI: generate one Gothic piece, or a whole kit folder.
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { GENERATORS, generate, generatorFor, toGLB, toOBJ } from "./index.ts";
 import type { Geometry } from "./index.ts";
 import { previewPNG } from "./preview.ts";
+import { finishMesh } from "./blender.ts";
 
 const USAGE = `Primordia-cad gothic kernel: parametric Gothic architecture as glTF/OBJ meshes (metres, Z up in the kernel, Y up in files).
 
   node gothic.mjs <generator> [--<param> <value> ...] [--out <file.glb|file.obj>] [--name <MeshName>] [--preview <file.png> [--view-yaw <deg>] [--view-pitch <deg>]]
   node gothic.mjs kit [--out <dir>] [--formats glb,obj] [--preset <kit.json>]   (also writes <dir>/preview.png)
+  node gothic.mjs finish <file.glb|dir> [--out <dir>] [--bevel <m>] [--angle <deg>] [--bake <px>] [--lods 0.5,0.25]
+                   [--fbx 0|1] [--draco 0|1] [--preview <px>]   (Blender finishing; see blender/finish.py)
   node gothic.mjs list
   node gothic.mjs <generator> --help
 
@@ -121,6 +124,26 @@ export function main(argv: string[]): number {
     if (!cmd || cmd === "help" || (options.help && !cmd)) { console.log(USAGE); return cmd ? 0 : 1; }
     if (cmd === "list") {
         for (const kind of Object.keys(GENERATORS)) console.log(describe(kind) + "\n");
+        return 0;
+    }
+    if (cmd === "finish") {
+        const input = positional[1];
+        if (!input || !existsSync(input)) throw new Error("finish needs a .glb file or a folder of them");
+        const files = statSync(input).isDirectory()
+            ? readdirSync(input).filter((f) => f.endsWith(".glb") && !f.endsWith(".web.glb") && !/_LOD\d+\.glb$/.test(f)).map((f) => join(input, f))
+            : [input];
+        const out = options.out ?? join(statSync(input).isDirectory() ? input : dirname(input), "finished");
+        const num = (k: string) => (options[k] === undefined ? undefined : Number(options[k]));
+        for (const file of files) {
+            const r = finishMesh(file, out, {
+                bevel: num("bevel"), angle: num("angle"), bake: num("bake"), preview: num("preview"),
+                lods: options.lods ? options.lods.split(",").map(Number) : undefined,
+                fbx: options.fbx === undefined ? undefined : options.fbx !== "0",
+                draco: options.draco === undefined ? undefined : options.draco !== "0",
+            });
+            console.log(`${r.name}: ${r.triangles_in} -> ${r.triangles_out} tris, bevel ${r.bevel_m} m, ${r.seconds}s -> ${Object.keys(r.files).join(", ")}`);
+        }
+        console.log(`finish: ${files.length} piece(s) in ${resolve(out)}`);
         return 0;
     }
     if (cmd === "kit") {
