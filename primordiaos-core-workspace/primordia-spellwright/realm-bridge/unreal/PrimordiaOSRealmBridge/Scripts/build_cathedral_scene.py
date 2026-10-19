@@ -20,7 +20,7 @@ The building is a blockout made from engine basic shapes, in the Cathedral/Block
 folder, ready to be swapped for a Nanite kit. A real church mesh replaces it when the project has one
 (CHURCH_MESH), and the generated Gothic kit (KIT, from PrimordiaOS/Primordia-cad's gothic.mjs) dresses it
 when it has been imported: spires and pinnacles on the west towers, the great west gable and the wings'
-gables with rose windows, a crossing tower whose spire is the tallest thing in the scene, roses, lancets
+gables with rose windows, a great tower at the back whose spire is the tallest thing in the scene, roses, lancets
 and flying buttresses on the flanks, and a balustraded, lamp-lit parvis.
 
 Cameras: HeroCamera (the look-dev shot), ReferenceCamera (the composition of Shane's reference image, the
@@ -77,7 +77,7 @@ CITY_WINDOW = unreal.LinearColor(1.0, 0.48, 0.14, 1.0)  # amber city light, like
 KIT = "/Game/ThirdParty/PrimordiaGothicKit"
 KIT_MESHES = {"spire": "SM_GothicSpire", "pinnacle": "SM_GothicPinnacle", "balustrade": "SM_GothicBalustrade",
               "lamp": "SM_GothicStreetLamp", "lamp_twin": "SM_GothicStreetLampTwin", "gable": "SM_GothicGableRose",
-              "main_gable": "SM_GothicGableMain", "crossing_tower": "SM_GothicCrossingTower",
+              "main_gable": "SM_GothicGableMain", "great_tower": "SM_GothicGreatTower",
               "flank_rose": "SM_GothicRoseWindowFlank",
               "flank_lancet": "SM_GothicLancetFlank", "flank_buttress": "SM_GothicFlyingButtressFlank"}
 # Where the kit dresses the church, from a probe of the church mesh's surfaces (world metres, after
@@ -93,11 +93,13 @@ GABLE_ROSE_HEIGHT = 6.42  # rose centre above the gable's base (the kit's "rose"
 # belfries. Its rose is the facade's centrepiece, as in the reference.
 MAIN_GABLE = (0.6, 0.5, 42.0)
 MAIN_GABLE_ROSE_HEIGHT = 9.71
-# The crossing tower stands on the ridge of the hall behind the towers (ridge 66 m at x 45..52): a 24 m
-# square tower to 130 m and an 85 m spire whose tip, at about 214 m, towers over everything, the big ring
-# (RINGS[0]) round its top, as the central spire does in the reference. It is 10 m off the centre line:
-# on the axis it hides behind the left tower's spire from the hero camera.
-CROSSING = (48.0, 10.0, 60.0)
+# The great tower stands at the back of the cathedral, as the huge spire does in the reference: from the
+# ground at the east end, a 30 m square tower to 110 m and a 130 m crocketed spire whose tip, at 239 m,
+# still towers over the west spires from both cameras despite the distance, with the big ring (RINGS[0])
+# round it. It takes the east end's north corner
+# (x 76, y 20) because from both HeroCamera and ReferenceCamera that is where it shows between the west
+# spires; on the axis it hides behind the left one.
+GREAT_TOWER = (76.0, 20.0, 0.0)
 FLANK_WALL = 57.8  # |y| of the flank walls' face
 FLANK_ROSE = (46.5, 16.5)  # x of the rose's centre, z of its base (13 m across: up to 29.5 m)
 FLANK_LANCETS = (40.5, 44.5, 48.5, 52.5)  # x of each lancet (10 m tall, from z 3)
@@ -107,8 +109,8 @@ FLANK_BUTTRESSES = (37.5, 55.5)  # x of each flyer, either side of the rose
 BEAM = unreal.LinearColor(0.30, 0.75, 1.00, 1.0)
 # They graze past the spires into the sky; strong fog scattering, modest intensity, so the air glows more
 # than the stone they touch.
-BEAMS = (((-35, -55, 0.3), (13.7, -30.0, 140)), ((-20, -62, 0.3), (CROSSING[0], CROSSING[1] - 8, 175)),
-         ((-35, 55, 0.3), (13.7, 32.0, 140)), ((-20, 62, 0.3), (CROSSING[0], CROSSING[1] + 8, 175)))
+BEAMS = (((-35, -55, 0.3), (13.7, -30.0, 140)), ((-20, -62, 0.3), (GREAT_TOWER[0], GREAT_TOWER[1] - 12, 215)),
+         ((-35, 55, 0.3), (13.7, 32.0, 140)), ((-20, 62, 0.3), (GREAT_TOWER[0], GREAT_TOWER[1] + 12, 215)))
 # The parvis: two balustraded edges parallel to the nave, from beside the camera to just short of the facade.
 # From the hero camera the y < 0 edge recedes from the frame's lower right toward the towers.
 PARVIS_EDGES = (-40.0, 40.0)  # y (m)
@@ -693,7 +695,7 @@ def glass_light(loc_m, yaw, color, size_m, label):
 
 
 def dress_church(kit):
-    """Rose-window gables on the wings' west faces, a crossing spire through the big ring, cyan searchlights,
+    """The great west gable and the wings' rose-window gables, the great tower at the back, cyan searchlights,
     and on each flank a rose over lancets braced by flying buttresses."""
     mats, glass = kit["materials"], kit["glass"]
     if "main_gable" in kit:
@@ -717,8 +719,8 @@ def dress_church(kit):
                 for dy in (-half - 0.4, half + 0.4):
                     kit_piece(kit["pinnacle"], (x, y + dy, WING_GABLE_BASE), 8.0 / mesh_size_m(kit["pinnacle"])[2], 0.0, mats,
                               "GablePinnacle", "Cathedral/Church/Gables")
-    if "crossing_tower" in kit:
-        kit_piece(kit["crossing_tower"], CROSSING, 1.0, 0.0, dict(mats, Glass=glass["Cyan"]), "CrossingTower", "Cathedral/Church")
+    if "great_tower" in kit:
+        kit_piece(kit["great_tower"], GREAT_TOWER, 1.0, 0.0, dict(mats, Glass=glass["Cyan"]), "GreatTower", "Cathedral/Church")
     for src, dst in BEAMS:
         _, comp = light(unreal.SpotLight, src, look_at(src, dst), BEAM, 3.0e5, "Cathedral/Lights/Beams", "Searchlight",
                         radius_m=math.dist(src, dst) * 1.3, scatter=15.0)
@@ -822,7 +824,7 @@ def build_windows(win, facade_only=False):
 
 
 RINGS = [  # centre (m), diameter (m), tilt, ring count, intensity
-    ((48, 10, 128), 82, rot(pitch=8, roll=-6), 6, 4.0),  # crowns the crossing tower; its spire rises clear above
+    ((76, 20, 170), 82, rot(pitch=8, roll=-6), 6, 4.0),  # round the great tower's spire, which rises clear above
     ((8, -55, 86), 58, rot(pitch=16, roll=14), 5, 4.0),
     ((14, 56, 82), 48, rot(pitch=-14, roll=-12), 5, 4.0),
     ((-6, -42, 52), 24, rot(pitch=10, roll=8), 3, 3.0),
@@ -914,15 +916,15 @@ def build_post():
 
 
 def build_camera():
-    # Pitched up ~26 degrees with a 90 degree lens: the plaza and skyline stay in frame, and the crossing
-    # spire's tip (214 m) just fits under the top edge.
+    # Pitched up ~26 degrees with a 90 degree lens: the plaza and skyline stay in frame, and the great
+    # tower's spire (239 m) fits under the top edge.
     eye, target = (-95, -35, 1.7), (25, 0, 62.7)
     cam = spawn(unreal.CameraActor, m_to_cm(*eye), look_at(eye, target), label="HeroCamera")
     props(cam.camera_component, {"field_of_view": 90.0})
     cam.set_editor_property("auto_activate_for_player", unreal.AutoReceiveInput.PLAYER0)
     spawn(unreal.PlayerStart, m_to_cm(*eye), look_at(eye, target), label="PlayerStart")
     # The reference image's view: further back and to the left, looking up at the whole cathedral, where the
-    # crossing spire stands well clear above the west towers. Render it with -Camera ReferenceCamera.
+    # great tower's spire stands well clear above the west towers. Render it with -Camera ReferenceCamera.
     eye, target = (-175, -95, 2), (20, 0, 78)
     ref = spawn(unreal.CameraActor, m_to_cm(*eye), look_at(eye, target), label="ReferenceCamera")
     props(ref.camera_component, {"field_of_view": 80.0})
