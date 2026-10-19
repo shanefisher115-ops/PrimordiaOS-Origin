@@ -51,10 +51,11 @@ CHURCH_TEXTURE = "/Game/ThirdParty/GothicRevivalChurch/T_Church_Diffuse"  # opti
 CHURCH_NORMAL = "/Game/ThirdParty/GothicRevivalChurch/T_Church_Normal"
 CHURCH_ROUGHNESS = "/Game/ThirdParty/GothicRevivalChurch/T_Church_Roughness"
 CHURCH_SCALE = 3.0
-# Tower tops in model space (cm), measured from the mesh: (x range, y range), all ending at z 3024.
-# The model's towers end in open belfries, so the script caps each with a spire.
-CHURCH_TOWERS = (((-810, -149), (-1198, -590)), ((124, 785), (-1198, -590)))
-CHURCH_TOWER_TOP = 3024
+# Tower tops in model space (cm), measured from the mesh with the realm look-dev skill's
+# measure_mesh_tops.py: (x range, y range), both ending at z 2919. (The mesh's highest point, 3024,
+# is a pinnacle at the back.) The model's towers end in open belfries, so the script caps each with a spire.
+CHURCH_TOWERS = (((-799, -149), (-1198, -520)), ((124, 785), (-1198, -520)))
+CHURCH_TOWER_TOP = 2919
 
 CYAN = unreal.LinearColor(0.04, 0.50, 1.00, 1.0)
 MAGENTA = unreal.LinearColor(0.85, 0.15, 1.00, 1.0)
