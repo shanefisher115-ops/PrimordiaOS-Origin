@@ -431,12 +431,23 @@ The building is a blockout made from engine basic shapes, in the `Cathedral/Bloc
 | Asset / actor | Setup |
 |---|---|
 | `M_CathedralStone` + `MI_CathedralStone` | Opaque. `StoneAlbedo` (put a Fab/Megascans albedo here) × `BaseColor` (dark desaturated grey). Large-scale world-space noise blends between dry (`RoughnessDry` 0.8) and wet (`RoughnessWet` 0.2, darkened by `WetDarkening`). Nanite-safe. |
-| `M_CathedralWindow` + `_Cyan`, `_Magenta`, `_Rose` | Unlit, opaque, two-sided. Procedural glass: lancet arch with mullion and diamond leading, or a rose with `Petals` spokes when `Rose` = 1. **`GlobalEmissive` on the parent drives every window instance at once.** |
+| `M_CathedralWindow` + `_Cyan`, `_Magenta`, `_Rose` | Unlit, additive, two-sided, so the plane leaves nothing on the wall outside the glass. Procedural glass: lancet arch with mullion and diamond leading, or a rose with `Petals` spokes when `Rose` = 1. **`GlobalEmissive` on the parent drives every window instance at once.** |
 | `M_CathedralRing` + `MI_CathedralRing_<cluster><layer>` | Additive, unlit, two-sided, drawn on a flat plane: `RingCount` concentric rings, streaks flowing around each ring (alternating direction), radius wobble so the rings seem to vibrate, a white-hot core, and a soft halo around each line (`Halo`, `HaloWidth`). Each cluster stacks two planes for depth. |
 | Lights | Dim moon (directional, atmosphere sun), indigo sky light (real-time capture), rect light outside each window (volumetric scattering 2), warm point lights along the facade base, big warm horizon lights 35 m up that tint the fog orange inside a camera that looks up, and a narrow spot under each ring (cone 7°, volumetric scattering 6) for the god rays. |
 | Sky and fog | Sky atmosphere, volumetric clouds, exponential height fog with **volumetric fog on**. |
 | `CathedralLook` (unbound post process, priority 1) | Lumen GI and reflections, **manual exposure**, bloom 2.2 with a large size, contrast 1.18, shadows pushed to blue/teal, saturated highlights, vignette 0.75, chromatic aberration (scene fringe) 0.2, light film grain. |
 | `HeroCamera` | Low on the plaza, looking up at the spires. Auto-activates for player 0, so Play shows the hero shot. |
+
+### Real architecture: the free Gothic Revival Church
+
+If `/Game/ThirdParty/GothicRevivalChurch/SM_GothicRevivalChurch` exists in the project, the script places it in place of the blockout. It's scaled ×3, turned so its twin-tower facade faces the hero camera, and given a two-sided copy of the stone (`MI_CathedralStone_TwoSided`, because some of its faces point inward). Only the centre window group is kept, which fills the gap between its towers. The committed map is the blockout version; re-run the script in a project that has the mesh.
+
+The model is *Gothic Revival Church - White - 3D Model* by **EFADKZ** on Fab, licensed **CC BY 4.0**. Credit the author wherever you share renders. It isn't in this repo. To set it up:
+
+1. Add it to your Fab library and download the FBX zip.
+2. Import `source/Church_2024_PBR_White_Lite.fbx` to `/Game/ThirdParty/GothicRevivalChurch` as a **static** mesh with Nanite on, no materials and no textures. The FBX carries a rig, so in a scripted import turn off `automated_import_should_detect_type`, or Unreal brings it in as a skeletal mesh.
+
+The "Lite" model's towers end in open belfries with no spires, and its facade is open between the towers.
 
 ### Notes on common look-guide advice
 

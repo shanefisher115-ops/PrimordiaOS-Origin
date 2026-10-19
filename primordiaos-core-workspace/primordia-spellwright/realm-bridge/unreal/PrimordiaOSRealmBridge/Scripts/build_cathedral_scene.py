@@ -42,6 +42,12 @@ CUBE = "/Engine/BasicShapes/Cube"
 CONE = "/Engine/BasicShapes/Cone"
 PLANE = "/Engine/BasicShapes/Plane"
 
+# Optional real architecture: if this mesh exists in the project it replaces the blockout.
+# The free "Gothic Revival Church - White - 3D Model" by EFADKZ on Fab (CC BY 4.0) fits; import its
+# FBX here as a static Nanite mesh (see docs §9). Its twin-tower facade faces -Y in model space.
+CHURCH_MESH = "/Game/ThirdParty/GothicRevivalChurch/SM_GothicRevivalChurch"
+CHURCH_SCALE = 3.0
+
 CYAN = unreal.LinearColor(0.04, 0.50, 1.00, 1.0)
 MAGENTA = unreal.LinearColor(0.85, 0.15, 1.00, 1.0)
 ROSE = unreal.LinearColor(1.00, 0.25, 0.55, 1.0)
@@ -230,7 +236,9 @@ return WindowColor * GlobalEmissive * glass * flicker;
 
 def build_window():
     m = new_material("M_CathedralWindow")
-    m.set_editor_property("blend_mode", unreal.BlendMode.BLEND_OPAQUE)
+    # Additive: outside the glass the window adds nothing, so the plane leaves no square on the wall
+    # and the stone shows through the leading.
+    m.set_editor_property("blend_mode", unreal.BlendMode.BLEND_ADDITIVE)
     m.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_UNLIT)
     m.set_editor_property("two_sided", True)
     c = custom_node(m, "CathedralWindow", WINDOW_CODE, ["UV", "Time", "WindowColor", "GlobalEmissive", "Rose", "Petals"])
@@ -377,10 +385,32 @@ def open_map():
 
 # ---------------------------------------------------------------- scene
 
-def build_building(stone, win):
+def place_church(mesh, material):
+    """Turns the church so its facade faces -X, then puts the facade at x = 0 and the base on the plaza."""
+    box = mesh.get_bounding_box()
+    s = CHURCH_SCALE
+    # Yaw -90 maps model (x, y) to world (y, -x): the model's -Y facade ends up facing -X.
+    loc = unreal.Vector(-box.min.y * s, (box.min.x + box.max.x) * 0.5 * s, -box.min.z * s)
+    actor = spawn(unreal.StaticMeshActor, loc, rot(yaw=-90.0), "Cathedral/Church", "GothicRevivalChurch")
+    comp = actor.static_mesh_component
+    comp.set_mobility(unreal.ComponentMobility.STATIC)
+    comp.set_static_mesh(mesh)
+    for i in range(comp.get_num_materials()):
+        comp.set_material(i, material)
+    actor.set_actor_scale3d(unreal.Vector(s, s, s))
+
+
+def build_building(stone, win, church=None, church_stone=None):
     """Facade faces -X at x = 0. Units are metres."""
     shape(PLANE, (40, 0, 0), (400, 400, 1), stone, label="Plaza")
+    if church:
+        place_church(church, church_stone)
+    else:
+        build_blockout(stone)
+    build_windows(win, facade_only=church is not None)
 
+
+def build_blockout(stone):
     shape(CUBE, (40, 0, 20), (80, 34, 40), stone, label="Nave")
     shape(CUBE, (40, 0, 40), (80, 24, 24), stone, rot(roll=45), label="NaveRoof")
     shape(CUBE, (1, 0, 40), (2, 24, 24), stone, rot(roll=45), label="Gable")
@@ -402,12 +432,16 @@ def build_building(stone, win):
     for dx, dy in ((-7, -7), (-7, 7), (7, -7), (7, 7)):
         shape(CONE, (50 + dx, dy, 96), (3, 3, 12), stone, label="CrossingPinnacle")
 
+
+def build_windows(win, facade_only=False):
     # Windows: (centre, width, height, facing yaw, (instance, light colour))
     windows = [((-0.05, 0, 27), 14, 14, 180, win["Rose"]),
                ((-0.05, 0, 5), 6, 10, 180, win["Cyan"]),
                ((-0.05, -7, 11), 3, 10, 180, win["Magenta"]),
                ((-0.05, 7, 11), 3, 10, 180, win["Magenta"])]
-    for side in (-1, 1):
+    # A real mesh has its own window openings; only the centre group, which fills the gap
+    # between the church's towers, is kept.
+    for side in (() if facade_only else (-1, 1)):
         y = side * 22
         windows += [((-7.05, y, 30), 4, 12, 180, win["Magenta"]),
                     ((-7.05, y, 52), 4, 12, 180, win["Cyan"]),
@@ -415,7 +449,8 @@ def build_building(stone, win):
         for x in range(15, 80, 10):
             windows.append(((x, side * 17.05, 18), 4, 16, 90 * side, win["Cyan"]))
         windows.append(((50, side * 8.05, 70), 5, 14, 90 * side, win["Magenta"]))
-    windows += [((41.95, 0, 70), 5, 14, 180, win["Cyan"])]
+    if not facade_only:
+        windows += [((41.95, 0, 70), 5, 14, 180, win["Cyan"])]
 
     for (x, y, z), w, h, yaw, (mi, color) in windows:
         # Plane faces +Z; pitch 90 turns it to face +X, then yaw aims it.
@@ -543,8 +578,20 @@ def build():
     }
     ring = build_ring()
 
+    church = unreal.load_asset(CHURCH_MESH)
+    church_stone = None
+    if church:
+        # Some of the church's faces point inward, so it gets a two-sided copy of the stone.
+        church_stone = instance(stone, "MI_CathedralStone_TwoSided")
+        overrides = church_stone.get_editor_property("base_property_overrides")
+        overrides.set_editor_property("override_two_sided", True)
+        overrides.set_editor_property("two_sided", True)
+        church_stone.set_editor_property("base_property_overrides", overrides)
+        MEL.update_material_instance(church_stone)
+        save(church_stone)
+
     open_map()
-    build_building(stone_mi, win)
+    build_building(stone_mi, win, church, church_stone)
     build_rings(ring)
     build_lighting()
     build_post()
