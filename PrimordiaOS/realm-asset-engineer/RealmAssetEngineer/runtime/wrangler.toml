@@ -1,0 +1,22 @@
+# Cloudflare (cloud) realm for RealmAssetEngineer. From the agent root:
+#   local (Miniflare/workerd):  npx wrangler dev -c runtime/wrangler.toml      -> http://127.0.0.1:8791
+#   deploy:                     npx wrangler secret put PRIMORDIA_TOKEN -c runtime/wrangler.toml
+#                               npx wrangler deploy -c runtime/wrangler.toml
+#   endpoint:                   https://primordia-agent-realmassetengineer.<your-subdomain>.workers.dev
+name = "primordia-agent-realmassetengineer"
+main = "worker.js"
+compatibility_date = "2024-09-23"
+
+[vars]
+AUTORUN = "1"
+
+[[durable_objects.bindings]]
+name = "AGENT"
+class_name = "AgentContainer"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["AgentContainer"]
+
+[dev]
+port = 8791

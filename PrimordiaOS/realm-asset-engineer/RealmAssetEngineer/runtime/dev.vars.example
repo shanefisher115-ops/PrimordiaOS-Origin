@@ -1,0 +1,2 @@
+# Copy to runtime/.dev.vars for `wrangler dev` (never commit the real file)
+PRIMORDIA_TOKEN=dev-token-change-me

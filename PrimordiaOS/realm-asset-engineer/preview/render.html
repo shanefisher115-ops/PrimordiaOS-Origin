@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Realm asset preview</title>
+<script type="importmap">{ "imports": { "three": "/vendor/three/build/three.module.js", "three/addons/": "/vendor/three/examples/jsm/" } }</script>
+</head>
+<body style="margin:0;background:#000">
+<canvas id="c" width="320" height="320"></canvas>
+<script type="module">
+// Headless turntable renderer, driven by workshop/preview.mjs through puppeteer.
+import { AssetStage } from '/preview/stage.js';
+
+const canvas = document.getElementById('c');
+let stage = null;
+
+function glInfo() {
+  const gl = stage.renderer.getContext();
+  const ext = gl.getExtension('WEBGL_debug_renderer_info');
+  return ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
+}
+
+window.renderAsset = async ({ glbUrl, pack, heroSize = 320, heroYaw = 30, stripFrames = 8, stripSize = 128, visionSize = 448 }) => {
+  const t0 = performance.now();
+  if (!stage) stage = new AssetStage(canvas, { width: heroSize, height: heroSize, preserve: true });
+  stage.setLook(pack);
+  const size = await stage.load(glbUrl);
+
+  stage.setSize(heroSize, heroSize); stage.frame(0, 10); stage.render(heroYaw);
+  const hero = canvas.toDataURL('image/webp', 0.82);
+
+  stage.setSize(visionSize, visionSize); stage.frame(0, 10); stage.render(heroYaw);
+  const vision = canvas.toDataURL('image/jpeg', 0.85);
+
+  stage.setSize(stripSize, stripSize); stage.frame(0, 10);
+  const strip = document.createElement('canvas');
+  strip.width = stripSize * stripFrames; strip.height = stripSize;
+  const g = strip.getContext('2d');
+  for (let i = 0; i < stripFrames; i++) {
+    stage.render(heroYaw + (i * 360) / stripFrames);
+    g.drawImage(canvas, i * stripSize, 0);
+  }
+  const stripUrl = strip.toDataURL('image/webp', 0.8);
+  stage.clearAsset();
+  return { hero, vision, strip: stripUrl, size, ms: Math.round(performance.now() - t0), gl: glInfo() };
+};
+window.previewReady = true;
+</script>
+</body>
+</html>

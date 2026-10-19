@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d0f16">
+<title>Realm Asset Review</title>
+<link rel="stylesheet" href="/gallery/style.css">
+<!-- Served by the workshop, config.js says mode "api" (the workshop holds the keys). Hosted elsewhere, a static
+     config.js sets mode "supabase" with the project URL and the public anon key; access then rests on RLS. -->
+<script src="/config.js"></script>
+<script>
+  // three.js: the workshop serves its pinned copy; anywhere else the same pinned version from jsDelivr.
+  (function () {
+    var local = (window.RAE_CONFIG || {}).mode === 'api';
+    var base = local ? '/vendor/three/' : 'https://cdn.jsdelivr.net/npm/three@0.186.1/';
+    var map = document.createElement('script');
+    map.type = 'importmap';
+    map.textContent = JSON.stringify({ imports: { three: base + 'build/three.module.js', 'three/addons/': base + 'examples/jsm/' } });
+    document.currentScript.after(map);
+  })();
+</script>
+<script type="module" src="/gallery/app.js"></script>
+</head>
+<body>
+<header class="bar">
+  <div class="title"><span class="glyph" aria-hidden="true">◆</span> Realm assets</div>
+  <button id="briefBtn" class="ghost" type="button">+ Brief</button>
+</header>
+<div id="status" class="status" aria-live="polite"></div>
+<nav class="filters">
+  <div class="tabs" role="tablist">
+    <button role="tab" data-verdict="kept" aria-selected="true">To review</button>
+    <button role="tab" data-verdict="approved">Approved</button>
+    <button role="tab" data-verdict="rejected">Rejected</button>
+    <button role="tab" data-verdict="">All</button>
+  </div>
+  <select id="genre" aria-label="Genre"><option value="">All genres</option></select>
+</nav>
+<main>
+  <div id="grid" class="grid"></div>
+  <p id="empty" class="empty" hidden>Nothing here yet. The engineer adds pieces as it finds them.</p>
+  <button id="more" class="ghost more" type="button" hidden>Load more</button>
+</main>
+
+<section id="detail" class="sheet" hidden aria-modal="true" role="dialog" aria-labelledby="dName">
+  <div class="sheet-head">
+    <button id="back" class="ghost" type="button" aria-label="Back">‹ Back</button>
+    <div class="nav">
+      <button id="prev" class="ghost" type="button" aria-label="Previous">‹</button>
+      <button id="next" class="ghost" type="button" aria-label="Next">›</button>
+    </div>
+  </div>
+  <div class="viewer">
+    <canvas id="view3d" aria-label="3D view: drag to orbit, pinch to zoom"></canvas>
+    <div id="turntable" class="turntable" hidden title="Drag to turn"></div>
+    <div id="viewNote" class="view-note"></div>
+  </div>
+  <div class="info">
+    <h2 id="dName"></h2>
+    <div id="dSub" class="sub"></div>
+    <div id="dBadges" class="badges"></div>
+    <details open><summary>Recipe</summary><dl id="dParams" class="kv"></dl></details>
+    <details><summary>Measurements</summary><dl id="dMetrics" class="kv"></dl></details>
+    <details><summary>Lineage</summary><dl id="dLineage" class="kv"></dl></details>
+  </div>
+  <div class="actions">
+    <input id="note" type="text" maxlength="500" placeholder="Note (optional)" aria-label="Review note">
+    <div class="buttons">
+      <button id="reject" class="reject" type="button">Reject</button>
+      <button id="approve" class="approve" type="button">Approve</button>
+    </div>
+    <button id="undo" class="ghost undo" type="button" hidden>Back to review</button>
+  </div>
+</section>
+
+<section id="briefSheet" class="sheet small" hidden aria-modal="true" role="dialog" aria-labelledby="briefTitle">
+  <div class="sheet-head"><button id="briefClose" class="ghost" type="button">‹ Back</button></div>
+  <form id="briefForm" class="form">
+    <h2 id="briefTitle">New brief</h2>
+    <label>Genre <select id="bGenre" required></select></label>
+    <label>How many pieces <input id="bCount" type="number" min="1" max="50" value="6" required></label>
+    <label>Notes <textarea id="bNotes" rows="3" maxlength="500" placeholder="e.g. tall slender spires, ornate"></textarea></label>
+    <button class="approve" type="submit">Queue brief</button>
+    <p id="briefMsg" class="sub" aria-live="polite"></p>
+    <h3>Recent briefs</h3>
+    <ul id="briefList" class="brief-list"></ul>
+  </form>
+</section>
+
+<div id="login" class="sheet small" hidden>
+  <form id="loginForm" class="form">
+    <h2>Gallery token</h2>
+    <p class="sub">Open the link the workshop printed (it ends in <code>?t=…</code>), or paste the token.</p>
+    <label>Token <input id="tokenInput" type="password" autocomplete="off" required></label>
+    <div id="sbLogin" hidden>
+      <label>Email <input id="email" type="email" autocomplete="username"></label>
+      <label>Password <input id="password" type="password" autocomplete="current-password"></label>
+    </div>
+    <button class="approve" type="submit">Open</button>
+    <p id="loginMsg" class="sub" aria-live="polite"></p>
+  </form>
+</div>
+<div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>

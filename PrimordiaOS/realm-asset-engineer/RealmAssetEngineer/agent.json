@@ -1,0 +1,20 @@
+{
+  "name": "RealmAssetEngineer",
+  "version": "1.0.0",
+  "description": "Autonomous realm-asset engineer: turns genre briefs into Primordia-cad recipes, judges the built pieces (mechanical checks, silhouette variety, taste from Shane's reviews, optional vision score) and curates the catalog",
+  "capabilities": [
+    "design",
+    "judge",
+    "curate"
+  ],
+  "realm": "dev",
+  "entry": "agent.js",
+  "safety": {
+    "max_loop_depth": 5,
+    "idempotent": true,
+    "promotion_rules": [
+      "no-infinite-recursion",
+      "no-self-promotion"
+    ]
+  }
+}

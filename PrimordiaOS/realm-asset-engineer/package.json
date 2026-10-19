@@ -1,0 +1,26 @@
+{
+  "name": "primordia-realm-asset-engineer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Autonomous realm-asset engineer: generates, judges and catalogues Primordia-cad scene assets per genre (Supabase catalog, WebGL previews and gallery, overnight Unreal imports)",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "start": "node workshop/main.mjs",
+    "once": "node workshop/main.mjs --once",
+    "gallery": "node workshop/main.mjs --gallery-only",
+    "migrate": "node scripts/migrate.mjs",
+    "unreal-batch": "node unreal/batch_import.mjs",
+    "test": "node --test \"test/*.test.mjs\""
+  },
+  "dependencies": {
+    "pg": "8.23.0",
+    "puppeteer-core": "25.12.0",
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8"
+  }
+}
