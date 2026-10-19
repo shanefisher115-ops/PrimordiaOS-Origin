@@ -29,7 +29,7 @@ node gothic.mjs spire --help
 
 - `--<param> <value>`: any generator parameter (kebab or camel case: `--base-width` = `--baseWidth`).
 - `--out`: `.glb` or `.obj` (an `.mtl` is written next to an `.obj`). Default `<generator>.glb`.
-- `--preview <png>`: a quick software-rendered picture of the piece (`--yaw`, `--pitch` in degrees).
+- `--preview <png>`: a quick software-rendered picture of the piece (`--view-yaw`, `--view-pitch` in degrees).
 - `kit`: writes every piece of the default kit (or `--preset kit.json`: `[{ "name", "kind", "params" }]`)
   in `--formats glb,obj`, plus `manifest.json` (params, bounds, triangle counts, sockets) and `preview.png`.
 

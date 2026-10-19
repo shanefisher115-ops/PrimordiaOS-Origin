@@ -7,7 +7,7 @@ import { previewPNG } from "./preview.ts";
 
 const USAGE = `Primordia-cad gothic kernel: parametric Gothic architecture as glTF/OBJ meshes (metres, Z up in the kernel, Y up in files).
 
-  node gothic.mjs <generator> [--<param> <value> ...] [--out <file.glb|file.obj>] [--name <MeshName>] [--preview <file.png>]
+  node gothic.mjs <generator> [--<param> <value> ...] [--out <file.glb|file.obj>] [--name <MeshName>] [--preview <file.png> [--view-yaw <deg>] [--view-pitch <deg>]]
   node gothic.mjs kit [--out <dir>] [--formats glb,obj] [--preset <kit.json>]   (also writes <dir>/preview.png)
   node gothic.mjs list
   node gothic.mjs <generator> --help
@@ -31,6 +31,7 @@ export const DEFAULT_KIT: { name: string; kind: string; params: Record<string, n
     // lancet band), the crossing spire that rises through the big ring, and the flank walls' rose, lancets and
     // flying buttresses.
     { name: "SM_GothicGableRose", kind: "gable", params: { width: 15, wallHeight: 6, lancets: 0 } },
+    { name: "SM_GothicGableMain", kind: "gable", params: { width: 28, pitch: 60, wallHeight: 4, depth: 2, lancets: 0 } },
     { name: "SM_GothicSpireCrossing", kind: "spire", params: { height: 105, baseWidth: 12, crockets: 14, crocketSize: 1.4, bands: 3, finialHeight: 6 } },
     { name: "SM_GothicRoseWindowFlank", kind: "rose", params: { diameter: 13, depth: 0.9, petals: 16, rimWidth: 0.8 } },
     { name: "SM_GothicLancetFlank", kind: "lancet", params: { width: 2.2, height: 10, lights: 2, frameWidth: 0.4, depth: 0.9 } },
@@ -127,14 +128,14 @@ export function main(argv: string[]): number {
     }
     if (options.help) { console.log(describe(cmd)); return 0; }
     const gen = generatorFor(cmd);
-    const { out, name, preview, yaw, pitch, ...rest } = options;
+    const { out, name, preview, viewYaw, viewPitch, ...rest } = options;
     for (const key of Object.keys(rest)) {
         if (!(key in gen.params)) throw new Error(`${cmd} has no parameter --${key}; run "node gothic.mjs ${cmd} --help"`);
     }
     const g = generate(cmd, rest, name);
     const files = writeGeometry(g, out ?? `${cmd}.glb`);
     if (preview) {
-        writeFileSync(preview, previewPNG([g], { size: 768, yaw: yaw === undefined ? undefined : +yaw, pitch: pitch === undefined ? undefined : +pitch }));
+        writeFileSync(preview, previewPNG([g], { size: 768, yaw: viewYaw === undefined ? undefined : +viewYaw, pitch: viewPitch === undefined ? undefined : +viewPitch }));
         files.push(preview);
     }
     console.log(summary(g, files));

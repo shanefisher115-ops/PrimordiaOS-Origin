@@ -684,7 +684,7 @@ function gableLayout(p: Params) {
     const W = p.width, hw = p.wallHeight, D = p.depth;
     const ht = (W / 2) * Math.tan(rad(p.pitch));
     const c = clamp(0.03 * W, 0.12, 0.6); // coping width
-    const sc = clamp(0.035 * W, 0.15, 1.0); // crocket size
+    const sc = clamp(0.055 * W, 0.15, 2.0); // crocket size: big gables need big crockets to read
     const fh = clamp(0.12 * W, 0.5, 4); // finial height
     const H = hw + ht;
     const margin = Math.max(0.2, 0.04 * W);
