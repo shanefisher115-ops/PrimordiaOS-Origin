@@ -1,4 +1,13 @@
-﻿Surfaces: 12
-Contours: 4
-Pockets: 2
-Timestamp: 08/17/2026 01:19:53
+﻿Part: pinnacle --height 5 --crockets 4
+Generator: pinnacle (SM_GothicPinnacle)
+Params: height=5, width=0.9, crockets=4, gablets=1, panels=1
+Mesh: cad-part.glb
+Triangles: 5060
+Vertices: 6534
+Closed: true
+Genus: 0
+Materials: Stone
+BoundsMin: -0.504, -0.504, 0
+BoundsMax: 0.504, 0.504, 5
+Size: 1.008 x 1.008 x 5 m
+Timestamp: 10/19/2026 09:50:56

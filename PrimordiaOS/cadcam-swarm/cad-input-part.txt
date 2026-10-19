@@ -1,1 +1,3 @@
-﻿PART A - BLOCK 50x50x20
+# Part for geometry-agent.ps1: a Primordia-cad generator and its parameters, as for `node gothic.mjs`.
+# Generators: spire, pinnacle, lancet, rose, buttress, balustrade, lamp (`node gothic.mjs list` prints the parameters).
+pinnacle --height 5 --crockets 4
