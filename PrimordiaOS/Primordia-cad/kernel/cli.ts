@@ -26,6 +26,15 @@ export const DEFAULT_KIT: { name: string; kind: string; params: Record<string, n
     { name: "SM_GothicBalustradeTracery", kind: "balustrade", params: { style: 1 } },
     { name: "SM_GothicStreetLamp", kind: "lamp", params: {} },
     { name: "SM_GothicStreetLampTwin", kind: "lamp", params: { arms: 2, height: 4.8 } },
+    { name: "SM_GothicGable", kind: "gable", params: {} },
+    // Sized to the cathedral's measured walls (build_cathedral_scene.py): the wings' west gables (all rose, no
+    // lancet band), the crossing spire that rises through the big ring, and the flank walls' rose, lancets and
+    // flying buttresses.
+    { name: "SM_GothicGableRose", kind: "gable", params: { width: 15, wallHeight: 6, lancets: 0 } },
+    { name: "SM_GothicSpireCrossing", kind: "spire", params: { height: 105, baseWidth: 12, crockets: 14, crocketSize: 1.4, bands: 3, finialHeight: 6 } },
+    { name: "SM_GothicRoseWindowFlank", kind: "rose", params: { diameter: 13, depth: 0.9, petals: 16, rimWidth: 0.8 } },
+    { name: "SM_GothicLancetFlank", kind: "lancet", params: { width: 2.2, height: 10, lights: 2, frameWidth: 0.4, depth: 0.9 } },
+    { name: "SM_GothicFlyingButtressFlank", kind: "buttress", params: { span: 7, height: 34, pierWidth: 2.2, pierDepth: 3, thickness: 1.6 } },
 ];
 
 function camel(flag: string): string {

@@ -9,7 +9,7 @@ import {
 } from "./ops.ts";
 import type { Vec2, Vec3 } from "./ops.ts";
 import type { Box } from "./mesh.ts";
-import { clamp } from "./params.ts";
+import { clamp, resolveParams } from "./params.ts";
 import type { ParamSpecs, Params } from "./params.ts";
 
 export interface Generator {
@@ -667,4 +667,123 @@ export const lamp: Generator = {
     },
 };
 
-export const GENERATORS: Record<string, Generator> = { spire, pinnacle, lancet, rose, buttress, balustrade, lamp };
+// ---------------------------------------------------------------- gable
+
+const gableParams: ParamSpecs = {
+    width: { default: 15, min: 2, max: 40, doc: "width at the base (m)" },
+    pitch: { default: 60, min: 35, max: 75, doc: "rake angle (degrees)" },
+    wallHeight: { default: 5, min: 0, max: 30, doc: "height of the straight wall under the triangle (m)" },
+    depth: { default: 1.5, min: 0.2, max: 4, doc: "wall thickness (m)" },
+    lancets: { default: 5, min: 0, max: 12, integer: true, doc: "lancet windows in the straight wall (needs wallHeight >= 2)" },
+    rose: { default: 1, min: 0, max: 1, integer: true, doc: "rose window in the gable (0/1)" },
+    crockets: { default: 1, min: 0, max: 1, integer: true, doc: "crockets along the coping (0/1)" },
+    glass: { default: 1, min: 0, max: 1, integer: true, doc: "glazing in the 'Glass' material slot (0/1)" },
+};
+
+function gableLayout(p: Params) {
+    const W = p.width, hw = p.wallHeight, D = p.depth;
+    const ht = (W / 2) * Math.tan(rad(p.pitch));
+    const c = clamp(0.03 * W, 0.12, 0.6); // coping width
+    const sc = clamp(0.035 * W, 0.15, 1.0); // crocket size
+    const fh = clamp(0.12 * W, 0.5, 4); // finial height
+    const H = hw + ht;
+    const margin = Math.max(0.2, 0.04 * W);
+    const outline: Vec2[] = [[-W / 2, 0], [W / 2, 0], [W / 2, hw], [0, H], [-W / 2, hw]];
+    // Each lancet needs a slot at least 1 m wide and 1.5 m of wall height.
+    const lancets = hw - margin >= 1.5 ? Math.min(p.lancets, Math.floor((W - 2 * margin) / 1.0)) : 0;
+    // Rose: the largest circle that fits the triangle above the lancet band, with a margin of stone.
+    let rose = { z: 0, r: 0 };
+    if (p.rose) {
+        const wall = section(outline);
+        const zMin = (lancets > 0 ? hw : 0) + margin;
+        for (let i = 0; i <= 60; i++) {
+            const z = zMin + ((H - zMin) * i) / 60;
+            const r = Math.min(distanceToEdges(wall, 0, z) - margin - c, z - zMin);
+            if (r > rose.r) rose = { z, r };
+        }
+        if (rose.r < 0.6) rose = { z: 0, r: 0 };
+    }
+    return { W, hw, D, ht, c, sc, fh, H, margin, outline, lancets, rose };
+}
+
+export const gable: Generator = {
+    name: "gable",
+    title: "Gable",
+    doc: "Gabled wall facing -Y: a rose window in the triangle over a band of lancets, a moulded coping with crockets, and a finial.",
+    material: "Stone",
+    params: gableParams,
+    bounds(p) {
+        const L = gableLayout(p);
+        const hx = L.W / 2 + 2 * L.c + 1.4 * L.sc, hy = L.D / 2 + 0.35;
+        return box3(-hx, -hy, 0, hx, hy, L.H + 2 * L.c + L.fh + 0.3 * L.sc);
+    },
+    sockets(p) {
+        const L = gableLayout(p);
+        return L.rose.r > 0 ? { apex: [0, 0, L.H], rose: [0, 0, L.rose.z] } : { apex: [0, 0, L.H] };
+    },
+    build(p, warn) {
+        const L = gableLayout(p);
+        const { W, hw, D, ht, c, sc, H, margin, outline } = L;
+        let wall = section(outline);
+        const parts: Solid[] = [];
+        const holes: Section[] = [];
+
+        // Lancets in the straight wall: openings cut through, windows (frames proud of both faces) set in.
+        const n = L.lancets;
+        if (n < p.lancets) warn(`lancets: ${n} fit in a ${W} m x ${hw} m wall`);
+        if (n > 0) {
+            const slot = (W - 2 * margin) / n;
+            const lp = resolveParams(lancet.params, {
+                width: 0.55 * slot, height: hw - margin, pointedness: 1, lights: 1, frameWidth: 0.1 * slot, depth: D + 0.2, foils: 0, glass: p.glass,
+            }).params;
+            const ll = lancetLayout(lp);
+            const window = lancet.build(lp, warn);
+            const cut = section(pointedArch(ll.a, ll.spring, ll.R, ll.sill).outline);
+            for (let i = 0; i < n; i++) {
+                const x = -W / 2 + margin + slot * (i + 0.5);
+                holes.push(cut.translate([x, margin * 0.5]));
+                parts.push(window.translate([x, 0, margin * 0.5]));
+            }
+        }
+        if (L.rose.r > 0) {
+            const best = L.rose;
+            {
+                const d = 2 * best.r;
+                const roseParams = resolveParams(rose.params, {
+                    diameter: d, depth: D + 0.1, petals: clamp(Math.round(d * 1.6), 8, 24), rimWidth: Math.max(0.12, 0.07 * d),
+                    hub: 0.2, foils: 6, glass: p.glass,
+                }).params;
+                holes.push(CrossSection.circle(best.r - 0.02, 96).translate([0, best.z]));
+                parts.push(rose.build(roseParams, warn).translate([0, 0, best.z - best.r]));
+            }
+        }
+        if (holes.length) wall = wall.subtract(CrossSection.union(holes));
+        parts.push(extrudeElevation(wall, D));
+
+        // Coping: a band over the rakes, standing proud of both faces.
+        const band = section(outline).offset(c, "Miter", 2).subtract(section(outline))
+            .intersect(CrossSection.square([W + 4 * c, ht + 4 * c], false).translate([-W / 2 - 2 * c, hw]));
+        parts.push(extrudeElevation(band, D + 0.3));
+
+        if (p.crockets) {
+            const proto = crocket(sc);
+            const len = Math.hypot(W / 2, ht);
+            const count = Math.max(2, Math.floor((0.8 * len) / (2.2 * sc)));
+            const nx = Math.sin(rad(p.pitch)), nz = Math.cos(rad(p.pitch)); // outward normal of the right rake
+            for (const side of [1, -1]) {
+                // Right rake: crocket Z up the rake, X out of it is a rotation about Y by pitch - 90; the left
+                // rake mirrors it (turn 180 about Z first so X still points out).
+                const leaf = side === 1 ? proto.rotate([0, p.pitch - 90, 0]) : proto.rotate([0, 0, 180]).rotate([0, 90 - p.pitch, 0]);
+                for (let i = 0; i < count; i++) {
+                    const t = 0.08 + (0.8 * i) / (count - 1);
+                    const x = side * (W / 2) * (1 - t), z = hw + ht * t;
+                    parts.push(leaf.translate([x + side * nx * c, 0, z + nz * c]));
+                }
+            }
+        }
+        parts.push(finial(L.fh, Math.max(0.05, 0.1 * L.fh)).translate([0, 0, H + 0.9 * c])); // seated in the coping's apex
+        return union(parts);
+    },
+};
+
+export const GENERATORS: Record<string, Generator> = { spire, pinnacle, lancet, rose, gable, buttress, balustrade, lamp };

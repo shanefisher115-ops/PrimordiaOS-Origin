@@ -41,6 +41,7 @@ node gothic.mjs spire --help
 | `pinnacle` | square shaft with blind lancets, crossing gablets, crocketed spirelet, finial | height 5, width 0.9, crockets 4, gablets 1, panels 1 |
 | `lancet` | pointed-arch window: frame, hood mould, sill, mullions, foiled oculus in the head, glass | width 2.4, height 7, pointedness 1, lights 2, frameWidth 0.3, depth 0.5, foils 4, glass 1 |
 | `rose` | rose window disc: moulded rim, radial lights, trefoil oculi, foiled hub, glass | diameter 8, depth 0.5, petals 12, rimWidth 0.5, hub 0.2, foils 6, glass 1 |
+| `gable` | gabled wall: rose window in the triangle over a band of lancets, crocketed coping, finial | width 15, pitch 60, wallHeight 5, depth 1.5, lancets 5, rose 1, crockets 1, glass 1 |
 | `buttress` | flying buttress: stepped pier, half-arch flyer to the wall along +X, coping crockets, pier pinnacle | span 6, height 14, pierWidth 1.2, pierDepth 2.2, thickness 0.8, pinnacle 1, crockets 1 |
 | `balustrade` | segment along X: plinth, moulded rail, turned balusters or quatrefoil panels, end posts | length 3, height 1, depth 0.3, spacing 0.3, style 0, posts 1 |
 | `lamp` | cast-iron street lamp: turned post, one lantern or 1-4 swan-neck arms | height 4.2, arms 0, lanternSize 0.6, glass 1 |
