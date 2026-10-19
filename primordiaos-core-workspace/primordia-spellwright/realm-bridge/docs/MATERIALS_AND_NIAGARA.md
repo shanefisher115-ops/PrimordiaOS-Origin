@@ -447,7 +447,11 @@ The model is *Gothic Revival Church - White - 3D Model* by **EFADKZ** on Fab, li
 1. Add it to your Fab library and download the FBX zip.
 2. Import `source/Church_2024_PBR_White_Lite.fbx` to `/Game/ThirdParty/GothicRevivalChurch` as a **static** mesh with Nanite on, no materials and no textures. The FBX carries a rig, so in a scripted import turn off `automated_import_should_detect_type`, or Unreal brings it in as a skeletal mesh.
 
-The "Lite" model's towers end in open belfries with no spires, and its facade is open between the towers.
+3. Optional, for carved detail and lit windows: import the model's `textures/Church_Diffuse_4K.png` to the same folder as `T_Church_Diffuse`. The script then uses it as the stone albedo and turns on window glow (below).
+
+The "Lite" model's towers end in open belfries, so the script caps each with a spire and four corner pinnacles, placed from the tower tops measured off the mesh (`CHURCH_TOWERS`).
+
+**Window glow.** `M_CathedralStone` can light windows on any textured building, controlled by `WindowEmissive` (0, so off, by default). It glows where the albedo is darker than `WindowThreshold` and the surface is close to vertical (`WindowVertical`), which picks out glass and skips dark roofs. The glow is cut into leaded diamond panes (`LeadSize`, in cm), and each 12 m column of the building is cyan (`WindowColorA`) or, for a `WindowColorMix` share, magenta (`WindowColorB`). With the church textured, every one of its windows lights up, and the separate window planes are skipped.
 
 ### Notes on common look-guide advice
 
