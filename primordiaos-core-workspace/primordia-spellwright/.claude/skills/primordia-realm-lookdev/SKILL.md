@@ -55,7 +55,7 @@ Always look at the PNG yourself (Read it) and compare against the reference befo
 - **Masked** emissive window planes rendered nothing in editor captures; **additive** works (and leaves no square on the wall). Prefer additive for glow decals.
 - In manual exposure with physical camera exposure off, `auto_exposure_bias` is plain exposure compensation (+1 = twice as bright). Negative values made the first renders black.
 - When editing a Python file that contains `\x..` escapes from a shell heredoc, the escapes can land as raw bytes (null bytes broke the script). Read/write with `newline=""` and verify with `ast.parse`.
-- File writes in the repo sometimes fail with `OSError [Errno 22]` (another agent — Codex — may be running in the same repo). Retry with a short loop; check the file wasn't truncated.
+- Files in the repo are sometimes held open by another process (Codex runs here too): plain writes fail with `OSError [Errno 22]`, and an in-place rewrite can succeed but fail to truncate, leaving the old file's tail after your new text. Write a temp file next to the target and `os.replace` it (retry a few times), then `ast.parse` the result.
 - The repo often has other people's/agents' uncommitted work in the same docs. Stage only your hunks (build the staged blob from `git show HEAD:` + your edit, `git hash-object -w`, `git update-index --cacheinfo`), commit, and say so.
 
 ## Getting assets (Fab, for free)

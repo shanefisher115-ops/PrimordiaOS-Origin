@@ -56,6 +56,11 @@ CHURCH_SCALE = 3.0
 # is a pinnacle at the back.) The model's towers end in open belfries, so the script caps each with a spire.
 CHURCH_TOWERS = (((-799, -149), (-1198, -520)), ((124, 785), (-1198, -520)))
 CHURCH_TOWER_TOP = 2919
+# Distant copies of the church form a Gothic city skyline: (x m, y m, yaw deg, scale). They sit in the
+# frame's left and right edges as seen from the hero camera, clear of the hero church, 150-350 m out.
+CITY = ((50, -103, 35, 1.4), (111, -110, 70, 1.8), (214, -118, 120, 1.6),
+        (46, 134, 300, 1.5), (73, 214, 250, 1.9), (130, 206, 210, 1.4))
+CITY_WINDOW = unreal.LinearColor(1.0, 0.48, 0.14, 1.0)  # amber city light, like the reference's streets
 
 CYAN = unreal.LinearColor(0.04, 0.50, 1.00, 1.0)
 MAGENTA = unreal.LinearColor(0.85, 0.15, 1.00, 1.0)
@@ -289,8 +294,8 @@ float2 d = float2(dot(WorldPos.xy, t) + WorldPos.z, dot(WorldPos.xy, t) - WorldP
 float2 f = abs(frac(d) - 0.5);
 float lead = smoothstep(0.42, 0.48, max(f.x, f.y));
 float pane = frac(sin(dot(floor(d), float2(12.9898, 78.233))) * 43758.5453);
-// One colour per 12 m column of the building, so each window is a single colour top to bottom.
-float h = frac(sin(dot(floor(WorldPos.xy / 1200.0), float2(12.9898, 78.233))) * 43758.5453);
+// One colour per 24 m column of the building, so a window (or a whole tower face) is a single colour.
+float h = frac(sin(dot(floor(WorldPos.xy / 2400.0), float2(12.9898, 78.233))) * 43758.5453);
 float3 col = (h < WindowColorMix) ? WindowColorB : WindowColorA;
 float flicker = 0.92 + 0.08 * sin(Time * 1.3 + h * 40.0 + pane * 6.0);
 return col * WindowEmissive * glass * vertical * (1.0 - lead) * lerp(0.5, 1.0, pane) * flicker;
@@ -479,6 +484,23 @@ def open_map():
 
 # ---------------------------------------------------------------- scene
 
+def place_centered(mesh, material, x_m, y_m, yaw, scale, label, folder):
+    """Places a mesh with its footprint centred on (x, y) metres, turned by yaw, base on the plaza."""
+    box = mesh.get_bounding_box()
+    cx, cy = (box.min.x + box.max.x) * 0.5 * scale, (box.min.y + box.max.y) * 0.5 * scale
+    a = math.radians(yaw)
+    loc = unreal.Vector(x_m * 100.0 - (cx * math.cos(a) - cy * math.sin(a)),
+                        y_m * 100.0 - (cx * math.sin(a) + cy * math.cos(a)), -box.min.z * scale)
+    actor = spawn(unreal.StaticMeshActor, loc, rot(yaw=yaw), folder, label)
+    comp = actor.static_mesh_component
+    comp.set_mobility(unreal.ComponentMobility.STATIC)
+    comp.set_static_mesh(mesh)
+    for i in range(comp.get_num_materials()):
+        comp.set_material(i, material)
+    actor.set_actor_scale3d(unreal.Vector(scale, scale, scale))
+    return actor
+
+
 def place_church(mesh, material, spire_material):
     """Turns the church so its facade faces -X, then puts the facade at x = 0 and the base on the plaza."""
     box = mesh.get_bounding_box()
@@ -508,11 +530,14 @@ def place_church(mesh, material, spire_material):
                       label="SpirePinnacle", folder="Cathedral/Church")
 
 
-def build_building(stone, win, church=None, church_stone=None, church_glows=False):
+def build_building(stone, win, church=None, church_stone=None, church_glows=False, plaza=None, city_stone=None):
     """Facade faces -X at x = 0. Units are metres."""
-    shape(PLANE, (40, 0, 0), (400, 400, 1), stone, label="Plaza")
+    shape(PLANE, (40, 0, 0), (600, 600, 1), plaza or stone, label="Plaza")
     if church:
         place_church(church, church_stone, stone)
+        if city_stone:
+            for i, (x, y, yaw, scale) in enumerate(CITY):
+                place_centered(church, city_stone, x, y, yaw, scale, f"CityChurch{i}", "Cathedral/City")
     else:
         build_blockout(stone)
     # A textured church lights its own windows through the stone material.
@@ -634,7 +659,7 @@ def build_lighting():
 
     # Warm ground glow at the base of the facade.
     for y in range(-30, 31, 10):
-        light(unreal.PointLight, (-6, y, 1.2), rot(), WARM, 900.0, f"{folder}/Ground", "GroundGlow", radius_m=30, scatter=3.0)
+        light(unreal.PointLight, (-6, y, 1.2), rot(), WARM, 450.0, f"{folder}/Ground", "GroundGlow", radius_m=30, scatter=3.0)
     # Distant city: big warm lights on the horizon tint the fog orange. They sit 35 m up so the
     # glow lands in a camera that looks up at the spires, not below the frame.
     for x, y in ((-40, -170), (80, -180), (-40, 170), (80, 180), (220, -110), (240, 0), (220, 120)):
@@ -669,11 +694,23 @@ def build_post():
 
 
 def build_camera():
-    eye, target = (-95, -35, 1.7), (25, 0, 78)
+    # Pitched up ~23 degrees: the plaza and skyline stay in frame, the rings still crown the shot.
+    eye, target = (-95, -35, 1.7), (25, 0, 55)
     cam = spawn(unreal.CameraActor, m_to_cm(*eye), look_at(eye, target), label="HeroCamera")
     props(cam.camera_component, {"field_of_view": 86.0})
     cam.set_editor_property("auto_activate_for_player", unreal.AutoReceiveInput.PLAYER0)
     spawn(unreal.PlayerStart, m_to_cm(*eye), look_at(eye, target), label="PlayerStart")
+
+
+def two_sided(mi):
+    """Downloaded meshes often have faces pointing inward; a two-sided instance hides that."""
+    overrides = mi.get_editor_property("base_property_overrides")
+    overrides.set_editor_property("override_two_sided", True)
+    overrides.set_editor_property("two_sided", True)
+    mi.set_editor_property("base_property_overrides", overrides)
+    MEL.update_material_instance(mi)
+    save(mi)
+    return mi
 
 
 def build():
@@ -689,28 +726,31 @@ def build():
     ring = build_ring()
 
     church = unreal.load_asset(CHURCH_MESH)
-    church_stone = None
+    church_stone = city_stone = None
     if church:
-        # Some of the church's faces point inward, so it gets a two-sided copy of the stone.
         texture = unreal.load_asset(CHURCH_TEXTURE)
         maps = {k: t for k, t in (("StoneAlbedo", texture), ("StoneNormal", unreal.load_asset(CHURCH_NORMAL)),
                                   ("StoneRoughness", unreal.load_asset(CHURCH_ROUGHNESS))) if t}
-        scalars = {"WindowEmissive": 0.4 if texture else 0.0}
+        # Buildings stay satin when wet: glossier stone mirrors the orange footlights and reads as brass.
+        scalars = {"WindowEmissive": 0.4 if texture else 0.0, "RoughnessWet": 0.38}
         if "StoneRoughness" in maps:
             scalars["RoughnessDry"] = 1.0  # the map carries the dry roughness itself
-        church_stone = instance(stone, "MI_CathedralStone_TwoSided", scalars=scalars,
-                                # The church texture is light beige, so the tint is lifted to keep the stone's value.
-                                vectors={"BaseColor": unreal.LinearColor(0.07, 0.072, 0.08, 1.0)} if texture else None,
-                                textures=maps)
-        overrides = church_stone.get_editor_property("base_property_overrides")
-        overrides.set_editor_property("override_two_sided", True)
-        overrides.set_editor_property("two_sided", True)
-        church_stone.set_editor_property("base_property_overrides", overrides)
-        MEL.update_material_instance(church_stone)
-        save(church_stone)
+        # The church texture is light beige, so the tint is lifted to keep the stone's value.
+        tint = unreal.LinearColor(0.07, 0.072, 0.08, 1.0)
+        church_stone = two_sided(instance(stone, "MI_CathedralStone_TwoSided", scalars=scalars,
+                                          vectors={"BaseColor": tint} if texture else None, textures=maps))
+        if texture:
+            # The skyline: same stone, dimmer windows lit mostly amber like a city at night.
+            city_stone = two_sided(instance(stone, "MI_CathedralStone_City", textures=maps,
+                                            scalars=dict(scalars, WindowEmissive=0.34, WindowColorMix=0.1),
+                                            vectors={"BaseColor": tint, "WindowColorA": CITY_WINDOW, "WindowColorB": CYAN}))
+    # Wet plaza: glossy puddles so the windows, rings and city glow reflect in the ground.
+    plaza = instance(stone, "MI_CathedralPlaza", scalars={"RoughnessDry": 0.65, "RoughnessWet": 0.04, "WetDarkening": 0.5},
+                     vectors={"BaseColor": unreal.LinearColor(0.03, 0.032, 0.036, 1.0)})
 
     open_map()
-    build_building(stone_mi, win, church, church_stone, church_glows=bool(church and unreal.load_asset(CHURCH_TEXTURE)))
+    build_building(stone_mi, win, church, church_stone, church_glows=bool(church and unreal.load_asset(CHURCH_TEXTURE)),
+                   plaza=plaza, city_stone=city_stone)
     build_rings(ring)
     build_lighting()
     build_post()

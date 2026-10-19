@@ -450,6 +450,8 @@ The model is *Gothic Revival Church - White - 3D Model* by **EFADKZ** on Fab, li
 3. Optional, for carved detail and lit windows: import the model's `textures/Church_Diffuse_4K.png` to the same folder as `T_Church_Diffuse`. The script then uses it as the stone albedo and turns on window glow (below).
 4. Optional, for surface relief: import the model's normal map as `T_Church_Normal` (TC_Normalmap, sRGB off) and its roughness map as `T_Church_Roughness` (TC_Masks, sRGB off). If you only have the diffuse, `Scripts/derive_surface_maps.py` approximates both from it (outside Unreal; needs numpy and pillow): brightness stands in for height, so carved lines and mortar become recesses, and glass stays flat and glossy. The model's real maps replace them later under the same names.
 
+**Skyline and plaza.** With the church present, six smaller copies (`CITY`: position, yaw, scale) form a Gothic city at the left and right edges of the hero shot, on `MI_CathedralStone_City` (dimmer windows, mostly amber, like a city at night). The plaza uses `MI_CathedralPlaza` (glossy wet patches, roughness 0.04), so windows, rings and footlights reflect in the ground. Building stone stays satin when wet (`RoughnessWet` 0.38): glossier stone mirrored the orange footlights and read as brass.
+
 The "Lite" model's towers end in open belfries, so the script caps each with a spire and four corner pinnacles, placed from the tower tops measured off the mesh (`CHURCH_TOWERS`).
 
 **Surface maps.** `M_CathedralStone` takes `StoneNormal` (flat by default) and `StoneRoughness` (linear white by default; dry roughness = map × `RoughnessDry`), so untextured surfaces keep the procedural look.
