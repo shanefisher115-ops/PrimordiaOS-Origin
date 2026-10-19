@@ -154,6 +154,8 @@ The glyph material ships with the plugin (see [§6 of the materials guide](docs/
 
 For the shadow inversion post-process, also set *Project Settings → Rendering → Custom Depth-Stencil Pass = Enabled with Stencil*.
 
+For a reference of the night look (Lumen, volumetric fog, manual exposure, glowing rings over the spires), open `/PrimordiaOSRealmBridge/Maps/NeoGothicCathedral`. See [§9 of the materials guide](docs/MATERIALS_AND_NIAGARA.md#9-neo-gothic-cathedral-look-dev-scene-neogothiccathedral).
+
 ### Step 5: drive it
 
 With the game running, try these console commands:
