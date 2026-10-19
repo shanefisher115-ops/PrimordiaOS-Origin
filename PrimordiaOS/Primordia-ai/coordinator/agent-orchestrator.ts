@@ -1,12 +1,12 @@
-import { AgentProposal } from "../schemas/agent-proposal";
+import type { AgentProposal } from "../schemas/agent-proposal.ts";
 
 // Import your agents here
 // (You will create these files next)
-import { stressAgent } from "../agents/stress-agent";
-import { weightAgent } from "../agents/weight-agent";
-import { materialAgent } from "../agents/material-agent";
-import { topologyAgent } from "../agents/topology-agent";
-import { manufacturabilityAgent } from "../agents/manufacturability-agent";
+import { stressAgent } from "../agents/stress-agent.ts";
+import { weightAgent } from "../agents/weight-agent.ts";
+import { materialAgent } from "../agents/material-agent.ts";
+import { topologyAgent } from "../agents/topology-agent.ts";
+import { manufacturabilityAgent } from "../agents/manufacturability-agent.ts";
 
 export async function runAgents(metrics: any, cadParams: any) {
     const timestamp = Date.now();

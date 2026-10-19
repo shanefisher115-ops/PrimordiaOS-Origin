@@ -1,20 +1,3 @@
-export function topologyAgent(metrics, cadParams, timestamp) {
-    const deformation = metrics.maxDeformation ?? 0;
-    const threshold = cadParams.deformationLimit ?? 5;
-    const needsTopology = deformation > threshold;
-    return {
-        agentName: "TopologyAgent",
-        timestamp,
-        confidence: needsTopology ? 0.9 : 0.3,
-        targetParam: "topologyMode",
-        targetRegion: metrics.deformationRegion ?? "global",
-        delta: 1,
-        type: needsTopology ? "reshape" : "increase",
-        justification: needsTopology
-            ? "High deformation detected — topology optimization recommended"
-            : "Topology acceptable",
-        metricsUsed: ["maxDeformation"],
-        localScore: needsTopology ? 0.85 : 0.25,
-        globalImpactEstimate: needsTopology ? 0.7 : 0.3
-    };
-}
+// JavaScript entry point for consumers that import the .js file. The implementation is
+// topology-agent.ts, which Node >= 22.18 runs directly (see Primordia-cad/README.md).
+export { topologyAgent } from "./topology-agent.ts";
