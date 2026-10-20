@@ -41,4 +41,4 @@ $env:PRIM_IMPORT_KIND = "mesh"     # mesh | color | normal | mask
 
 Then grep `Saved/Logs/PrimordiaRealms.log` for `IMPORT`. Meshes come in static, Nanite on, no materials or textures (the scene's own materials go on). Colour textures stay sRGB; `normal` sets TC_Normalmap with sRGB off; `mask` (roughness, AO) sets TC_Masks with sRGB off.
 
-Shipped example: `/Game/ThirdParty/GothicRevivalChurch/` — `SM_GothicRevivalChurch` ("Gothic Revival Church - White - 3D Model" by EFADKZ, CC BY 4.0), `T_Church_Diffuse` (repaired), `T_Church_Normal` and `T_Church_Roughness` (derived from the diffuse; the model's real maps replace them under the same names).
+Shipped example: `/Game/ThirdParty/GothicRevivalChurch/` — `SM_GothicRevivalChurch` ("Gothic Revival Church - White - 3D Model" by EFADKZ, CC BY 4.0), `T_Church_Diffuse` (repaired), `T_Church_Normal` (the model's own map, OpenGL, imported with `PRIM_FLIP_GREEN=1`) and `T_Church_Roughness` (the model's own map). Before the full zip came through they were derived from the diffuse with `derive_surface_maps.py`; that remains the fallback for models without maps.

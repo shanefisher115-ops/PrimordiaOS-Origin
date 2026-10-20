@@ -23,6 +23,7 @@ The reference implementation is `Scripts/build_cathedral_scene.py` (map `/Primor
 | Pull complete files out of a broken zip | `python scripts/zip_salvage.py <zip> <out-dir>` |
 | Fix a truncated PNG | `python scripts/png_repair.py <in.png> <out.png>` |
 | Normal + roughness from a diffuse | `realm-bridge/unreal/PrimordiaOSRealmBridge/Scripts/derive_surface_maps.py` (needs numpy + pillow; make a venv in the scratchpad, don't touch system Python) |
+| Is a normal map DirectX or OpenGL? | `python scripts/normal_convention.py <normal.png>` (needs numpy + pillow). OpenGL — Blender's default — imports with `PRIM_FLIP_GREEN=1` |
 
 Paths in `scripts/` are relative to this skill's directory. `ue_run.ps1` holds the machine paths (engine, project) at the top; check them if anything moved.
 

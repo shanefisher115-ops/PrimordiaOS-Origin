@@ -6,7 +6,9 @@ PRIM_IMPORT_KIND: mesh | color | normal | mask.
 mesh   -> static mesh, Nanite on, no materials, no textures. Type detection is off because automated imports
           otherwise pick skeletal for any FBX that carries a rig. Logs bounds (m) and material slots.
 color  -> sRGB texture, default compression.
-normal -> sRGB off, TC_Normalmap (expects DirectX/green-down, Unreal's convention).
+normal -> sRGB off, TC_Normalmap. Unreal wants DirectX (green down); set PRIM_FLIP_GREEN=1 for OpenGL maps,
+          which Blender exports by default. Not sure? A height-derived normal field has no curl in its true
+          convention: compare mean |d(nx)/drow -/+ d(ny)/dcol| (lower wins; scripts/normal_convention.py does this).
 mask   -> sRGB off, TC_Masks (roughness, AO, any linear data).
 Output lines start with "IMPORT" in Saved/Logs/<Project>.log.
 """
@@ -57,7 +59,7 @@ else:
         asset.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_NORMALMAP if KIND == "normal"
                                   else unreal.TextureCompressionSettings.TC_MASKS)
         if KIND == "normal":
-            asset.set_editor_property("flip_green_channel", False)
+            asset.set_editor_property("flip_green_channel", os.environ.get("PRIM_FLIP_GREEN", "0") == "1")
     unreal.EditorAssetLibrary.save_asset(path, only_if_is_dirty=False)
     unreal.log(f"IMPORT {path} {asset.blueprint_get_size_x()}x{asset.blueprint_get_size_y()} "
                f"srgb={asset.get_editor_property('srgb')} compression={asset.get_editor_property('compression_settings')}")
