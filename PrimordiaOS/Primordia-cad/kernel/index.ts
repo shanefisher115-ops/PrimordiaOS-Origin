@@ -2,17 +2,20 @@
 import { scoped } from "./manifold.ts";
 import { bounds, extract } from "./mesh.ts";
 import type { Box, RenderMesh, SolidMesh, SolidStats } from "./mesh.ts";
-import { GENERATORS } from "./gothic.ts";
+import { GENERATORS as GOTHIC } from "./gothic.ts";
 import type { Generator } from "./gothic.ts";
+import { SCIFI } from "./scifi.ts";
 import { resolveParams } from "./params.ts";
 import type { Params } from "./params.ts";
 import type { Vec3 } from "./ops.ts";
 
-export { GENERATORS } from "./gothic.ts";
 export type { Generator } from "./gothic.ts";
 export { toGLB } from "./export-gltf.ts";
 export { toOBJ } from "./export-obj.ts";
 export type { Box, RenderMesh, SolidMesh, SolidStats } from "./mesh.ts";
+
+/** Every generator: the Gothic set and the sci-fi spires (names are unique across sets). */
+export const GENERATORS: Record<string, Generator> = { ...GOTHIC, ...SCIFI };
 
 export const DEFAULT_KIND = "spire";
 // Keys that callers put in the params object that are not generator parameters.
@@ -20,7 +23,7 @@ const NON_PARAM_KEYS = ["kind", "generator", "name", "wallThickness", "material"
 
 export interface Geometry {
     kind: string;
-    name: string; // asset name, e.g. SM_GothicSpire
+    name: string; // asset name, e.g. SM_GothicSpire or SM_SciFiArcologySpire
     params: Params; // resolved: defaults filled in, clamped
     warnings: string[];
     solid: SolidMesh; // welded, closed
@@ -46,7 +49,7 @@ export function generate(kind: string = DEFAULT_KIND, raw: Record<string, unknow
         const out = extract(solid, gen.material);
         return {
             kind,
-            name: name ?? `SM_Gothic${gen.title}`,
+            name: name ?? `SM_${gen.prefix ?? "Gothic"}${gen.title}`,
             params,
             warnings,
             solid: out.solid,

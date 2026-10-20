@@ -14,7 +14,8 @@ import type { ParamSpecs, Params } from "./params.ts";
 
 export interface Generator {
     name: string; // CLI / params.kind name
-    title: string; // used for asset names: SM_Gothic<Title>
+    title: string; // used for asset names: SM_<prefix><Title>
+    prefix?: string; // asset-name prefix, default "Gothic"
     doc: string;
     material: string; // material of untagged triangles
     params: ParamSpecs;
