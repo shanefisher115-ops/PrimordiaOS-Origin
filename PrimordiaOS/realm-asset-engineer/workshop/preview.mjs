@@ -42,7 +42,22 @@ export class Previewer {
 
   async #start() {
     if (!this.browserPath) throw new Error('no Chrome or Edge found for the WebGL previewer (set RAE_BROWSER)');
+    if (Date.now() < (this.retryAt ?? 0)) throw new Error('previewer backing off after a failed browser start');
+    try {
+      await this.#launch();
+    } catch (first) {
+      await this.stop();
+      try { await this.#launch(); } catch (e) {
+        await this.stop();
+        this.retryAt = Date.now() + 5 * 60_000; // a slow or wedged browser start must not stall every job
+        throw new Error(`browser start failed twice (${first.message.split('\n')[0]}; then ${e.message.split('\n')[0]}); retrying in 5 min`);
+      }
+    }
+  }
+
+  async #launch() {
     this.browser = await puppeteer.launch({
+      timeout: 90_000, // Chrome takes 5-20 s to start on this laptop when it is busy
       executablePath: this.browserPath,
       headless: true,
       args: ['--no-first-run', '--no-default-browser-check', '--mute-audio', '--disable-extensions',

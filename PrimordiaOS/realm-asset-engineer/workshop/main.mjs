@@ -56,7 +56,7 @@ if (config.gallery.enabled && !opt.once && !opt.noGallery) {
   const token = galleryToken(env);
   server = createGalleryServer({ host, token, env });
   server.listen(config.gallery.port, config.gallery.host, () => {
-    say(`gallery: ${lanUrls(config.gallery.port, token).join('  ')}`);
+    say(`gallery: ${lanUrls(config.gallery.port, token, config.gallery.host).join('  ')}`);
   });
   server.on('error', (e) => say(`gallery: ${e.message}`));
 }

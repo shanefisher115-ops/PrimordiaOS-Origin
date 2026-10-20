@@ -91,12 +91,13 @@ export class SupabaseCatalog {
     return row ?? null;
   }
 
-  async listAssets({ genre, verdict, imported, needsGlb, limit = 60, before } = {}) {
+  async listAssets({ genre, verdict, imported, needsGlb, noThumb, limit = 60, before } = {}) {
     const q = ['select=*', 'order=created_at.desc', `limit=${Math.min(500, limit)}`];
     if (genre) q.push(`genre=eq.${encodeURIComponent(genre)}`);
     if (verdict) q.push(`verdict=eq.${encodeURIComponent(verdict)}`);
     if (imported !== undefined) q.push(`imported_to_unreal=is.${imported ? 'true' : 'false'}`);
     if (needsGlb) q.push('glb_path=not.is.null');
+    if (noThumb) q.push('thumb_path=is.null');
     if (before) q.push(`created_at=lt.${encodeURIComponent(before)}`);
     return this.#rest('GET', 'realm_assets', q.join('&'));
   }
@@ -229,10 +230,10 @@ export class LocalCatalog {
     return row ? structuredClone(row) : null;
   }
 
-  async listAssets({ genre, verdict, imported, needsGlb, limit = 60, before } = {}) {
+  async listAssets({ genre, verdict, imported, needsGlb, noThumb, limit = 60, before } = {}) {
     return this.db.assets
       .filter((a) => (!genre || a.genre === genre) && (!verdict || a.verdict === verdict)
-        && (imported === undefined || a.imported_to_unreal === imported) && (!needsGlb || a.glb_path)
+        && (imported === undefined || a.imported_to_unreal === imported) && (!needsGlb || a.glb_path) && (!noThumb || !a.thumb_path)
         && (!before || a.created_at < before))
       .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
       .slice(0, limit)

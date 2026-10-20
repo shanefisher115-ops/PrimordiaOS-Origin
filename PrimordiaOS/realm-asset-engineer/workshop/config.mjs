@@ -29,6 +29,16 @@ export const DEFAULTS = {
   ollamaUrl: 'http://127.0.0.1:11434',
   gallery: { enabled: true, host: '0.0.0.0', port: 8790 },
   previewer: { enabled: true, browserPath: null },
+  unreal: {
+    engine: 'C:/Program Files/Epic Games/UE_5.4/Engine/Binaries/Win64/UnrealEditor-Cmd.exe',
+    project: 'C:/Users/Shane/Documents/Unreal Projects/PrimordiaRealms/PrimordiaRealms.uproject',
+    window: '01:00-06:00', // local time; the scheduled task starts at 02:30
+    minIdleMinutes: 20,
+    maxPerBatch: 25,
+    timeoutMinutes: 60,
+    minFreeDiskGB: 5,
+    blender: { enabled: true, bake: 0 }, // bevel + weighted normals before import; bake 0 = no AO/curvature maps
+  },
   tickSeconds: 5,
   pollSeconds: 60,
   cacheHours: 48,

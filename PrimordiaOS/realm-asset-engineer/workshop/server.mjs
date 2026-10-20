@@ -43,8 +43,9 @@ const slim = (row) => {
   return out;
 };
 
-export function lanUrls(port, token) {
+export function lanUrls(port, token, host = '0.0.0.0') {
   const urls = [];
+  if (host !== '0.0.0.0' && host !== '::') return [`http://${host === '127.0.0.1' ? 'localhost' : host}:${port}/?t=${token}`];
   for (const addrs of Object.values(os.networkInterfaces())) {
     for (const a of addrs ?? []) if (a.family === 'IPv4' && !a.internal) urls.push(`http://${a.address}:${port}/?t=${token}`);
   }

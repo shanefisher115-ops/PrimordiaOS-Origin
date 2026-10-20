@@ -194,7 +194,37 @@ export class Host {
     const missing = (await this.catalog.listAssets({ verdict: 'approved', limit: 20 }))
       .filter((r) => !r.glb_path && !r.flags?.some((f) => f.startsWith('regen-mismatch') || f.startsWith('no-glb')) && this.state.reviewed[r.id] === 'approved');
     for (const r of missing.slice(0, 2)) await this.publish({ asset_id: r.id }).catch((e) => this.error(`publish retry ${r.name}: ${e.message}`));
+    await this.backfillThumbnails().catch((e) => this.error(`thumbnails: ${e.message}`));
     await this.cleanCache().catch(() => {});
+  }
+
+  /** Kept rows that missed their preview (the browser was down then) get one now, rebuilt from the recipe. */
+  async backfillThumbnails(limit = 3) {
+    if (!this.previewer) return 0;
+    const rows = (await this.catalog.listAssets({ noThumb: true, limit: 20 }))
+      .filter((r) => r.verdict !== 'rejected' && r.flags?.includes('no-thumbnail: previewer unavailable')).slice(0, limit);
+    let done = 0;
+    for (const r of rows) {
+      const b = build(r);
+      if (!b.ok || b.sha !== r.mesh_sha256) continue;
+      const dir = path.join(PATHS.cache, safeId(`backfill-${r.name}`));
+      await mkdir(dir, { recursive: true });
+      await writeFile(path.join(dir, 'model.glb'), b.glb);
+      const pv = await this.previewer.render(path.join(dir, 'model.glb'), packData(r.genre));
+      await rm(dir, { recursive: true, force: true });
+      if (!this.fits(pv.hero.length + pv.strip.length)) break;
+      const paths = objectPaths(r);
+      await this.catalog.upload(paths.thumb, pv.hero, 'image/webp');
+      await this.catalog.upload(paths.strip, pv.strip, 'image/webp');
+      await this.catalog.updateAsset(r.id, {
+        thumb_path: paths.thumb, thumb_bytes: pv.hero.length, strip_path: paths.strip, strip_bytes: pv.strip.length,
+        flags: r.flags.filter((f) => f !== 'no-thumbnail: previewer unavailable'),
+      });
+      if (this.usage) this.usage.storage_bytes += pv.hero.length + pv.strip.length;
+      done++;
+    }
+    if (done) this.log(`thumbnails: backfilled ${done}`);
+    return done;
   }
 
   async queueBrief({ brief_id, genre, count, generators, notes }) {
