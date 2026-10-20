@@ -3,7 +3,7 @@
 // mesh_sha256 (of the .glb bytes) proves a later rebuild reproduces it.
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { PATHS } from './paths.mjs';
@@ -16,15 +16,25 @@ let info = null;
 /** Kernel provenance: last commit touching Primordia-cad, whether it has local edits, manifold-3d version. */
 export function kernelInfo() {
   if (info) return info;
-  const git = (...args) => {
-    try { return execFileSync('git', args, { cwd: PATHS.cad, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return ''; }
+  const git = (cwd, ...args) => {
+    try { return execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return ''; }
   };
   const manifold = JSON.parse(readFileSync(path.join(PATHS.cad, 'node_modules', 'manifold-3d', 'package.json'), 'utf8')).version;
-  info = {
-    commit: git('log', '-1', '--format=%H', '--', '.') || 'unknown',
-    dirty: git('status', '--porcelain', '--', '.') !== '',
-    manifold,
-  };
+  // The repo that actually tracks the kernel: walk up past nested repos that don't (Shane's main checkout has an
+  // empty one at PrimordiaOS/.git). Only what shapes the meshes counts as "dirty".
+  let commit = '', dirty = false;
+  for (let dir = PATHS.cad; ; dir = path.dirname(dir)) {
+    if (existsSync(path.join(dir, '.git'))) {
+      const rel = path.relative(dir, PATHS.cad).split(path.sep).join('/') || '.';
+      commit = git(dir, 'log', '-1', '--format=%H', '--', rel);
+      if (commit) {
+        dirty = git(dir, 'status', '--porcelain', '--', `${rel}/kernel`, `${rel}/genres`, `${rel}/package-lock.json`) !== '';
+        break;
+      }
+    }
+    if (path.dirname(dir) === dir) break;
+  }
+  info = { commit: commit || 'unknown', dirty, manifold };
   return info;
 }
 
