@@ -1,4 +1,4 @@
-import { runAgents } from "../../primordia-ai/coordinator/agent-orchestrator";
+import { runAgents } from "../../Primordia-ai/coordinator/agent-orchestrator.ts";
 
 export async function evaluateDesignCycle(simMetrics: any, cadParams: any) {
     // 1. Run all agents through the orchestrator

@@ -4,10 +4,10 @@ export interface AgentProposal {
 
     confidence: number;             // 0.0 - 1.0 (how sure the agent is)
 
-    targetParam: string;            // e.g. "wallThickness", "ribCount"
-    targetRegion?: string;          // optional: "supportArm", "basePlate"
+    targetParam: string;            // a Primordia-cad generator parameter, e.g. "baseWidth", "arms", or "material"
+    targetRegion?: string;          // optional: runSimulation's height band ("base" ... "top") or "global"
 
-    delta: number;                  // numeric change (positive or negative)
+    delta: number | string;         // numeric change (0: no change), or the new value for "replace" (a material name)
     type: "increase" | "decrease" | "replace" | "reshape";
 
     justification: string;          // short explanation

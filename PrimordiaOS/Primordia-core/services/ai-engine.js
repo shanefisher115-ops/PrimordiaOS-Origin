@@ -1,19 +1,3 @@
-import { runAgents } from "../../primordia-ai/coordinator/agent-orchestrator";
-export async function evaluateDesignCycle(simMetrics, cadParams) {
-    // 1. Run all agents through the orchestrator
-    const proposal = await runAgents(simMetrics, cadParams);
-    // 2. Log the winning proposal (PrimordiaOS lineage)
-    console.log("[PrimordiaOS AI] Winning proposal:", proposal);
-    // 3. Return the mutation so primordia-core can send it to primordia-cad
-    return {
-        mutation: {
-            param: proposal.targetParam,
-            region: proposal.targetRegion,
-            delta: proposal.delta,
-            type: proposal.type
-        },
-        justification: proposal.justification,
-        agent: proposal.agentName,
-        confidence: proposal.confidence
-    };
-}
+// JavaScript entry point for consumers that import the .js file. The implementation is
+// ai-engine.ts, which Node >= 22.18 runs directly (see Primordia-cad/README.md).
+export { evaluateDesignCycle } from "./ai-engine.ts";

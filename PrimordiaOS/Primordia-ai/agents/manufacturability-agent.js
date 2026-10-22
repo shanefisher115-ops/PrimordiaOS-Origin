@@ -1,20 +1,3 @@
-export function manufacturabilityAgent(metrics, cadParams, timestamp) {
-    const overhangs = metrics.overhangCount ?? 0;
-    const maxAllowed = cadParams.maxOverhangs ?? 2;
-    const needsFix = overhangs > maxAllowed;
-    return {
-        agentName: "ManufacturabilityAgent",
-        timestamp,
-        confidence: needsFix ? 0.8 : 0.3,
-        targetParam: "draftAngle",
-        targetRegion: "overhangRegions",
-        delta: needsFix ? +2 : 0,
-        type: needsFix ? "increase" : "reshape",
-        justification: needsFix
-            ? `Too many overhangs (${overhangs}) — increase draft angle`
-            : "Manufacturability OK",
-        metricsUsed: ["overhangCount"],
-        localScore: needsFix ? 0.75 : 0.2,
-        globalImpactEstimate: needsFix ? 0.6 : 0.3
-    };
-}
+// JavaScript entry point for consumers that import the .js file. The implementation is
+// manufacturability-agent.ts, which Node >= 22.18 runs directly (see Primordia-cad/README.md).
+export { manufacturabilityAgent } from "./manufacturability-agent.ts";

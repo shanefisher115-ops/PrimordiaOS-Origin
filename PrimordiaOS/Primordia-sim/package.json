@@ -1,0 +1,13 @@
+{
+  "name": "primordia-sim",
+  "version": "0.2.0",
+  "private": true,
+  "description": "PrimordiaOS simulation: deterministic self-weight metrics from Primordia-cad meshes",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.ts\""
+  }
+}
