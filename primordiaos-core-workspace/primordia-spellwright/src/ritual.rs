@@ -16,6 +16,10 @@ const B_TEMPLATES: usize = 5;
 const B_HOST_CALLS: usize = 6;
 // 7: scratch reliquary, only touched by the glyphs.
 const BINDINGS: usize = 8;
+// 8: the indirect reliquary (dispatch args), host-written for frame, frame-written for parse/respond.
+const SET_BINDINGS: usize = BINDINGS + 1;
+/// Byte offset of parse/respond's dispatch args in the indirect reliquary.
+const MSG_ARGS: u64 = 12;
 
 // Control sigil word slots.
 const C_IN_LEN: usize = 0;
@@ -35,8 +39,9 @@ pub struct GlyphInfo {
 pub const GLYPHS: [GlyphInfo; 3] = [
     // frame is dispatched indirectly: ceil(input bytes / 1024) groups, up to this many.
     GlyphInfo { name: "frame", local_size: 256, groups: (IN_CAP / 4 / 256) as u32, role: "one threadling per 4 request bytes (indirect dispatch sized to the input); finds '\\n' message boundaries" },
-    GlyphInfo { name: "parse", local_size: 64, groups: (MAX_MSGS / 64) as u32, role: "one threadling per message; extracts id/method/params, routes by FNV-1a hash" },
-    GlyphInfo { name: "respond", local_size: 64, groups: (MAX_MSGS / 64) as u32, role: "one threadling per message; runs GPU tool spells, serializes JSON-RPC replies" },
+    // parse and respond are dispatched indirectly: ceil(messages / 64) groups (frame writes it), up to this many.
+    GlyphInfo { name: "parse", local_size: 64, groups: (MAX_MSGS / 64) as u32, role: "one threadling per message (indirect dispatch sized by frame); extracts id/method/params, routes by FNV-1a hash" },
+    GlyphInfo { name: "respond", local_size: 64, groups: (MAX_MSGS / 64) as u32, role: "one threadling per message (indirect dispatch sized by frame); runs GPU tool spells, serializes JSON-RPC replies" },
 ];
 
 pub struct HostCall {
@@ -156,13 +161,20 @@ impl Ritual {
             eprintln!("spellwright: reliquary {binding} {name:<10} {:?}", r.flags);
             reliquaries.push(r);
         }
-        let indirect = Reliquary::new(&device, &mem_props, 12, vk::BufferUsageFlags::INDIRECT_BUFFER, reliquary::UPLOAD)?;
+        // Two VkDispatchIndirectCommands: frame's, then parse/respond's (frame writes it).
+        let indirect = Reliquary::new(
+            &device,
+            &mem_props,
+            24,
+            vk::BufferUsageFlags::INDIRECT_BUFFER | vk::BufferUsageFlags::STORAGE_BUFFER,
+            reliquary::UPLOAD,
+        )?;
         eprintln!("spellwright: reliquary - indirect   {:?}", indirect.flags);
         reliquaries[B_GRIMOIRE].bytes_mut()[..grimoire_bytes.len()].copy_from_slice(&grimoire_bytes);
         reliquaries[B_TEMPLATES].bytes_mut()[..template_bytes.len()].copy_from_slice(&template_bytes);
 
-        // Sigils: one descriptor set of eight storage buffers shared by all glyphs.
-        let bindings: Vec<_> = (0..BINDINGS as u32)
+        // Sigils: one descriptor set of nine storage buffers shared by all glyphs.
+        let bindings: Vec<_> = (0..SET_BINDINGS as u32)
             .map(|b| {
                 vk::DescriptorSetLayoutBinding::default()
                     .binding(b)
@@ -173,7 +185,7 @@ impl Ritual {
             .collect();
         let set_layout =
             device.create_descriptor_set_layout(&vk::DescriptorSetLayoutCreateInfo::default().bindings(&bindings), None)?;
-        let pool_sizes = [vk::DescriptorPoolSize { ty: vk::DescriptorType::STORAGE_BUFFER, descriptor_count: BINDINGS as u32 }];
+        let pool_sizes = [vk::DescriptorPoolSize { ty: vk::DescriptorType::STORAGE_BUFFER, descriptor_count: SET_BINDINGS as u32 }];
         let pool = device.create_descriptor_pool(
             &vk::DescriptorPoolCreateInfo::default().max_sets(1).pool_sizes(&pool_sizes),
             None,
@@ -184,6 +196,7 @@ impl Ritual {
         )?[0];
         let infos: Vec<[vk::DescriptorBufferInfo; 1]> = reliquaries
             .iter()
+            .chain(std::iter::once(&indirect))
             .map(|r| [vk::DescriptorBufferInfo { buffer: r.buffer, offset: 0, range: vk::WHOLE_SIZE }])
             .collect();
         let writes: Vec<_> = infos
@@ -246,24 +259,29 @@ impl Ritual {
         let compute_barrier = [vk::MemoryBarrier::default()
             .src_access_mask(vk::AccessFlags::SHADER_WRITE)
             .dst_access_mask(vk::AccessFlags::SHADER_READ | vk::AccessFlags::SHADER_WRITE)];
-        for (i, (pipeline, glyph)) in pipelines.iter().zip(GLYPHS.iter()).enumerate() {
+        // After frame, its group count for parse/respond is also read as indirect args.
+        let frame_barrier = [vk::MemoryBarrier::default()
+            .src_access_mask(vk::AccessFlags::SHADER_WRITE)
+            .dst_access_mask(vk::AccessFlags::SHADER_READ | vk::AccessFlags::SHADER_WRITE | vk::AccessFlags::INDIRECT_COMMAND_READ)];
+        for (i, pipeline) in pipelines.iter().enumerate() {
             if i > 0 {
+                let (dst_stage, barrier) = if i == 1 {
+                    (vk::PipelineStageFlags::COMPUTE_SHADER | vk::PipelineStageFlags::DRAW_INDIRECT, &frame_barrier)
+                } else {
+                    (vk::PipelineStageFlags::COMPUTE_SHADER, &compute_barrier)
+                };
                 device.cmd_pipeline_barrier(
                     cmd,
                     vk::PipelineStageFlags::COMPUTE_SHADER,
-                    vk::PipelineStageFlags::COMPUTE_SHADER,
+                    dst_stage,
                     vk::DependencyFlags::empty(),
-                    &compute_barrier,
+                    barrier,
                     &[],
                     &[],
                 );
             }
             device.cmd_bind_pipeline(cmd, vk::PipelineBindPoint::COMPUTE, *pipeline);
-            if i == 0 {
-                device.cmd_dispatch_indirect(cmd, indirect.buffer, 0);
-            } else {
-                device.cmd_dispatch(cmd, glyph.groups, 1, 1);
-            }
+            device.cmd_dispatch_indirect(cmd, indirect.buffer, if i == 0 { 0 } else { MSG_ARGS });
         }
         device.cmd_write_timestamp(cmd, vk::PipelineStageFlags::BOTTOM_OF_PIPE, query_pool, 1);
         let host_barrier = [vk::MemoryBarrier::default()
@@ -322,8 +340,9 @@ impl Ritual {
         ctl[C_HOST_CALLS] = 0;
         ctl[C_FLAGS] = 0;
         // Group 0 also bumps the tick counter, so always dispatch at least one.
+        // parse/respond start at 0 groups; frame raises that to cover the messages it finds.
         let frame_groups = input.len().div_ceil(4 * 256).max(1) as u32;
-        self.indirect.words_mut()[..3].copy_from_slice(&[frame_groups, 1, 1]);
+        self.indirect.words_mut()[..6].copy_from_slice(&[frame_groups, 1, 1, 0, 1, 1]);
 
         unsafe {
             let cmds = [self.cmd];

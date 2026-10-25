@@ -83,6 +83,12 @@ layout(std430, set = 0, binding = 4) readonly buffer Grimoire {
 layout(std430, set = 0, binding = 5) readonly buffer TemplateReliquary { uint tmpl_words[]; };
 layout(std430, set = 0, binding = 6) buffer HostCallSigil { uvec2 host_calls[]; };
 layout(std430, set = 0, binding = 7) buffer ScratchReliquary { uint scratch[]; };
+// Indirect dispatch args: frame's groups (host-written), then parse/respond's
+// groups (the host zeroes msg_x; frame raises it to ceil(msg_count / 64)).
+layout(std430, set = 0, binding = 8) buffer DispatchSigil {
+    uint frame_x; uint frame_y; uint frame_z;
+    uint msg_x; uint msg_y; uint msg_z;
+} disp;
 
 uint rb(uint p) { return (in_words[p >> 2] >> ((p & 3u) * 8u)) & 0xFFu; }
 uint tb(uint p) { return (tmpl_words[p >> 2] >> ((p & 3u) * 8u)) & 0xFFu; }

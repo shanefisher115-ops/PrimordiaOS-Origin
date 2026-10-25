@@ -14,7 +14,9 @@ stdin bytes into GPU memory and GPU memory to stdout.
 | `respond.comp` | one per message | runs GPU tool spells, then measures → reserves (`atomicAdd`) → writes each reply |
 
 The command buffer is recorded once and resubmitted every tick. All three glyphs
-share one descriptor set of eight storage buffers (see `shaders/common.glsl`).
+share one descriptor set of nine storage buffers (see `shaders/common.glsl`).
+Every dispatch is indirect: the host sizes frame by the request bytes, and frame
+sizes parse and respond by the messages it found (`ceil(messages / 64)` groups).
 
 Replies within a tick are unordered; JSON-RPC clients match them by `id`.
 

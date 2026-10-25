@@ -8,6 +8,8 @@
 #include "Containers/Ticker.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
+#include "MCPCrowdVisualizer.h"
 #include "HAL/IConsoleManager.h"
 #include "Interfaces/IPluginManager.h"
 #include "MCPComputeSubsystem.h"
@@ -52,6 +54,15 @@ void RunDemo(UMCPComputeSubsystem& MCP, int32 Actors)
 	Realm.Roughness = 0.2185f;
 	MCP.SubmitRealmTick(Realm);
 	MCP.SpawnCrowd(Actors);
+
+	// Make the population visible (the realm bridge binding spawns one too when a realm arrives).
+	UWorld* World = MCP.GetWorld();
+	if (World && !TActorIterator<AMCPCrowdVisualizer>(World))
+	{
+		FActorSpawnParameters Params;
+		Params.ObjectFlags |= RF_Transient;
+		World->SpawnActor<AMCPCrowdVisualizer>(Params);
+	}
 }
 
 FString Report(const UMCPComputeSubsystem& MCP)

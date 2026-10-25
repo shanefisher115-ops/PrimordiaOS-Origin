@@ -10,6 +10,7 @@
 // Slots are reserved once per subgroup: each threadling counts its newlines,
 // an exclusive scan gives its offset, and one elected threadling does the
 // atomicAdd. Every threadling reaches the subgroup ops (out-of-range ones count 0).
+// The same threadling raises parse/respond's indirect group count to cover its slots.
 
 layout(local_size_x = 256) in;
 #include "common.glsl"
@@ -30,7 +31,11 @@ void main() {
     uint total = subgroupAdd(n);
     uint offset = subgroupExclusiveAdd(n);
     uint first = 0u;
-    if (total > 0u && subgroupElect()) first = atomicAdd(ctl.msg_count, total);
+    if (total > 0u && subgroupElect()) {
+        first = atomicAdd(ctl.msg_count, total);
+        // Size parse/respond: the highest slot reserved so far, in groups of 64.
+        atomicMax(disp.msg_x, min((first + total + 63u) / 64u, MAX_MSGS / 64u));
+    }
     first = subgroupBroadcastFirst(first);
 
     uint slot = first + offset;

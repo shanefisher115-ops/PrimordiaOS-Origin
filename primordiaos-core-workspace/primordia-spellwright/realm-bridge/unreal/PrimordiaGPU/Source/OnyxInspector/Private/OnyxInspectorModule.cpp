@@ -2,6 +2,7 @@
 // per-pipeline saturation, the hottest actors, per-sigil cost) and the Vulkan device probe.
 // It reads FOnyx::LatestFrame() four times a second; nothing here touches the GPU.
 #include "Framework/Application/SlateApplication.h"
+#include "HAL/IConsoleManager.h"
 #include "Framework/Docking/TabManager.h"
 #include "Modules/ModuleManager.h"
 #include "Onyx.h"
@@ -124,6 +125,9 @@ public:
 		.SetDisplayName(LOCTEXT("TabTitle", "Onyx Inspector"))
 		.SetTooltipText(LOCTEXT("TabTooltip", "PrimordiaOS GPU telemetry: MCP kernels, render passes, per-actor cost, memory."));
 
+		OpenCommand = IConsoleManager::Get().RegisterConsoleCommand(TEXT("Onyx.Inspector"), TEXT("Opens the Onyx Inspector tab."),
+			FConsoleCommandDelegate::CreateLambda([]() { FGlobalTabmanager::Get()->TryInvokeTab(TabName); }));
+
 		UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateLambda([]()
 		{
 			UToolMenu* Menu = UToolMenus::Get()->ExtendMenu(TEXT("LevelEditor.MainMenu.Window"));
@@ -135,11 +139,19 @@ public:
 
 	virtual void ShutdownModule() override
 	{
+		if (OpenCommand)
+		{
+			IConsoleManager::Get().UnregisterConsoleObject(OpenCommand);
+			OpenCommand = nullptr;
+		}
 		if (FSlateApplication::IsInitialized())
 		{
 			FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(TabName);
 		}
 	}
+
+private:
+	IConsoleObject* OpenCommand = nullptr;
 };
 
 #undef LOCTEXT_NAMESPACE

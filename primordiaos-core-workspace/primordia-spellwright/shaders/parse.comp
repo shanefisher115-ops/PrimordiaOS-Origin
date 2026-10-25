@@ -28,46 +28,83 @@ void main() {
     atomicAdd(ctl.total_msgs, 1u);
     atomicAdd(ctl.total_bytes, e - s);
 
-    if (s < e) {
-        if (rb(s) != 123u || skip_value(s, e) != e) {
-            r.spell = SP_PARSE_ERR;
-        } else {
-            uint vs, ve;
-            bool has_id = find_member(s, e, gr.keys[K_ID], vs, ve);
-            if (has_id) { r.id_s = vs; r.id_e = ve; }
-
-            uint ms, me;
-            if (!find_member(s, e, gr.keys[K_METHOD], ms, me)) {
+    // One walk over the members of an object records the first member for each
+    // wanted key. find_member walks the same sequence and returns the first match
+    // before the same failure point, so this is equivalent to one find_member per
+    // key, but the walk is inlined once (level 0: the message, level 1: tools/call
+    // params) instead of once per key: the code a message runs through is what
+    // costs here, not the bytes it reads.
+    if (s < e && (rb(s) != 123u || skip_value(s, e) != e)) r.spell = SP_PARSE_ERR;
+    bool walk = s < e && r.spell != SP_PARSE_ERR;
+    uint os = s, oe = e;
+    uint nk = 5u;  // wanted keys this level: k0..k4 (level 1 uses k0, k1)
+    uint k0 = gr.keys[K_ID], k1 = gr.keys[K_METHOD], k2 = gr.keys[K_PARAMS];
+    uint k3 = gr.keys[K_RESULT], k4 = gr.keys[K_ERROR];
+    uvec2 f0 = uvec2(0u), f1 = uvec2(0u), f2 = uvec2(0u);
+    bool h0 = false, h1 = false, h2 = false, h3 = false, h4 = false;
+    uint spell = SP_NONE;
+    bool has_id = false;
+    for (uint level = 0u; level < 2u && walk; level++) {
+        if (level == 1u) {
+            // Top-level members are known: route the message.
+            has_id = h0;
+            if (has_id) { r.id_s = f0.x; r.id_e = f0.y; }
+            walk = false;
+            if (!h1) {
                 // A reply from the client (to a server request) needs no answer.
-                uint a, b;
-                bool reply = find_member(s, e, gr.keys[K_RESULT], a, b)
-                          || find_member(s, e, gr.keys[K_ERROR], a, b);
-                r.spell = reply ? SP_NONE : SP_INVALID;
-            } else if (rb(ms) != 34u || me < ms + 2u) {
-                r.spell = SP_INVALID;
-            } else {
-                uint spell = lookup(0u, gr.method_count, fnv(ms + 1u, me - 1u));
-                if (spell == NOT_FOUND) spell = SP_UNKNOWN;
-
-                uint ps, pe;
-                if (find_member(s, e, gr.keys[K_PARAMS], ps, pe)) { r.params_s = ps; r.params_e = pe; }
-
-                if (spell == SP_TOOLS_CALL) {
-                    uint ns, ne;
-                    if (pe > ps && find_member(ps, pe, gr.keys[K_NAME], ns, ne)
-                        && rb(ns) == 34u && ne >= ns + 2u) {
-                        uint t = lookup(gr.method_count, gr.tool_count, fnv(ns + 1u, ne - 1u));
-                        spell = (t == NOT_FOUND) ? SP_UNKNOWN_TOOL : t;
-                        uint a0, a1;
-                        if (find_member(ps, pe, gr.keys[K_ARGUMENTS], a0, a1)) { r.args_s = a0; r.args_e = a1; }
-                    } else {
-                        spell = SP_BAD_ARGS;
-                    }
-                }
-                // Requests without an id are notifications: never answered.
-                r.spell = has_id ? spell : SP_NONE;
+                r.spell = (h3 || h4) ? SP_NONE : SP_INVALID;
+                break;
             }
+            uint ms = f1.x, me = f1.y;
+            if (rb(ms) != 34u || me < ms + 2u) { r.spell = SP_INVALID; break; }
+            spell = lookup(0u, gr.method_count, fnv(ms + 1u, me - 1u));
+            if (spell == NOT_FOUND) spell = SP_UNKNOWN;
+            if (h2) { r.params_s = f2.x; r.params_e = f2.y; }
+            if (spell != SP_TOOLS_CALL) break;
+            if (f2.y <= f2.x) { spell = SP_BAD_ARGS; break; }
+            os = f2.x; oe = f2.y;
+            nk = 2u; k0 = gr.keys[K_NAME]; k1 = gr.keys[K_ARGUMENTS];
+            h0 = false; h1 = false; f0 = uvec2(0u); f1 = uvec2(0u);
+            walk = true;
+        }
+
+        uint p = skip_ws(os, oe);
+        if (p >= oe || rb(p) != 123u) continue;
+        p++;
+        for (uint guard = 0u; guard < 4096u; guard++) {
+            p = skip_ws(p, oe);
+            if (p >= oe) break;
+            uint c = rb(p);
+            if (c == 125u) break;
+            if (c == 44u) { p++; continue; }
+            if (c != 34u) break;
+            uint kend = skip_string(p, oe);
+            uint h = fnv(p + 1u, kend - 1u);
+            p = skip_ws(kend, oe);
+            if (p >= oe || rb(p) != 58u) break;
+            p = skip_ws(p + 1u, oe);
+            uint v1 = skip_value(p, oe);
+            if (!h0 && h == k0) { h0 = true; f0 = uvec2(p, v1); }
+            else if (!h1 && h == k1) { h1 = true; f1 = uvec2(p, v1); }
+            else if (nk > 2u) {
+                if (!h2 && h == k2) { h2 = true; f2 = uvec2(p, v1); }
+                else if (!h3 && h == k3) h3 = true;
+                else if (!h4 && h == k4) h4 = true;
+            }
+            p = v1;
         }
     }
+    if (nk == 2u) {
+        // tools/call: name and arguments inside params.
+        if (h0 && rb(f0.x) == 34u && f0.y >= f0.x + 2u) {
+            uint t = lookup(gr.method_count, gr.tool_count, fnv(f0.x + 1u, f0.y - 1u));
+            spell = (t == NOT_FOUND) ? SP_UNKNOWN_TOOL : t;
+            if (h1) { r.args_s = f1.x; r.args_e = f1.y; }
+        } else {
+            spell = SP_BAD_ARGS;
+        }
+    }
+    // Requests without an id are notifications: never answered.
+    if (r.spell == SP_NONE && spell != SP_NONE) r.spell = has_id ? spell : SP_NONE;
     msgs[i] = r;
 }
