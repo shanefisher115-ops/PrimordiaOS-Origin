@@ -20,6 +20,8 @@ This visualizes the PrimordiaOS metaphysical substrate (Heart, Omniscience, Soul
 | **PRS-1**, the Primordia Realm Standard | [`docs/PRS-1.md`](docs/PRS-1.md) |
 | Materials + Niagara build recipes | [`docs/MATERIALS_AND_NIAGARA.md`](docs/MATERIALS_AND_NIAGARA.md) |
 | Example PRS-1 manifest | [`examples/genesis-5eed1e55.prs1.json`](examples/genesis-5eed1e55.prs1.json) |
+| **Cognition**: engine-native loop (world-state, memory, lore, HTN planner, Spellwright spells, Jules constraints) driving CAD/CAM, Blender and DaVinci Resolve | [`unreal/PrimordiaCognition/`](unreal/PrimordiaCognition/README.md) |
+| **Bolt pipeline** (REST 7778, events 7780) and **Autobuilder** (7790), Blender/Resolve workers, build scripts | [`pipeline/`](pipeline/README.md) |
 
 ## Contents
 

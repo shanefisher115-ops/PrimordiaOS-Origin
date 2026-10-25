@@ -1,0 +1,83 @@
+{
+  "methods": [
+    {
+      "task": "illuminate_realm",
+      "name": "relight the lanterns already standing",
+      "preconditions": [ "tag.${tag} >= ${count}" ],
+      "subtasks": [
+        { "task": "intent:illuminate", "params": { "subject": "${tag}", "tag": "${tag}", "intensity": "${intensity}" } }
+      ]
+    },
+    {
+      "task": "illuminate_realm",
+      "name": "raise lanterns, then light them",
+      "preconditions": [ "realm != realm_shadowforge" ],
+      "subtasks": [
+        { "task": "intent:manifest", "params": { "subject": "lanterns", "class": "/Script/Engine.PointLight", "tag": "${tag}", "count": "${count}", "at": "${at}" },
+          "effects": [ "tag.${tag}=${count}" ] },
+        { "task": "intent:illuminate", "params": { "subject": "${tag}", "tag": "${tag}", "intensity": "${intensity}" } }
+      ]
+    },
+
+    {
+      "task": "fabricate_part",
+      "name": "mill it now (pipeline online)",
+      "preconditions": [ "bolt.connected == true" ],
+      "subtasks": [
+        { "task": "intent:fabricate", "params": { "subject": "${subject}" } }
+      ]
+    },
+    {
+      "task": "fabricate_part",
+      "name": "rehearse it in simulation (pipeline offline)",
+      "preconditions": [],
+      "subtasks": [
+        { "task": "intent:simulate", "params": { "subject": "${subject}" } }
+      ]
+    },
+
+    {
+      "task": "film_subject",
+      "name": "turntable, render, cut and grade",
+      "preconditions": [ "bolt.connected == true" ],
+      "subtasks": [
+        { "task": "intent:film", "params": { "subject": "${subject}", "object": "${object}" } }
+      ]
+    },
+
+    {
+      "task": "stabilize_realm",
+      "name": "already stable",
+      "preconditions": [ "realm.stability >= 0.4" ],
+      "subtasks": [ { "task": "noop" } ]
+    },
+    {
+      "task": "stabilize_realm",
+      "name": "raise a ward and record it",
+      "preconditions": [ "realm.stability < 0.4" ],
+      "subtasks": [
+        { "task": "intent:chronicle", "params": { "subject": "A ward is raised over ${fact:realm.name}", "account": "Cognition saw the realm falter at stability ${fact:realm.stability} and bound it.", "realm": "${fact:realm}", "stability": "0.15" },
+          "effects": [ "realm.stability=0.45" ] }
+      ]
+    },
+
+    {
+      "task": "chronicle_realm",
+      "name": "let an era pass and write it down",
+      "preconditions": [],
+      "subtasks": [
+        { "task": "intent:evolve", "params": { "subject": "history", "eras": "1" } },
+        { "task": "intent:chronicle", "params": { "subject": "The chronicle of ${fact:realm.name}", "account": "Written in era ${fact:era} by the cognition of PrimordiaOS.", "realm": "${fact:realm}" } }
+      ]
+    },
+
+    {
+      "task": "rebuild_modules",
+      "name": "rebuild through the Autobuilder",
+      "preconditions": [ "bolt.connected == true" ],
+      "subtasks": [
+        { "task": "intent:rebuild", "params": { "subject": "PrimordiaCognition", "reason": "${reason}" } }
+      ]
+    }
+  ]
+}

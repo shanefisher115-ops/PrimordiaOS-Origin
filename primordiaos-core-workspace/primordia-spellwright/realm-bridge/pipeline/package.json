@@ -1,0 +1,13 @@
+{
+  "name": "primordia-pipeline",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PrimordiaOS Bolt pipeline (REST 7777, events 7780) and Autobuilder (7790). No dependencies.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "bolt": "node bolt/server.mjs",
+    "autobuilder": "node autobuilder/server.mjs",
+    "test": "node --test test/*.test.mjs"
+  }
+}
