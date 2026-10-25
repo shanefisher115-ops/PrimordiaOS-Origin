@@ -178,16 +178,22 @@ thing to optimize.
 - Unreal: the plugin builds against UE 5.4 with no errors or warnings. Console `mcp.Demo
   [actors]` runs MCP on the reference realm in any world, and `mcp.Report` logs the result. With
   `-MCPSmokeTest`, the editor runs the demo, waits for GPU results and exits with a PASS/FAIL
-  line. On D3D12 it passed: 240 ticks, 1,024 actors across all six actions, 9 spires, cost for all
-  4 glyphs, and Onyx timing every kernel (topology 0.23 ms, sigil field 0.46 ms, cognition 0.08 ms,
-  memory retrieval 0.26 ms; the standalone engine measures the same on this GPU).
+  line. It passes on both RHIs: 241 ticks, 1,024 actors across all six actions, 9 spires, cost
+  for all 4 glyphs, a clean exit, and Onyx timing every kernel (D3D12: topology 0.24 ms, sigil
+  field 0.44 ms, cognition 0.08 ms, memory retrieval 0.28 ms; Vulkan: 0.26, 0.37, 0.05, 0.17 ms;
+  the standalone engine measures the same on this GPU). On Vulkan, `FVulkanRealmDevice` sees the
+  three queue families (graphics, 2-queue async compute, DMA) and `VK_EXT_memory_budget`.
+- Two bugs the Vulkan run found and that are fixed: (1) Unreal's Vulkan RHI writes timestamps
+  when the command is reached, and the render graph had placed each pass's barrier after the
+  stamp, so every kernel's time slid into the next one; each stamp pass now declares a read of
+  the previous kernel's output, which puts the barrier in front of it. (2) MCP's readback staging
+  buffers outlived the Vulkan RHI at exit (assertion in `VulkanMemory.cpp`); MCP state and
+  Onyx's query pool are now released at engine pre-exit.
 
 ## 9. Limits and next steps
 
-- The `-vulkan` editor run has not completed yet. The first attempt never reached the test: it
-  ran through a temporary `subst` drive (a workaround for MSVC's path limit in the scratch host
-  project) that Unreal's shader compiler workers could not see, so they failed on engine shaders.
-  Running it from a short real path will exercise `FVulkanRealmDevice` and the aura pass on Vulkan.
+- The Unreal side has been exercised with the built-in demo realm (`mcp.Demo`); the next step is
+  a play session against the live realm bridge in the PrimordiaRealms project.
 - Per-kernel Onyx timing in Unreal needs MCP on the graphics pipe (the default).
 - Memory retrieval is the hottest kernel: a two-level search (coarse then fine) or subgroup
   reductions would cut its cost.

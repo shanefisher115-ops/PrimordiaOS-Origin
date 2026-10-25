@@ -71,9 +71,9 @@ void UMCPComputeSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UMCPComputeSubsystem::Deinitialize()
 {
-	if (UWorld* World = GetWorld(); World && World->Scene)
+	if (GPU)
 	{
-		FMCPGPUState::Unregister(World->Scene);
+		FMCPGPUState::UnregisterState(GPU.Get()); // by state: the scene may already be gone
 	}
 	if (GPU)
 	{

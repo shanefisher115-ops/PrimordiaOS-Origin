@@ -69,6 +69,6 @@ FScreenPassTexture FRealmAuraViewExtension::AddAura_RenderThread(FRDGBuilder& Gr
 	TShaderMapRef<FRealmAuraPS> PixelShader(ShaderMap);
 	AddDrawScreenPass(GraphBuilder, RDG_EVENT_NAME("PrimordiaRealm.Aura"), FScreenPassViewInfo(View), FScreenPassTextureViewport(Output),
 		FScreenPassTextureViewport(SceneColor), VertexShader, PixelShader, Params);
-	FOnyxGPUTimer::Get().Close(GraphBuilder);
+	FOnyxGPUTimer::Get().Close(GraphBuilder, nullptr, Output.Texture);
 	return FScreenPassTexture(Output);
 }

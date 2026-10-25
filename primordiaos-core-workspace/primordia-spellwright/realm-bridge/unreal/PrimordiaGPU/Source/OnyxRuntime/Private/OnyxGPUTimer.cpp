@@ -4,6 +4,13 @@
 #include "RenderGraphBuilder.h"
 #include "RHICommandList.h"
 #include "DynamicRHI.h"
+#include "RenderGraphResources.h"
+#include "ShaderParameterMacros.h"
+
+BEGIN_SHADER_PARAMETER_STRUCT(FOnyxStampParameters, )
+	RDG_BUFFER_ACCESS(AfterBuffer, ERHIAccess::CopySrc)
+	RDG_TEXTURE_ACCESS(AfterTexture, ERHIAccess::CopySrc)
+END_SHADER_PARAMETER_STRUCT()
 
 FOnyxGPUTimer& FOnyxGPUTimer::Get()
 {
@@ -22,7 +29,7 @@ FOnyxGPUTimer::FFrameStamps& FOnyxGPUTimer::CurrentFrame()
 	return Frames.Last();
 }
 
-void FOnyxGPUTimer::AddStamp(FRDGBuilder& GraphBuilder, FString&& Name)
+void FOnyxGPUTimer::AddStamp(FRDGBuilder& GraphBuilder, FString&& Name, FRDGBufferRef AfterBuffer, FRDGTextureRef AfterTexture)
 {
 	check(IsInRenderingThread());
 	if (!GSupportsTimestampRenderQueries)
@@ -38,21 +45,33 @@ void FOnyxGPUTimer::AddStamp(FRDGBuilder& GraphBuilder, FString&& Name)
 	Stamp.Name = MoveTemp(Name);
 	Stamp.Query = MakeShared<FRHIPooledRenderQuery>(Pool->AllocateQuery());
 	FRHIRenderQuery* Query = Stamp.Query->GetQuery();
-	GraphBuilder.AddPass(RDG_EVENT_NAME("Onyx.Stamp"), ERDGPassFlags::None | ERDGPassFlags::NeverCull,
-		[Query](FRHICommandListImmediate& RHICmdList)
+	// A copy pass on the graphics pipe: it may declare resource reads, and its command list can
+	// write render queries. The declared read orders it after the pass that wrote the resource.
+	FOnyxStampParameters* Params = GraphBuilder.AllocParameters<FOnyxStampParameters>();
+	Params->AfterBuffer = AfterBuffer;
+	Params->AfterTexture = AfterTexture;
+	GraphBuilder.AddPass(RDG_EVENT_NAME("Onyx.Stamp"), Params, ERDGPassFlags::Copy | ERDGPassFlags::NeverCull,
+		[Query](FRHICommandList& RHICmdList)
 		{
 			RHICmdList.EndRenderQuery(Query);
 		});
 }
 
-void FOnyxGPUTimer::Stamp(FRDGBuilder& GraphBuilder, const TCHAR* Name)
+void FOnyxGPUTimer::Stamp(FRDGBuilder& GraphBuilder, const TCHAR* Name, FRDGBufferRef AfterBuffer, FRDGTextureRef AfterTexture)
 {
-	AddStamp(GraphBuilder, FString(Name));
+	AddStamp(GraphBuilder, FString(Name), AfterBuffer, AfterTexture);
 }
 
-void FOnyxGPUTimer::Close(FRDGBuilder& GraphBuilder)
+void FOnyxGPUTimer::Close(FRDGBuilder& GraphBuilder, FRDGBufferRef AfterBuffer, FRDGTextureRef AfterTexture)
 {
-	AddStamp(GraphBuilder, FString());
+	AddStamp(GraphBuilder, FString(), AfterBuffer, AfterTexture);
+}
+
+void FOnyxGPUTimer::Release()
+{
+	check(IsInRenderingThread());
+	Frames.Empty();
+	Pool.SafeRelease();
 }
 
 void FOnyxGPUTimer::ResolveFinishedFrames()

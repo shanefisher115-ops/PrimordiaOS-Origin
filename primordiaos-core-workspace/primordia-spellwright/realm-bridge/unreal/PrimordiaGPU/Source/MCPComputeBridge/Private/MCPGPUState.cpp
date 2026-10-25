@@ -4,13 +4,17 @@
 #include "OnyxGPUTimer.h"
 #include "RenderGraphBuilder.h"
 #include "RenderGraphUtils.h"
+#include "RenderingThread.h"
 #include "ShaderParameterStruct.h"
+
+#include <atomic>
 
 using namespace PrimordiaMCP;
 
 namespace
 {
 FCriticalSection RegistryLock;
+std::atomic<bool> GShuttingDown{ false }; // set at engine pre-exit: no GPU resources after that
 TMap<const FSceneInterface*, TSharedPtr<FMCPGPUState, ESPMode::ThreadSafe>> Registry;
 
 constexpr uint32 MaxTreeNodes = 1024;
@@ -55,6 +59,51 @@ void FMCPGPUState::Unregister(const FSceneInterface* Scene)
 {
 	FScopeLock Guard(&RegistryLock);
 	Registry.Remove(Scene);
+}
+
+void FMCPGPUState::UnregisterState(const FMCPGPUState* State)
+{
+	FScopeLock Guard(&RegistryLock);
+	for (auto It = Registry.CreateIterator(); It; ++It)
+	{
+		if (It->Value.Get() == State)
+		{
+			It.RemoveCurrent();
+		}
+	}
+}
+
+void FMCPGPUState::ReleaseAll()
+{
+	GShuttingDown = true;
+	TArray<TSharedPtr<FMCPGPUState, ESPMode::ThreadSafe>> States;
+	{
+		FScopeLock Guard(&RegistryLock);
+		Registry.GenerateValueArray(States);
+		Registry.Empty();
+	}
+	for (const TSharedPtr<FMCPGPUState, ESPMode::ThreadSafe>& State : States)
+	{
+		ENQUEUE_RENDER_COMMAND(MCPReleaseAll)([State](FRHICommandListImmediate&) { State->ReleaseResources_RenderThread(); });
+	}
+	FlushRenderingCommands();
+}
+
+void FMCPGPUState::ReleaseResources_RenderThread()
+{
+	check(IsInRenderingThread());
+	for (FReadbackSlot& S : Readbacks)
+	{
+		S = FReadbackSlot();
+	}
+	for (TRefCountPtr<FRDGPooledBuffer>* B : { &TickBuf, &Structures, &StructureArgs, &Sigils, &Field, &SigilCost, &BTNodes, &ActorCost, &Episodes, &Memory,
+		&Terrain[0], &Terrain[1], &Actors[0], &Actors[1], &Recall[0], &Recall[1] })
+	{
+		B->SafeRelease();
+	}
+	bAllocated = false;
+	bHasField = false;
+	ActorCount = 0;
 }
 
 TSharedPtr<FMCPGPUState, ESPMode::ThreadSafe> FMCPGPUState::Find(const FSceneInterface* Scene)
@@ -167,6 +216,10 @@ FMCPGPUState::FFieldView FMCPGPUState::GetFieldView_RenderThread() const
 void FMCPGPUState::ExecuteTick_RenderThread(FRDGBuilder& GraphBuilder, FMCPTickInput&& Input)
 {
 	check(IsInRenderingThread());
+	if (GShuttingDown)
+	{
+		return;
+	}
 	if (!bAllocated)
 	{
 		Allocate(GraphBuilder);
@@ -226,11 +279,12 @@ void FMCPGPUState::ExecuteTick_RenderThread(FRDGBuilder& GraphBuilder, FMCPTickI
 	const bool bTimed = !Input.bAsyncCompute; // timestamps live on the graphics pipe only
 	FGlobalShaderMap* ShaderMap = GetGlobalShaderMap(GMaxRHIFeatureLevel);
 	FOnyxGPUTimer& Timer = FOnyxGPUTimer::Get();
-	auto Stamp = [&](const TCHAR* Name)
+	// Each stamp waits for the buffer the previous kernel wrote (see FOnyxGPUTimer).
+	auto Stamp = [&](const TCHAR* Name, FRDGBufferRef After)
 	{
 		if (bTimed)
 		{
-			Timer.Stamp(GraphBuilder, Name);
+			Timer.Stamp(GraphBuilder, Name, After);
 		}
 	};
 	const uint32 N = Cfg.TerrainN;
@@ -238,14 +292,14 @@ void FMCPGPUState::ExecuteTick_RenderThread(FRDGBuilder& GraphBuilder, FMCPTickI
 	const uint32 M = Cfg.FieldN;
 	const uint32 A = ActorCount;
 
-	Stamp(TEXT("mcp.tick_reset"));
+	Stamp(TEXT("mcp.tick_reset"), RTick);
 	{
 		auto* Params = GraphBuilder.AllocParameters<FMCPTickResetCS::FParameters>();
 		Params->StructureArgs = GraphBuilder.CreateUAV(RArgs);
 		Params->SigilCost = GraphBuilder.CreateUAV(RSigilCost);
 		FComputeShaderUtils::AddPass(GraphBuilder, RDG_EVENT_NAME("MCP.TickReset"), Flags, TShaderMapRef<FMCPTickResetCS>(ShaderMap), Params, FIntVector(1, 1, 1));
 	}
-	Stamp(TEXT("mcp.topology"));
+	Stamp(TEXT("mcp.topology"), RArgs);
 	{
 		auto* Params = GraphBuilder.AllocParameters<FMCPTopologyCS::FParameters>();
 		Params->TickBuffer = GraphBuilder.CreateSRV(RTick);
@@ -254,7 +308,7 @@ void FMCPGPUState::ExecuteTick_RenderThread(FRDGBuilder& GraphBuilder, FMCPTickI
 		FComputeShaderUtils::AddPass(GraphBuilder, RDG_EVENT_NAME("MCP.Topology"), Flags, TShaderMapRef<FMCPTopologyCS>(ShaderMap), Params,
 			FIntVector(Groups(N, MCP_GROUP_2D), Groups(N, MCP_GROUP_2D), 1));
 	}
-	Stamp(TEXT("mcp.structures"));
+	Stamp(TEXT("mcp.structures"), RTerrainOut);
 	{
 		auto* Params = GraphBuilder.AllocParameters<FMCPStructuresCS::FParameters>();
 		Params->TickBuffer = GraphBuilder.CreateSRV(RTick);
@@ -264,7 +318,7 @@ void FMCPGPUState::ExecuteTick_RenderThread(FRDGBuilder& GraphBuilder, FMCPTickI
 		FComputeShaderUtils::AddPass(GraphBuilder, RDG_EVENT_NAME("MCP.Structures"), Flags, TShaderMapRef<FMCPStructuresCS>(ShaderMap), Params,
 			FIntVector(Groups(Nc, MCP_GROUP_2D), Groups(Nc, MCP_GROUP_2D), 1));
 	}
-	Stamp(TEXT("mcp.sigil_field"));
+	Stamp(TEXT("mcp.sigil_field"), RStructures);
 	{
 		auto* Params = GraphBuilder.AllocParameters<FMCPSigilFieldCS::FParameters>();
 		Params->TickBuffer = GraphBuilder.CreateSRV(RTick);
@@ -276,7 +330,7 @@ void FMCPGPUState::ExecuteTick_RenderThread(FRDGBuilder& GraphBuilder, FMCPTickI
 	}
 	if (A > 0)
 	{
-		Stamp(TEXT("mcp.cognition"));
+		Stamp(TEXT("mcp.cognition"), RField);
 		{
 			auto* Params = GraphBuilder.AllocParameters<FMCPCognitionCS::FParameters>();
 			Params->TickBuffer = GraphBuilder.CreateSRV(RTick);
@@ -292,7 +346,7 @@ void FMCPGPUState::ExecuteTick_RenderThread(FRDGBuilder& GraphBuilder, FMCPTickI
 			FComputeShaderUtils::AddPass(GraphBuilder, RDG_EVENT_NAME("MCP.Cognition"), Flags, TShaderMapRef<FMCPCognitionCS>(ShaderMap), Params,
 				FIntVector(Groups(A, MCP_GROUP_1D), 1, 1));
 		}
-		Stamp(TEXT("mcp.memory_compress"));
+		Stamp(TEXT("mcp.memory_compress"), REpisodes);
 		{
 			auto* Params = GraphBuilder.AllocParameters<FMCPMemoryCompressCS::FParameters>();
 			Params->TickBuffer = GraphBuilder.CreateSRV(RTick);
@@ -303,7 +357,7 @@ void FMCPGPUState::ExecuteTick_RenderThread(FRDGBuilder& GraphBuilder, FMCPTickI
 			FComputeShaderUtils::AddPass(GraphBuilder, RDG_EVENT_NAME("MCP.MemoryCompress"), Flags, TShaderMapRef<FMCPMemoryCompressCS>(ShaderMap), Params,
 				FIntVector(Groups(A, MCP_GROUP_1D), 1, 1));
 		}
-		Stamp(TEXT("mcp.memory_retrieve"));
+		Stamp(TEXT("mcp.memory_retrieve"), RMemory);
 		{
 			auto* Params = GraphBuilder.AllocParameters<FMCPMemoryRetrieveCS::FParameters>();
 			Params->TickBuffer = GraphBuilder.CreateSRV(RTick);
@@ -318,7 +372,7 @@ void FMCPGPUState::ExecuteTick_RenderThread(FRDGBuilder& GraphBuilder, FMCPTickI
 	}
 	if (bTimed)
 	{
-		Timer.Close(GraphBuilder);
+		Timer.Close(GraphBuilder, A > 0 ? RRecallOut : RField);
 	}
 
 	// --- GPU -> game thread (read a few frames later, never waited on) ----------------------

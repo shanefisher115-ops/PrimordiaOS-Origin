@@ -6,6 +6,8 @@
 // -MCPSmokeTest on the command line runs mcp.Demo in the first world, waits for GPU results,
 // logs "MCPSmokeTest PASS|FAIL ..." and exits (exit code 1 on failure).
 #include "Containers/Ticker.h"
+#include "MCPGPUState.h"
+#include "Misc/CoreDelegates.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
@@ -121,6 +123,8 @@ public:
 			AddShaderSourceDirectoryMapping(TEXT("/Plugin/PrimordiaGPU"), FPaths::Combine(Plugin->GetBaseDir(), TEXT("Shaders")));
 		}
 
+		PreExitHandle = FCoreDelegates::OnEnginePreExit.AddStatic(&FMCPGPUState::ReleaseAll);
+
 		Commands.Add(IConsoleManager::Get().RegisterConsoleCommand(TEXT("mcp.Demo"), TEXT("mcp.Demo [actors]: run MCP in this world on the reference realm."),
 			FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
 			{
@@ -147,6 +151,7 @@ public:
 
 	virtual void ShutdownModule() override
 	{
+		FCoreDelegates::OnEnginePreExit.Remove(PreExitHandle);
 		FTSTicker::GetCoreTicker().RemoveTicker(SmokeTicker);
 		for (IConsoleObject* C : Commands)
 		{
@@ -199,6 +204,7 @@ private:
 
 	TArray<IConsoleObject*> Commands;
 	FTSTicker::FDelegateHandle SmokeTicker;
+	FDelegateHandle PreExitHandle;
 	float SmokeSeconds = 0.f;
 };
 

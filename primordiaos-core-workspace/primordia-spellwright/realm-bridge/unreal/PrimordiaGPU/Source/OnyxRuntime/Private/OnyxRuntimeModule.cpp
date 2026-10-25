@@ -1,8 +1,11 @@
 // FOnyxRuntimeModule and the Onyx console commands.
 #include "Engine/Engine.h"
 #include "HAL/IConsoleManager.h"
+#include "Misc/CoreDelegates.h"
 #include "Modules/ModuleManager.h"
 #include "Onyx.h"
+#include "OnyxGPUTimer.h"
+#include "RenderingThread.h"
 #include "OnyxSubsystem.h"
 #include "Serialization/JsonSerializer.h"
 
@@ -13,6 +16,12 @@ class FOnyxRuntimeModule : public IModuleInterface
 public:
 	virtual void StartupModule() override
 	{
+		// Queries belong to the RHI: return them before it shuts down, not in a static destructor.
+		PreExitHandle = FCoreDelegates::OnEnginePreExit.AddLambda([]()
+		{
+			ENQUEUE_RENDER_COMMAND(OnyxRelease)([](FRHICommandListImmediate&) { FOnyxGPUTimer::Get().Release(); });
+			FlushRenderingCommands();
+		});
 		Commands.Add(IConsoleManager::Get().RegisterConsoleCommand(TEXT("Onyx.Show"), TEXT("Onyx.Show 1|0: on-screen GPU telemetry inspector."),
 			FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
 			{
@@ -42,6 +51,7 @@ public:
 
 	virtual void ShutdownModule() override
 	{
+		FCoreDelegates::OnEnginePreExit.Remove(PreExitHandle);
 		for (IConsoleObject* C : Commands)
 		{
 			IConsoleManager::Get().UnregisterConsoleObject(C);
@@ -51,6 +61,7 @@ public:
 
 private:
 	TArray<IConsoleObject*> Commands;
+	FDelegateHandle PreExitHandle;
 };
 
 IMPLEMENT_MODULE(FOnyxRuntimeModule, OnyxRuntime)

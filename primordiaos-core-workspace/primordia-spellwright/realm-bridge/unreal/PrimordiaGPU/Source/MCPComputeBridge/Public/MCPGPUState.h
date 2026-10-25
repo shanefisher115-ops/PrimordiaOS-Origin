@@ -70,6 +70,13 @@ public:
 	static void Register(const FSceneInterface* Scene, const TSharedPtr<FMCPGPUState, ESPMode::ThreadSafe>& State);
 	static void Unregister(const FSceneInterface* Scene);
 	static TSharedPtr<FMCPGPUState, ESPMode::ThreadSafe> Find(const FSceneInterface* Scene);
+	static void UnregisterState(const FMCPGPUState* State);
+	/** Game thread, at engine pre-exit: frees every registered state's GPU resources (pooled
+	 *  buffers, readback staging buffers) on the render thread and waits, so none outlives the RHI. */
+	static void ReleaseAll();
+
+	/** Render thread: frees the GPU resources (the next tick would allocate them again). */
+	void ReleaseResources_RenderThread();
 
 private:
 	struct FReadbackSlot
