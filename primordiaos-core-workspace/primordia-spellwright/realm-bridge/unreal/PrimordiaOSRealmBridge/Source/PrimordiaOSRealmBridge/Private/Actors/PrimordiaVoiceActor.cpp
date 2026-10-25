@@ -75,6 +75,7 @@ void APrimordiaVoiceActor::ApplyPayload(const TSharedPtr<FJsonObject>& P)
 	SetTargetLocation(Vec(P, TEXT("position"), FVector::ZeroVector, UnitsPerMeter()), !bHasReceivedPacket);
 
 	const int32 Utterance = Int(P, TEXT("utterance"), 0);
+	LastChunkTime = FPlatformTime::Seconds();
 	const bool bWasSpatial = bSpatial;
 	bSpatial = Bool(P, TEXT("spatial"), true);
 	EnsureWave(Int(P, TEXT("sample_rate"), 24000));
@@ -111,6 +112,11 @@ void APrimordiaVoiceActor::ApplyPayload(const TSharedPtr<FJsonObject>& P)
 	{
 		bUtteranceEnded = true;
 	}
+}
+
+bool APrimordiaVoiceActor::IsBusy() const
+{
+	return bAudioQueued || (!bUtteranceEnded && FPlatformTime::Seconds() - LastChunkTime < UtteranceStallSeconds);
 }
 
 void APrimordiaVoiceActor::StopSpeaking()

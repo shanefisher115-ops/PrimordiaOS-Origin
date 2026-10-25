@@ -28,7 +28,13 @@ public:
 
 	virtual void ApplyPayload(const TSharedPtr<FJsonObject>& Payload) override;
 	virtual void Tick(float DeltaSeconds) override;
-	virtual bool IsBusy() const override { return bAudioQueued; }
+	/**
+	 * Busy while audio is queued, and while an utterance is still arriving: between two
+	 * sentences the queue can run dry for longer than the entity timeout while Kokoro
+	 * synthesizes the next one. A stream that stops without its final chunk frees the
+	 * actor after UtteranceStallSeconds.
+	 */
+	virtual bool IsBusy() const override;
 
 	/** Stops speaking and drops queued audio. */
 	UFUNCTION(BlueprintCallable, Category = "PrimordiaOS|Voice")
@@ -73,6 +79,8 @@ private:
 	void ApplyAttenuation();
 
 	int32 WaveSampleRate = 0;
+	double LastChunkTime = 0.0;
+	static constexpr double UtteranceStallSeconds = 30.0;
 	bool bAudioQueued = false;
 	bool bUtteranceEnded = true;
 	bool bFinishedBroadcast = true;
