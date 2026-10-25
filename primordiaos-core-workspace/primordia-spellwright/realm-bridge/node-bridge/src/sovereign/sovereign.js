@@ -192,7 +192,13 @@ export function cyclePrompt(chronicle, number, realmLine) {
  * Runs one cycle's LLM call. onSentence(sentence) fires as each narration sentence completes.
  * @returns {Promise<{ cycle: object, stats: object }>}
  */
-export async function dreamCycle({ prompt, url = DEFAULT_OLLAMA_URL, model, onSentence, signal, chat = ollamaChat }) {
+// A cycle is ~600 prompt + ~400 reply tokens. Ollama's default context here was 32k, whose KV
+// cache made llama3.2:3b take 5.9 GB; on an integrated GPU that is system RAM, and the model then
+// competes with Unreal for the GPU every cycle. 2048 tokens on the CPU (numGpu 0) is ~2 GB and
+// leaves the GPU to the renderer.
+export const CYCLE_CONTEXT = 2048;
+
+export async function dreamCycle({ prompt, url = DEFAULT_OLLAMA_URL, model, onSentence, signal, chat = ollamaChat, numGpu = 0 }) {
   const sentences = createSentenceStream();
   let closed = false;
   const { text: reply, stats } = await chat({
@@ -200,7 +206,7 @@ export async function dreamCycle({ prompt, url = DEFAULT_OLLAMA_URL, model, onSe
     model,
     signal,
     format: SOVEREIGN_SCHEMA,
-    options: { temperature: 0.8, num_predict: 420 },
+    options: { temperature: 0.8, num_predict: 420, num_ctx: CYCLE_CONTEXT, ...(numGpu === null ? {} : { num_gpu: numGpu }) },
     messages: [
       { role: 'system', content: SOVEREIGN_SYSTEM },
       { role: 'user', content: prompt },

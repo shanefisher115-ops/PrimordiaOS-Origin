@@ -64,6 +64,7 @@ export async function createBridge(options = {}) {
     sovereignHoldSeconds = 60,   // how long a metaphysic the Sovereign pushes holds before fading back
     sovereignDir = DEFAULT_SOVEREIGN_DIR, // chronicle.json, cycles.jsonl, cycle-NNNN.wav; null = memory only
     sovereignPlayLocal = false,  // also play each cycle's WAV on this PC (Windows), after it is synthesized
+    sovereignGpuLayers = 0,      // model layers on the GPU: 0 = CPU only (keeps an integrated GPU for Unreal); null = Ollama decides
     log = console.log,
   } = options;
   let design = null; // { controller } while a generate_realm is in flight
@@ -454,6 +455,7 @@ export async function createBridge(options = {}) {
             prompt: cyclePrompt(chronicle, number, describeRealm(ctx.manifest, ctx.state)),
             url: ollamaUrl,
             model: sovereignModel,
+            numGpu: sovereignGpuLayers,
             signal,
             onSentence: (s) => utter.say(s),
           });
@@ -745,6 +747,8 @@ function parseArgs(argv) {
     sovereignModel: get('--sovereign-model', 'PRIMORDIA_SOVEREIGN_MODEL', get('--voice-model', 'PRIMORDIA_VOICE_MODEL', 'llama3.2:3b')),
     sovereignVoice: get('--sovereign-voice', 'PRIMORDIA_SOVEREIGN_VOICE', 'bf_emma'),
     sovereignPlayLocal: argv.includes('--sovereign-play-local') || env.PRIMORDIA_SOVEREIGN_PLAY_LOCAL === '1',
+    // Model layers on the GPU (default 0: CPU, so the renderer keeps an integrated GPU); 'auto' lets Ollama decide.
+    sovereignGpuLayers: (() => { const v = get('--sovereign-gpu-layers', 'PRIMORDIA_SOVEREIGN_GPU_LAYERS', '0'); return v === 'auto' ? null : Number(v); })(),
     // The standalone Vulkan engine (realm-bridge/gpu): path to primordia_realmd.exe.
     gpuSidecar: get('--gpu-sidecar', 'PRIMORDIA_GPU_SIDECAR', null),
     // Pin the GPU quality (e.g. 1 for look-dev renders); omit to let the tuner follow Onyx.
