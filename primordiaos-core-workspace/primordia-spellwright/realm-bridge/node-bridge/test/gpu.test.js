@@ -108,6 +108,12 @@ test('Unreal telemetry over budget lowers the realm quality the renderers receiv
     await c.open();
     c.send({ type: 'hello', client: 'UnrealEngine', version: '1.0.0' });
     const first = await c.waitFor((p) => p.type === 'realm_manifest');
+    // A renderer that did not subscribe never receives telemetry.
+    await new Promise((r) => setTimeout(r, 400));
+    c.send(frame(5, { tick: 1 }));
+    await new Promise((r) => setTimeout(r, 600));
+    assert.equal(c.packets.filter((p) => p.type === 'gpu_telemetry').length, 0, 'gpu_telemetry is opt-in');
+    c.send({ type: 'subscribe', streams: ['gpu_telemetry', 'heart_beat'] });
     for (let i = 0; i < 3; i++) c.send(frame(33, { tick: i + 1 }));
     const thinned = await c.waitFor((p) => p.type === 'realm_manifest' && p.payload.gpu_quality < 1);
     assert.ok(bridge.ctx.gpuQuality < 1);
@@ -145,6 +151,7 @@ test('the Vulkan sidecar closes the loop: realm in, Onyx telemetry out', { skip:
   const c = client(bridge.port);
   try {
     await c.open();
+    c.send({ type: 'subscribe', streams: ['gpu_telemetry'] });
     const t = await c.waitFor((p) => p.type === 'gpu_telemetry' && p.id === 'onyx:vulkan-sidecar' && p.payload.gpu.frame_ms > 0, 45000);
     assert.deepEqual(validatePacket(t), []);
     assert.equal(t.payload.realm_id, bridge.ctx.manifest.realm_id, 'the sidecar runs the realm the bridge authored');

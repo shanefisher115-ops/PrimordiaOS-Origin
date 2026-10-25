@@ -2,53 +2,56 @@
 
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/World.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Materials/MaterialInterface.h"
 #include "MCPComputeSubsystem.h"
 #include "UObject/ConstructorHelpers.h"
 
 namespace
 {
-// Same palette as the standalone renderer (shaders/render/RealmCommon.hlsli ActionColor).
+// The standalone renderer's palette, saturated: unlit wisps over a bright daylight realm only
+// read as colour (not as white bloom) when the colour is strong.
 const FLinearColor ActionColors[] = {
-	FLinearColor(0.70f, 0.70f, 0.70f), // idle
-	FLinearColor(0.95f, 0.85f, 0.55f), // wander
-	FLinearColor(0.45f, 0.80f, 1.00f), // seek sigil
-	FLinearColor(1.00f, 0.20f, 0.12f), // flee
-	FLinearColor(0.35f, 0.35f, 0.45f), // rest
-	FLinearColor(1.00f, 0.55f, 0.95f), // commune
+	FLinearColor(0.55f, 0.62f, 0.85f), // idle
+	FLinearColor(1.00f, 0.55f, 0.12f), // wander
+	FLinearColor(0.15f, 0.70f, 1.00f), // seek sigil
+	FLinearColor(1.00f, 0.10f, 0.04f), // flee
+	FLinearColor(0.25f, 0.18f, 0.65f), // rest
+	FLinearColor(1.00f, 0.25f, 0.90f), // commune
 };
+constexpr int32 ActionCount = UE_ARRAY_COUNT(ActionColors);
+const TCHAR* const GlowMaterial = TEXT("/PrimordiaOSRealmBridge/Materials/M_PrimordiaThreadGlow.M_PrimordiaThreadGlow");
 } // namespace
 
 AMCPCrowdVisualizer::AMCPCrowdVisualizer()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cone(TEXT("/Engine/BasicShapes/Cone.Cone"));
-	for (int32 A = 0; A < UE_ARRAY_COUNT(ActionColors); ++A)
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+	Wisps = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Wisps"));
+	Wisps->SetupAttachment(RootComponent);
+	Wisps->SetMobility(EComponentMobility::Movable);
+	Wisps->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Wisps->SetCastShadow(false); // light sources, not solids
+	Wisps->SetNumCustomDataFloats(4);
+	if (Sphere.Succeeded())
 	{
-		UInstancedStaticMeshComponent* Ism = CreateDefaultSubobject<UInstancedStaticMeshComponent>(*FString::Printf(TEXT("Action%d"), A));
-		Ism->SetupAttachment(RootComponent);
-		Ism->SetMobility(EComponentMobility::Movable);
-		Ism->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		Ism->SetCastShadow(true);
-		if (Cone.Succeeded())
-		{
-			Ism->SetStaticMesh(Cone.Object);
-		}
-		ByAction.Add(Ism);
+		Wisps->SetStaticMesh(Sphere.Object);
 	}
 }
 
 void AMCPCrowdVisualizer::BeginPlay()
 {
 	Super::BeginPlay();
-	for (int32 A = 0; A < ByAction.Num(); ++A)
+	if (UMaterialInterface* Glow = LoadObject<UMaterialInterface>(nullptr, GlowMaterial))
 	{
-		// BasicShapeMaterial exposes a "Color" vector parameter.
-		if (UMaterialInstanceDynamic* Mid = ByAction[A]->CreateDynamicMaterialInstance(0))
-		{
-			Mid->SetVectorParameterValue(TEXT("Color"), ActionColors[A]);
-		}
+		Wisps->SetMaterial(0, Glow);
+		bGlowMaterial = true;
+	}
+	else if (UMaterialInstanceDynamic* Mid = Wisps->CreateDynamicMaterialInstance(0))
+	{
+		Mid->SetVectorParameterValue(TEXT("Color"), ActionColors[1]); // BasicShapeMaterial's parameter
 	}
 }
 
@@ -62,26 +65,70 @@ void AMCPCrowdVisualizer::Tick(float DeltaSeconds)
 	}
 }
 
+double AMCPCrowdVisualizer::GroundZ(int32 Index, const FVector& World)
+{
+	while (TracedZ.Num() <= Index)
+	{
+		TracedAt.Add(FVector2D::ZeroVector);
+		TracedZ.Add(TNumericLimits<double>::Lowest()); // not traced yet
+	}
+	const FVector2D XY(World.X, World.Y);
+	if (TracedZ[Index] != TNumericLimits<double>::Lowest() && FVector2D::DistSquared(XY, TracedAt[Index]) < 100.0 * 100.0)
+	{
+		return TracedZ[Index]; // moved less than a meter since the last trace
+	}
+	FHitResult Hit;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(MCPCrowdGround), false, this);
+	const FVector From(World.X, World.Y, World.Z + 50000.0);
+	const FVector To(World.X, World.Y, World.Z - 50000.0);
+	TracedAt[Index] = XY;
+	TracedZ[Index] = GetWorld()->LineTraceSingleByChannel(Hit, From, To, ECC_Visibility, Params) ? Hit.ImpactPoint.Z : World.Z;
+	return TracedZ[Index];
+}
+
 void AMCPCrowdVisualizer::Refresh(const FMCPResults& Results, const UMCPComputeSubsystem& MCP)
 {
 	DrawnTick = Results.Tick;
-	TArray<TArray<FTransform>> Instances;
-	Instances.SetNum(ByAction.Num());
-	const float Scale = ActorHeightMeters; // the engine cone is 1 m tall
 	const int32 Count = FMath::Min(Results.Actors.Num(), MaxDrawn);
+	const double UnitsPerMeter = FVector::Distance(MCP.RealmToWorld(FVector::ZeroVector), MCP.RealmToWorld(FVector(1, 0, 0)));
+	const double Height = WispHeightMeters * UnitsPerMeter;
+	const FVector Scale(Height * 0.45 / 100.0, Height * 0.45 / 100.0, Height / 100.0); // the engine sphere is 1 m across
+
+	TArray<FTransform> Transforms;
+	Transforms.Reserve(Count);
 	for (int32 I = 0; I < Count; ++I)
 	{
 		const FMCPActorResult& A = Results.Actors[I];
-		const int32 Slot = FMath::Clamp(static_cast<int32>(A.Action), 0, ByAction.Num() - 1);
-		const FVector World = MCP.RealmToWorld(A.PositionMeters);
-		Instances[Slot].Add(FTransform(FQuat::Identity, World, FVector(Scale * 0.4f, Scale * 0.4f, Scale)));
-	}
-	for (int32 S = 0; S < ByAction.Num(); ++S)
-	{
-		ByAction[S]->ClearInstances();
-		if (Instances[S].Num() > 0)
+		FVector World = MCP.RealmToWorld(A.PositionMeters);
+		if (bSnapToGround)
 		{
-			ByAction[S]->AddInstances(Instances[S], false, true);
+			World.Z = GroundZ(I, World);
+		}
+		World.Z += HoverMeters * UnitsPerMeter + Height * 0.5;
+		Transforms.Emplace(FQuat::Identity, World, Scale);
+	}
+
+	if (Wisps->GetInstanceCount() != Count)
+	{
+		Wisps->ClearInstances();
+		Wisps->AddInstances(Transforms, false, true);
+	}
+	else if (Count > 0)
+	{
+		Wisps->BatchUpdateInstancesTransforms(0, Transforms, true, false, true);
+	}
+	if (bGlowMaterial)
+	{
+		for (int32 I = 0; I < Count; ++I)
+		{
+			const FMCPActorResult& A = Results.Actors[I];
+			const int32 Action = FMath::Clamp(static_cast<int32>(A.Action), 0, ActionCount - 1);
+			// Fear pulls any colour toward red; rest dims; a remembered fright flickers brighter.
+			const FLinearColor Base = FMath::Lerp(ActionColors[Action], ActionColors[3], FMath::Clamp(A.Fear * 0.8f, 0.f, 1.f));
+			const float Gain = GlowIntensity * (A.Action == EMCPAction::Rest ? 0.35f : 1.f) * (1.f + 0.6f * A.RecalledFear);
+			const float Data[4] = { Base.R * Gain, Base.G * Gain, Base.B * Gain, 0.f };
+			Wisps->SetCustomData(I, TArrayView<const float>(Data, 4), false);
 		}
 	}
+	Wisps->MarkRenderStateDirty();
 }

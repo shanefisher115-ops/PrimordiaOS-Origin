@@ -15,6 +15,7 @@ The reference implementation is `Scripts/build_cathedral_scene.py` (map `/Primor
 |---|---|
 | Rebuild + render the hero shot | `pwsh scripts/ue_run.ps1 -BuildScript <repo Scripts/build_x.py> -Map <map> -Out <png>` then Read the PNG |
 | Render only (no rebuild) | `pwsh scripts/ue_run.ps1 -Map <map> -Out <png>` |
+| Render the **live** realm (bridge connected, PrimordiaGPU crowd + aura on top) | start the realm server with `--gpu-quality 1`, then `pwsh scripts/live_shot.ps1 -Out <png> [-Port 7777] [-Delay 25]` (uses PrimordiaRealmGPU's `-PrimordiaShot` hook; console `primordia.Shot <png>` does the same in a running game) |
 | Import an FBX as a static Nanite mesh | `scripts/import_asset.py` (kind `mesh`) via the commandlet — see "Importing" |
 | Make Gothic architecture (spires, pinnacles, windows, buttresses, balustrades, lamps) to measure | `node gothic.mjs kit --out kit` (or one piece: `node gothic.mjs spire --height 40 --out spire.glb`) in `PrimordiaOS/Primordia-cad`, then import each `.glb` with `import_asset.py` into `/Game/ThirdParty/PrimordiaGothicKit/` |
 | Finish generated pieces (bevels, AO + curvature bakes, LODs, Draco .glb, .fbx) | `node gothic.mjs finish <file.glb\|dir>` in `PrimordiaOS/Primordia-cad` (headless Blender; see its README) |

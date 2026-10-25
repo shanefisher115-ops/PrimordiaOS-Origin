@@ -128,7 +128,11 @@ reaches the renderers two ways:
 - **Vulkan sidecar**: a `{"type":"quality","scale":q}` line; the engine simulates that share of
   its population (survivors keep their GPU state).
 
-`set_quality {scale}` pins the quality by hand; `{scale: null}` hands it back to the tuner.
+`set_quality {scale}` pins the quality by hand; `{scale: null}` hands it back to the tuner, and
+`--gpu-quality <q>` pins it from startup (use 1 for look-dev renders: on this laptop's iGPU the
+editor-game runs at 120–160% of a 16.7 ms budget, and the tuner would otherwise walk the realm
+down to its 0.3 floor within half a minute). `gpu_telemetry` is opt-in: it reaches only clients
+that name it in their stream filter, so renderers never receive packets they do not use.
 
 ## 6. Unreal plugin (`unreal/PrimordiaGPU`)
 
@@ -137,7 +141,7 @@ reaches the renderers two ways:
 | `OnyxRuntime` | PostConfigInit | `FOnyx` (thread-safe telemetry API, JSON), `FOnyxGPUTimer` (render-graph timestamps), `UOnyxSubsystem` (frame delegates, on-screen inspector), console `Onyx.Show`, `Onyx.Dump`, `Onyx.Budget` |
 | `MCPComputeBridge` | PostConfigInit | the 7 kernels as global shaders, `FMCPGPUState` (pooled buffers, render-graph passes, readbacks), `UMCPComputeSubsystem` (`SubmitRealmTick`, `SubmitActorCognition`, `SubmitSigilEvaluation`, `GetGPUResults`), `UMCPCognitionComponent`, `AMCPCrowdVisualizer`, project settings *PrimordiaOS MCP* |
 | `VulkanRealmRenderer` | PostConfigInit | `FRealmAuraViewExtension` (marches each view ray through the sigil field after motion blur), `FVulkanRealmDevice` (native Vulkan probe, memory budget sampler); console `r.PrimordiaRealm.Aura*` |
-| `PrimordiaRealmGPU` | Default | realm-bridge bindings: manifests → MCP, Onyx → `{"type":"telemetry"}` to the bridge; console `primordia.gpu.TelemetryHz`, `primordia.gpu.Crowd` |
+| `PrimordiaRealmGPU` | Default | realm-bridge bindings: manifests → MCP, Onyx → `{"type":"telemetry"}` to the bridge; console `primordia.gpu.TelemetryHz`, `primordia.gpu.Crowd`, `primordia.Shot <png> [camera]`; `-PrimordiaShot=<png>` (+ `-PrimordiaShotDelay`, `-PrimordiaShotCamera`, `-PrimordiaShotQuit`) renders the live realm for look-dev (`.claude/skills/primordia-realm-lookdev/scripts/live_shot.ps1`) |
 | `OnyxInspector` | Editor | *Window → Onyx Inspector* |
 
 Threading: the world subsystem ticks on the game thread (Unreal tick → realm tick) and enqueues

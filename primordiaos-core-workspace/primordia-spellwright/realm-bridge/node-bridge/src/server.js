@@ -25,6 +25,8 @@ export const VERSION = '1.0.0';
 const MAX_BUFFERED_BYTES = 1 << 20; // above this a client is lagging: drop continuous frames
 // Audio chunks are never dropped or rate-limited: a gap is audible.
 const ALWAYS_DELIVER = new Set(['realm_manifest', 'hello', 'ack', 'pong', 'voice']);
+// GPU telemetry is for dashboards and tools, not renderers: delivered only on subscription.
+const OPT_IN = new Set(['gpu_telemetry']);
 
 export async function createBridge(options = {}) {
   const {
@@ -45,6 +47,7 @@ export async function createBridge(options = {}) {
     gpuSidecar = null,           // path to primordia_realmd: run the Vulkan engine as a sidecar
     gpuSidecarArgs = [],
     gpuTuner = {},               // tuner thresholds (src/gpu/tuner.js)
+    gpuQuality = null,           // pin the realm quality (0.05-1) instead of letting the tuner move it
     gpuTelemetryHz = 4,          // gpu_telemetry broadcast rate per source
     log = console.log,
   } = options;
@@ -129,6 +132,8 @@ export async function createBridge(options = {}) {
     const ws = client.ws;
     if (ws.readyState !== ws.OPEN) return;
     if (client.streams && !client.streams.has(env.type) && !ALWAYS_DELIVER.has(env.type)) return;
+    // Opt-in streams reach only clients that asked for them by name (renderers do not want them).
+    if (OPT_IN.has(env.type) && !client.streams?.has(env.type)) return;
     const critical = ALWAYS_DELIVER.has(env.type) || env.op === 'retire';
     if (!critical) {
       if (ws.bufferedAmount > MAX_BUFFERED_BYTES) {
@@ -153,6 +158,7 @@ export async function createBridge(options = {}) {
   ctx.gpuQuality = 1;
   const onyxHub = createOnyxHub();
   const tuner = createTuner(gpuTuner);
+  if (gpuQuality !== null && gpuQuality !== undefined) ctx.gpuQuality = tuner.pin(gpuQuality);
   let sidecar = null;
   let sidecarManifestKey = '';
   let sidecarMetaAt = 0;
@@ -557,6 +563,8 @@ function parseArgs(argv) {
     voicePreload: argv.includes('--voice-preload') || env.PRIMORDIA_VOICE_PRELOAD === '1',
     // The standalone Vulkan engine (realm-bridge/gpu): path to primordia_realmd.exe.
     gpuSidecar: get('--gpu-sidecar', 'PRIMORDIA_GPU_SIDECAR', null),
+    // Pin the GPU quality (e.g. 1 for look-dev renders); omit to let the tuner follow Onyx.
+    gpuQuality: get('--gpu-quality', 'PRIMORDIA_GPU_QUALITY', null) === null ? null : Number(get('--gpu-quality', 'PRIMORDIA_GPU_QUALITY', null)),
     gpuSidecarArgs: ['--actors', String(Number(get('--gpu-actors', 'PRIMORDIA_GPU_ACTORS', 2048)))].concat(
       argv.includes('--gpu-window') || env.PRIMORDIA_GPU_WINDOW === '1' ? ['--window'] : [],
     ),

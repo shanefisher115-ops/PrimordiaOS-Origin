@@ -2,7 +2,13 @@
 
 #include "Actors/RealmRootActor.h"
 #include "Dom/JsonObject.h"
+#include "Camera/CameraActor.h"
 #include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
+#include "HAL/FileManager.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
+#include "UnrealClient.h"
 #include "EngineUtils.h"
 #include "HAL/IConsoleManager.h"
 #include "MCPComputeSubsystem.h"
@@ -19,6 +25,15 @@ namespace
 {
 TAutoConsoleVariable<float> CVarTelemetryHz(TEXT("primordia.gpu.TelemetryHz"), 4.f, TEXT("Onyx telemetry frames sent to PrimordiaOS per second (0 = off)."));
 TAutoConsoleVariable<int32> CVarCrowd(TEXT("primordia.gpu.Crowd"), 1, TEXT("Spawn the MCP crowd visualizer when a realm arrives."));
+
+FAutoConsoleCommandWithWorldAndArgs ShotCommand(TEXT("primordia.Shot"), TEXT("primordia.Shot <png> [camera]: screenshot of the live realm."),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		if (UPrimordiaRealmGPUSubsystem* Sub = World ? World->GetSubsystem<UPrimordiaRealmGPUSubsystem>() : nullptr; Sub && Args.Num() > 0)
+		{
+			Sub->TakeShot(Args[0], Args.Num() > 1 ? Args[1] : FString());
+		}
+	}));
 
 EMCPGlyphKind KindOf(FName Kind)
 {
@@ -43,6 +58,80 @@ void UPrimordiaRealmGPUSubsystem::Initialize(FSubsystemCollectionBase& Collectio
 	{
 		Bridge->OnRealmManifest.AddDynamic(this, &UPrimordiaRealmGPUSubsystem::HandleManifest);
 		bBound = true;
+	}
+	const UWorld* World = GetWorld();
+	if (World && World->IsGameWorld() && FParse::Value(FCommandLine::Get(), TEXT("-PrimordiaShot="), ShotPath))
+	{
+		FParse::Value(FCommandLine::Get(), TEXT("-PrimordiaShotCamera="), ShotCamera);
+		FParse::Value(FCommandLine::Get(), TEXT("-PrimordiaShotDelay="), ShotDelay);
+		bShotQuit = FParse::Param(FCommandLine::Get(), TEXT("PrimordiaShotQuit"));
+	}
+}
+
+bool UPrimordiaRealmGPUSubsystem::ViewThroughCamera(const FString& CameraName)
+{
+	UWorld* World = GetWorld();
+	APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+	if (!PC || CameraName.IsEmpty())
+	{
+		return false;
+	}
+	for (TActorIterator<ACameraActor> It(World); It; ++It)
+	{
+#if WITH_EDITOR
+		const bool bMatch = It->GetName() == CameraName || It->GetActorLabel() == CameraName;
+#else
+		const bool bMatch = It->GetName() == CameraName;
+#endif
+		if (bMatch)
+		{
+			PC->SetViewTarget(*It);
+			return true;
+		}
+	}
+	UE_LOG(LogTemp, Warning, TEXT("primordia.Shot: no camera actor named %s; using the player's view"), *CameraName);
+	return false;
+}
+
+void UPrimordiaRealmGPUSubsystem::TakeShot(const FString& Path, const FString& CameraName)
+{
+	ViewThroughCamera(CameraName);
+	const FString Full = FPaths::ConvertRelativePathToFull(Path);
+	IFileManager::Get().Delete(*Full, false, true, true);
+	FScreenshotRequest::RequestScreenshot(Full, false, false);
+	UE_LOG(LogTemp, Display, TEXT("primordia.Shot: requested %s"), *Full);
+}
+
+void UPrimordiaRealmGPUSubsystem::TickShot(float DeltaTime)
+{
+	if (ShotPath.IsEmpty())
+	{
+		return;
+	}
+	if (ShotSinceRequest >= 0.f)
+	{
+		ShotSinceRequest += DeltaTime;
+		const bool bWritten = IFileManager::Get().FileSize(*FPaths::ConvertRelativePathToFull(ShotPath)) > 0;
+		if (bWritten || ShotSinceRequest > 30.f)
+		{
+			UE_LOG(LogTemp, Display, TEXT("primordia.Shot: %s %s"), bWritten ? TEXT("wrote") : TEXT("FAILED to write"), *ShotPath);
+			ShotPath.Empty();
+			if (bShotQuit)
+			{
+				FPlatformMisc::RequestExitWithStatus(false, bWritten ? 0 : 1);
+			}
+		}
+		return;
+	}
+	if (!Bridge.IsValid() || !Bridge->GetActiveRealm())
+	{
+		return; // wait for the bridge to deliver a realm
+	}
+	ShotWaited += DeltaTime;
+	if (ShotWaited >= ShotDelay)
+	{
+		TakeShot(ShotPath, ShotCamera);
+		ShotSinceRequest = 0.f;
 	}
 }
 
@@ -173,6 +262,7 @@ bool UPrimordiaRealmGPUSubsystem::SendTelemetry()
 
 void UPrimordiaRealmGPUSubsystem::Tick(float DeltaTime)
 {
+	TickShot(DeltaTime);
 	// The realm root may move (editor, gameplay): keep MCP's realm space on it.
 	if (UMCPComputeSubsystem* Compute = MCP.Get(); Compute && RealmRoot.IsValid())
 	{

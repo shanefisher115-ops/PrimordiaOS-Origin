@@ -13,7 +13,7 @@ IMPLEMENT_GLOBAL_SHADER(FRealmAuraPS, "/Plugin/PrimordiaGPU/Private/RealmAuraCom
 namespace
 {
 TAutoConsoleVariable<int32> CVarAura(TEXT("r.PrimordiaRealm.Aura"), 1, TEXT("Composite the MCP sigil field into the scene (0 = off)."), ECVF_RenderThreadSafe);
-TAutoConsoleVariable<float> CVarAuraIntensity(TEXT("r.PrimordiaRealm.AuraIntensity"), 0.06f, TEXT("Aura light added per meter of field the view ray crosses."), ECVF_RenderThreadSafe);
+TAutoConsoleVariable<float> CVarAuraIntensity(TEXT("r.PrimordiaRealm.AuraIntensity"), 0.25f, TEXT("Aura light added per meter of field the view ray crosses."), ECVF_RenderThreadSafe);
 TAutoConsoleVariable<int32> CVarAuraSteps(TEXT("r.PrimordiaRealm.AuraSteps"), 48, TEXT("Field samples per pixel."), ECVF_RenderThreadSafe);
 } // namespace
 

@@ -90,7 +90,7 @@ Commands: `evolve_realm` · `reseed {seed}` · `perturb {key, value}` (any metap
 | `shadow_inversion` | Shadowforge | 30 Hz | `shadow` |
 | `realm_manifest` | Worldforge | on revision change | `<realm_id>` |
 | `voice` | Voice (Kokoro TTS) | while speaking, ~0.5 s chunks | `voice:<speaker>` (default `voice:soul`) |
-| `gpu_telemetry` | Onyx (relayed by the bridge) | 4 Hz per source | `onyx:<source>` (`onyx:unreal`, `onyx:vulkan-sidecar`) |
+| `gpu_telemetry` | Onyx (relayed by the bridge) | 4 Hz per source, **opt-in**: only to clients whose stream filter names it | `onyx:<source>` (`onyx:unreal`, `onyx:vulkan-sidecar`) |
 
 The server's master loop runs at 30–60 Hz. Every module **steps** every tick, and each stream **samples** at `min(stream rate, master rate)`. Continuum and Omniscience emit no packets: their output reaches the renderer through `t` and the manifest's `metaphysics`.
 
