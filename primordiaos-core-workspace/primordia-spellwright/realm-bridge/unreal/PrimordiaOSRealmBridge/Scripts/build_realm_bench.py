@@ -13,6 +13,10 @@ bridge; this script owns only the scene around it, so the look is reproducible:
   cut off at 5x the realm) either drew a seam on an opaque sea where it stopped or, without the
   cutoff, buried the whole sea in one flat colour that didn't match the sky.
 
+- First person: the map's GameMode Override is APrimordiaExplorerGameMode (walk, sprint, jump,
+  fly), starting on the outer terrace facing the spires. BenchCamera no longer takes over player 0;
+  renders look through it by name (live_shot.ps1 -Camera BenchCamera, the default).
+
 Run from the PrimordiaRealms project (Python Editor Script Plugin enabled):
 
     UnrealEditor-Cmd.exe PrimordiaRealms.uproject -run=pythonscript -script="<plugin>/Scripts/build_realm_bench.py"
@@ -20,6 +24,8 @@ Run from the PrimordiaRealms project (Python Editor Script Plugin enabled):
 Re-running updates the actors in place (found by label), so the camera and anything else in
 the map stay as they are. Values are relative to the manual exposure: change them together.
 """
+
+import math
 
 import unreal
 
@@ -50,6 +56,10 @@ MIST_NOISE_CM = 30000.0
 # The realm lights the clouds under it a little (a soft glow centred under the realm).
 MIST_UNDERGLOW = unreal.LinearColor(0.30, 0.14, 0.16, 1.0)
 MIST_UNDERGLOW_RADIUS_CM = 40000.0
+
+# First person: on the base disc outside the outermost terrace, ~110 m from the centre, facing it.
+EXPLORER_START_CM = unreal.Vector(-9500.0, -5500.0, 150.0)
+EXPLORER_GAME_MODE = "/Script/PrimordiaOSRealmBridge.PrimordiaExplorerGameMode"
 
 MEL = unreal.MaterialEditingLibrary
 LEVELS = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
@@ -228,6 +238,22 @@ def mist_sea(material):
     log(f"mist sea at z {MIST_Z_CM / 100:.0f} m")
 
 
+def explorer():
+    cam = find("BenchCamera", unreal.CameraActor)
+    if cam:
+        cam.set_editor_property("auto_activate_for_player", unreal.AutoReceiveInput.DISABLED)
+    start = find("ExplorerStart", unreal.PlayerStart) or find_or_spawn("ExplorerStart", unreal.PlayerStart, EXPLORER_START_CM)
+    start.set_actor_location(EXPLORER_START_CM, False, False)
+    yaw = math.degrees(math.atan2(-EXPLORER_START_CM.y, -EXPLORER_START_CM.x))
+    start.set_actor_rotation(unreal.Rotator(roll=0.0, pitch=0.0, yaw=yaw), False)
+    mode = unreal.load_class(None, EXPLORER_GAME_MODE)
+    if not mode:
+        raise RuntimeError(f"{EXPLORER_GAME_MODE} not found: build the plugin first")
+    world = unreal.EditorLevelLibrary.get_editor_world()
+    world.get_world_settings().set_editor_property("default_game_mode", mode)
+    log(f"first person: {EXPLORER_GAME_MODE}, start at {EXPLORER_START_CM.x / 100:.0f}, {EXPLORER_START_CM.y / 100:.0f} m facing yaw {yaw:.0f}")
+
+
 def main():
     material = build_mist_material()
     if not LEVELS.load_level(MAP):
@@ -236,6 +262,7 @@ def main():
     light_sky(MIST_COLOR)
     grade()
     mist_sea(material)
+    explorer()
     if not LEVELS.save_current_level():
         raise RuntimeError(f"could not save {MAP}")
     log(f"saved {MAP}")

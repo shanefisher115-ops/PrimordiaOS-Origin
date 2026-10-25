@@ -12,6 +12,7 @@ public class PrimordiaOSRealmBridge : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
+			"InputCore",
 			"DeveloperSettings",
 			"Json",
 			"JsonUtilities",

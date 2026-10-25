@@ -8,14 +8,15 @@
 
 /** Archetype -> manifestation (behaviour) and body. Sizes in metres, speeds in m/s. */
 export const ARCHETYPE_FORMS = {
-  Photosynthetic: { manifestation: 'rooted', hue: 0.24, sat: 0.75, size: 1.4, speed: 0, glow: 1.6, cap: 60 },
-  Fungal: { manifestation: 'rooted', hue: 0.42, sat: 0.7, size: 1.0, speed: 0, glow: 2.2, cap: 60 },
-  Predatory: { manifestation: 'individual', hue: 0.99, sat: 0.85, size: 2.2, speed: 3.5, glow: 1.1, cap: 24 },
-  Synthetic: { manifestation: 'individual', hue: 0.58, sat: 0.35, size: 1.6, speed: 1.4, glow: 1.4, cap: 32 },
-  Collective: { manifestation: 'swarm', hue: 0.53, sat: 0.8, size: 0.35, speed: 5, glow: 2.4, cap: 400 },
-  Elemental: { manifestation: 'floating', hue: 0.07, sat: 0.85, size: 2.8, speed: 0.6, glow: 2.6, cap: 24 },
-  Spectral: { manifestation: 'floating', hue: 0.76, sat: 0.4, size: 1.8, speed: 0.5, glow: 2.0, cap: 30 },
-  Abyssal: { manifestation: 'abyssal', hue: 0.62, sat: 0.7, size: 9, speed: 1.2, glow: 1.3, cap: 10 },
+  // Sizes are mythic, not zoological: the realm is ~240 m across and mostly seen from ~200 m.
+  Photosynthetic: { manifestation: 'rooted', hue: 0.24, sat: 0.75, size: 3, speed: 0, glow: 1.6, cap: 60 },
+  Fungal: { manifestation: 'rooted', hue: 0.42, sat: 0.7, size: 2.2, speed: 0, glow: 2.2, cap: 60 },
+  Predatory: { manifestation: 'individual', hue: 0.99, sat: 0.85, size: 4, speed: 4, glow: 1.1, cap: 24 },
+  Synthetic: { manifestation: 'individual', hue: 0.58, sat: 0.35, size: 3, speed: 1.6, glow: 1.4, cap: 32 },
+  Collective: { manifestation: 'swarm', hue: 0.53, sat: 0.8, size: 0.7, speed: 6, glow: 2.4, cap: 400 },
+  Elemental: { manifestation: 'floating', hue: 0.07, sat: 0.85, size: 6, speed: 0.6, glow: 2.6, cap: 24 },
+  Spectral: { manifestation: 'floating', hue: 0.76, sat: 0.4, size: 4.5, speed: 0.5, glow: 2.0, cap: 30 },
+  Abyssal: { manifestation: 'abyssal', hue: 0.62, sat: 0.7, size: 16, speed: 2, glow: 1.3, cap: 10 },
 };
 /** How far each manifestation roams, as a fraction of the ground's radius. */
 const RANGE = { rooted: 0.07, individual: 0.22, swarm: 0.3, floating: 0.25, abyssal: 0.45 };

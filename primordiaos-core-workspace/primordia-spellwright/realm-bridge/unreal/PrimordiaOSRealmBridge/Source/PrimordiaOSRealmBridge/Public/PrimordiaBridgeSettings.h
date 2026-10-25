@@ -20,6 +20,18 @@ enum class EPrimordiaTierShadow : uint8
 	Off,
 };
 
+/** How a tier mesh is fitted to the tier's 100 cm box (the box the engine shape fills). */
+UENUM()
+enum class EPrimordiaMeshFit : uint8
+{
+	/** Use the mesh as authored (it should already fill a 100 cm box with its pivot at the centre). */
+	None,
+	/** Stretch each axis so the mesh's bounds fill the box: the tier's own sizes then shape it (slabs, spires). */
+	Stretch,
+	/** Scale uniformly so the longest side fills the box and centre it: keeps the mesh's proportions (rubble, props). */
+	Uniform,
+};
+
 /** Art for one scatter tier of a layer kind (PRS-1 §4.3, MATERIALS_AND_NIAGARA.md §7). */
 USTRUCT()
 struct PRIMORDIAOSREALMBRIDGE_API FPrimordiaTierArt
@@ -44,6 +56,21 @@ struct PRIMORDIAOSREALMBRIDGE_API FPrimordiaTierArt
 
 	UPROPERTY(Config, EditAnywhere, Category = "Tier")
 	EPrimordiaTierShadow Shadow = EPrimordiaTierShadow::Default;
+
+	/**
+	 * Fit real-size meshes (scans, Fab assets) to the tier's box from their bounds, so they need no
+	 * re-authoring. None = the mesh is already authored to the box.
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Tier")
+	EPrimordiaMeshFit Fit = EPrimordiaMeshFit::None;
+
+	/** Turns the mesh about Z before fitting, in 90 degree steps (e.g. so a cliff's thin side is the slab's X). */
+	UPROPERTY(Config, EditAnywhere, Category = "Tier", meta = (ClampMin = 0, ClampMax = 3))
+	int32 QuarterTurns = 0;
+
+	/** Keep each mesh's own materials (scanned textures) instead of the layer / tier material. */
+	UPROPERTY(Config, EditAnywhere, Category = "Tier")
+	bool bUseMeshMaterials = false;
 };
 
 /** Art for one layer kind: its base mesh and its three scatter tiers. */

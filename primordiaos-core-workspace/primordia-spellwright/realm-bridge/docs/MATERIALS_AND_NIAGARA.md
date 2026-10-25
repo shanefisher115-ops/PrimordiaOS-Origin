@@ -416,6 +416,9 @@ Each layer is a base mesh plus up to three instanced **tiers** (PRS-1 §4.3): *f
 | … → `Material` | every slot of the tier's meshes, as a MID with the same parameters as the layer | the layer material: `LayerMaterials[kind]`, then `BasicShapeMaterial` |
 | … → `CullDistance` | instances fade from 70 % of it, and are culled beyond it (needs `PerInstanceFadeAmount` in the material for a dithered fade) | tier default; negative = never |
 | … → `Shadow` | `Default` / `On` / `Off` | tier default |
+| … → `Fit` | `None`: the mesh is authored to the box. `Stretch`: each axis of the mesh's bounds fills the box, so the tier's sizes shape it (slabs, spires). `Uniform`: the longest side fills the box, keeping the mesh's proportions (rubble, props). Use it for real-size scans and Fab assets, so they need no re-authoring. | `None` |
+| … → `QuarterTurns` | turns the mesh about Z (0–3 × 90°) before fitting, e.g. so a cliff's face is a slab's broad side | 0 |
+| … → `bUseMeshMaterials` | keeps each mesh's own materials (scanned textures) instead of the layer/tier material | off |
 
 The tiers per kind, with their engine fallback shape, shadow and cull defaults (✱ = primary tier, which keeps `layer:<id>` and the legacy mesh):
 
@@ -509,6 +512,21 @@ Every layer MID, and every tier MID, gets:
 
 ---
 
+### 7d. Fab assets in the live realm (Lumenne Hollow)
+
+`Scripts/build_realm_scans.py` dresses the realm with free Fab assets imported into the PrimordiaRealms project under `/Game/ThirdParty/LumenneScans` (114 MB). They're project content, not plugin content; without them the realm keeps its engine shapes.
+
+| Realm part | Asset (Fab, free) | Slot |
+|---|---|---|
+| terraces and base disc | Rocky Ground (tops) + Lichened Rock Wall (cliff faces), Quixel Megascans 2K texture sets, in `M_PrimordiaGroundScan` | `LayerMaterials["ground"]` |
+| monoliths | Nordic Forest Cliff Large (Megascans, mid) | ground `Hero`: `Fit=Stretch`, `QuarterTurns=1`, own materials |
+| rubble | Nordic Beach Rock Formation + Massive Tundra Rock Formation (Megascans, mid) | ground `Detail`: `Fit=Uniform`, own materials |
+| spires / skirts | Glowing Crystal Cluster Set (RollingCat 3D): crystals / ground shards | spire_field `Hero` (`Stretch`) / `Detail` (`Uniform`), in the layer material |
+
+- **`M_PrimordiaGroundScan`** projects the textures by world position, because the terraces are scaled cylinders whose UVs stretch. The textures repeat every 12 m on tops and 8 m on faces; a 4 m repeat averaged to flat brown from the bench camera 200 m away. The material adds macro noise against tiling, multiplies the dark scan albedo by 1.6, takes a 25 % tint from the layer's palette colour, and darkens with inversion. It reads the same parameters as `M_PrimordiaLayer`.
+- **The crystals don't use their own materials.** They're glTF transmission glass, which renders near black with the iGPU settings (no translucency lighting volume). The layer material gives them the realm's palette and tip glow.
+- **How the assets were fetched:** Shane signed in to Fab and the assets were added to his library. The `mid` GLB (2K textures, 4–8k triangles) was downloaded for each mesh and the 2K texture set for each surface. They were imported through Interchange with their embedded materials. Some Megascans listings ("From Free") need a license picked first (Personal or Professional); that choice is the account owner's, so those were skipped.
+
 ## 8. Realm atmosphere: fog and colour grade (no assets needed)
 
 `ARealmRootActor` owns two components that show what the metaphysics *mean* (PRS-1 §6.3, channel 4). The mapping is in `PrimordiaRealmAtmosphere.cpp`.
@@ -533,7 +551,9 @@ Cost: one height-fog pass plus values on the tonemapper that runs anyway. Values
 | `MistSea` | 400 km plane 60 m under the ground, `M_PrimordiaMistSea`: unlit translucent with *Apply Fogging* off; soft noise banks, a faint underglow beneath the realm; fades by depth to `HorizonColor` | A sky atmosphere draws no planet surface, so everything below the horizon was black. The sea fades itself because the realm fog (cut off at 5× the realm so the sky stays clear) drew a seam on an opaque sea where it stopped. Without the cutoff, the fog buried the whole sea in one flat colour that didn't match the sky. |
 | `SkyLight` | real-time capture, lower hemisphere lit with the mist colour | The sea bounces some light up. |
 
-Light values are relative to the manual exposure, so change them together. Render the bench with the look-dev skill's `scripts/live_shot.ps1`.
+Light values are relative to the manual exposure, so change them together.
+
+**First person.** The map's GameMode Override is `APrimordiaExplorerGameMode`, which spawns `APrimordiaExplorer` at `ExplorerStart` on the base disc, facing the spires. The controls are WASD to move, mouse to look, Space to jump, Shift to sprint, and F to toggle flight (Space up, C down). Falling off the realm returns you to the start. `BenchCamera` no longer takes over the player, so renders look through it by name (`live_shot.ps1 -Camera BenchCamera`, the default). Render the bench with the look-dev skill's `scripts/live_shot.ps1`.
 
 ## 9. Neo-Gothic cathedral look-dev scene: `NeoGothicCathedral`
 

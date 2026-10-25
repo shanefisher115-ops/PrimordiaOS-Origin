@@ -7,7 +7,8 @@ realm, let it settle, write the PNG and quit.
 
   pwsh live_shot.ps1 -Out C:\...\live.png                       # realm server on 7777
   pwsh live_shot.ps1 -Out C:\...\live.png -Port 7787 -Delay 30  # another server, longer settle
-  pwsh live_shot.ps1 -Out C:\...\live.png -Camera HeroCamera    # through a named camera actor
+  pwsh live_shot.ps1 -Out C:\...\live.png -Camera HeroCamera    # through another camera (default BenchCamera;
+                                                                 # RealmBench plays in first person, so a camera is needed)
 
 Start the realm server first with the quality pinned, or the GPU tuner may thin the realm while the
 iGPU is over budget:  node src/server.js --gpu-quality 1   (in realm-bridge/node-bridge)
@@ -17,7 +18,7 @@ param(
     [Parameter(Mandatory)] [string]$Out,
     [int]$Port = 7777,
     [int]$Delay = 25,
-    [string]$Camera = "",
+    [string]$Camera = "BenchCamera",
     [string]$Map = "/Game/Primordia/Maps/RealmBench",
     [int]$TimeoutSec = 600,
     [string]$Engine = "C:\Program Files\Epic Games\UE_5.4\Engine\Binaries\Win64",

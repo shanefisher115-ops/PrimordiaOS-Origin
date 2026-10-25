@@ -60,6 +60,20 @@ namespace
 		return MID;
 	}
 
+	/** Maps Mesh into the 100 cm box centred on the origin (the engine shapes' box). */
+	FMatrix FitMatrix(const UStaticMesh* Mesh, EPrimordiaMeshFit Fit, int32 QuarterTurns)
+	{
+		if (!Mesh || Fit == EPrimordiaMeshFit::None)
+		{
+			return FMatrix::Identity;
+		}
+		const FMatrix Turn = FRotationMatrix(FRotator(0.f, 90.f * (QuarterTurns & 3), 0.f));
+		const FBox Box = Mesh->GetBoundingBox().TransformBy(Turn);
+		const FVector Size = Box.GetSize().ComponentMax(FVector(KINDA_SMALL_NUMBER));
+		const FVector Scale = Fit == EPrimordiaMeshFit::Stretch ? FVector(100.0) / Size : FVector(100.0 / Size.GetMax());
+		return Turn * FScaleMatrix(Scale) * FTranslationMatrix(-Box.GetCenter() * Scale);
+	}
+
 	template <typename F>
 	void ForEachMID(FPrimordiaLayerRuntime& Runtime, F&& Fn)
 	{
@@ -129,9 +143,12 @@ namespace
 			{
 				TArray<FTransform> Added;
 				Added.Reserve(Target - Current);
+				const FMatrix* Fit = Tier.VariantFit.IsValidIndex(v) && !Tier.VariantFit[v].Equals(FMatrix::Identity) ? &Tier.VariantFit[v] : nullptr;
 				for (int32 k = Current; k < Target; ++k)
 				{
-					Added.Add(C.Transforms[Indices[k]]);
+					const FTransform& T = C.Transforms[Indices[k]];
+					// Fitted meshes: the fit is axis-aligned (90 degree turns), so the product has no shear.
+					Added.Add(Fit ? FTransform(*Fit * T.ToMatrixWithScale()) : T);
 				}
 				ISM->AddInstances(Added, false, false, C.bCollide);
 				for (int32 k = Current; k < Target; ++k)
@@ -391,6 +408,7 @@ USceneComponent* UPrimordiaRealmGenerator::SpawnLayer(ARealmRootActor* Root, con
 			const int32 V = FMath::Min(FMath::FloorToInt(Candidates.Data[i].X * Meshes.Num()), Meshes.Num() - 1);
 			Tier.VariantCandidates[V].Add(i);
 		}
+		const bool bOwnMaterials = TierArt && TierArt->bUseMeshMaterials && TierArt->Meshes.Num() > 0;
 		for (int32 v = 0; v < Meshes.Num(); ++v)
 		{
 			const FString Name = FString::Printf(TEXT("%s_%s_%d"), Candidates.Name, *Layer.Id, v);
@@ -398,7 +416,8 @@ USceneComponent* UPrimordiaRealmGenerator::SpawnLayer(ARealmRootActor* Root, con
 				? NewRealmComponent<UHierarchicalInstancedStaticMeshComponent>(Root, Runtime.Root, Name)
 				: NewRealmComponent<UInstancedStaticMeshComponent>(Root, Runtime.Root, Name);
 			ISM->SetStaticMesh(Meshes[v]);
-			for (int32 Slot = 0; Slot < FMath::Max(1, ISM->GetNumMaterials()); ++Slot)
+			Tier.VariantFit.Add(TierArt ? FitMatrix(Meshes[v], TierArt->Fit, TierArt->QuarterTurns) : FMatrix::Identity);
+			for (int32 Slot = 0; !bOwnMaterials && Slot < FMath::Max(1, ISM->GetNumMaterials()); ++Slot)
 			{
 				ISM->SetMaterial(Slot, TierMID);
 			}

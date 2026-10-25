@@ -29,6 +29,8 @@ struct PRIMORDIAOSREALMBRIDGE_API FPrimordiaTierRuntime
 	FPrimordiaTierCandidates Candidates;
 	/** Candidate indices dealt to each variant, ascending. */
 	TArray<TArray<int32>> VariantCandidates;
+	/** Per variant: maps the mesh into the tier's 100 cm box (identity unless the tier art fits its meshes). */
+	TArray<FMatrix> VariantFit;
 	int32 ShownCount = -1;
 };
 
