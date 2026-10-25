@@ -74,7 +74,7 @@ Producers SHOULD round floats to 4 decimals (0.1 mm), which keeps a full 60 Hz s
 | `{"type":"ping","nonce":7}` | Server replies with a `pong` envelope that echoes the nonce. |
 | `{"type":"command","name":…,"args":{…}}` | Server replies with an `ack` envelope `{command, ok, error?}`. |
 
-Commands: `evolve_realm` · `reseed {seed}` · `perturb {key, value}` (any metaphysical scalar) · `load_manifest {manifest}`.
+Commands: `evolve_realm` · `reseed {seed}` · `perturb {key, value}` (any metaphysical scalar) · `load_manifest {manifest}` · `generate_realm {description, model?, seed?}` (LLM-designed realm; acks `started`, then broadcasts the manifest, then acks `done` or `failed` to the requester; see [OLLAMA.md](OLLAMA.md)) · `cancel_generate` · `converse {input, model?}` / `speak {text}` / `cancel_speech` (spoken replies as `voice` packets; see [VOICE.md](VOICE.md)).
 
 ### 2.4 Stream catalogue
 
@@ -88,6 +88,7 @@ Commands: `evolve_realm` · `reseed {seed}` · `perturb {key, value}` (any metap
 | `dream_nebula` | Dreamforge | 30 Hz | `dream:primary`, `dream:reverie-<n>` (transient) |
 | `shadow_inversion` | Shadowforge | 30 Hz | `shadow` |
 | `realm_manifest` | Worldforge | on revision change | `<realm_id>` |
+| `voice` | Voice (Kokoro TTS) | while speaking, ~0.5 s chunks | `voice:<speaker>` (default `voice:soul`) |
 
 The server's master loop runs at 30–60 Hz. Every module **steps** every tick, and each stream **samples** at `min(stream rate, master rate)`. Continuum and Omniscience emit no packets: their output reaches the renderer through `t` and the manifest's `metaphysics`.
 
@@ -138,7 +139,8 @@ A complete generated example is at [`examples/genesis-5eed1e55.prs1.json`](../ex
   "bounds": { "radius": 120 },
   "layers": [
     { "id": "ground-0", "kind": "ground", "order": 0, "altitude": 0, "radius": 120, "density": 0.7832,
-      "palette": [[0.5045, 0.3291, 0.5686], [0.0282, 0.259, 0.4971]], "params": { "roughness": 0.2185, "terrace_count": 5 } }
+      "palette": [[0.5045, 0.3291, 0.5686], [0.0282, 0.259, 0.4971]], "params": { "roughness": 0.2185, "terrace_count": 5,
+                  "monolith_clusters": 6, "cluster_spread": 9.7142, "rubble": 0.5226 } }
   ],
   "metaphysics": { "entropy": 0.35, "luminosity": 0.7, "coherence": 0.6, "resonance": 0.5,
                    "inversion": 0.2, "lucidity": 0.55, "time_dilation": 1.0, "essence": [1, 0.42, 0.28] },
@@ -177,15 +179,33 @@ Layers are generated in ascending `order`. The `id` is the diff key. Kinds and t
 
 | `kind` | Params (lengths in m) | Visual contract |
 |---|---|---|
-| `ground` | `roughness` (unit), `terrace_count` (1–12) | Collidable disc of `radius`, stepped terraces, monoliths scattered on it |
-| `ocean` | `wave_height` (m), `wave_speed` | Disc surface with floating motes |
-| `sky` | `star_count` | Stars on a hemisphere of `radius`, raised by `altitude` |
-| `ring` | `thickness` (m), `tilt_deg` | Shards orbiting at `radius`, tilted about +X |
-| `lattice` | `cell_size` (m) | Crystal nodes on a cubic grid clipped to a sphere |
-| `void` | `aperture` (unit) | Inward-facing hollow sphere of diameter `2·radius·aperture` |
-| `spire_field` | `max_height` (m) | Cones up to `max_height` |
+| `ground` | `roughness` (unit), `terrace_count` (1–12) | Collidable disc of `radius`, solid stepped terraces, monolith circles and lone stones standing on them, rubble |
+| `ocean` | `wave_height` (m), `wave_speed` | Disc surface, sea stacks breaking it, floating motes |
+| `sky` | `star_count` | Stars on a hemisphere of `radius`, raised by `altitude`, with a galactic band and a few beacons |
+| `ring` | `thickness` (m), `tilt_deg` | Shards orbiting at `radius`, tilted about +X, with gaps and keystones |
+| `lattice` | `cell_size` (m) | Crystal nodes on a cubic grid clipped to a sphere, joined by struts |
+| `void` | `aperture` (unit) | Inward-facing hollow sphere of diameter `2·radius·aperture`, a core and an accretion disc of debris |
+| `spire_field` | `max_height` (m) | Clusters of cones up to `max_height`, tallest at each cluster's centre, with shard skirts |
 
 `palette[0]` is the primary color and `palette[1]` the secondary. Every numeric param MUST also be exposed to the layer material by its exact name.
+
+**Composition params** are optional; consumers that predate them ignore them (§3.2). They tune how a layer is dressed (§4.3). A consumer MUST apply the default when one is absent, so a manifest without them still gets the full composition. Genesis emits all of them (§5.1).
+
+| `kind` | Param | Range | Default | Meaning |
+|---|---|---|---|---|
+| `ground` | `monolith_clusters` | 0–24 (int) | `3 + round(4·roughness)` | Stone circles: a tall centre stone ringed by 4–8 slabs that face it |
+| | `cluster_spread` | 1–40 m | `0.07·radius` | Radius of a stone circle |
+| | `rubble` | unit | 0.5 | Rubble amount, at terrace feet and around stone bases |
+| `ocean` | `islet_count` | 0–32 (int) | 6 | Sea stacks, each with 0–2 smaller companions |
+| `sky` | `band_strength` | unit | 0.5 | Share of stars in the galactic band |
+| | `band_tilt_deg` | −90–90 | 25 | Band plane tilt: 0 passes through the zenith, 90 lies on the horizon |
+| `ring` | `keystones` | 0–24 (int) | 6 | Large slabs evenly spaced along the ring |
+| | `gap_count` | 0–6 (int) | 2 | Empty bands across the ring's width |
+| | `arc` | 0.05–1 | 1 | Fraction of the full circle that is filled |
+| `lattice` | `struts` | unit | 0.6 | Chance that two neighbouring nodes are joined |
+| `spire_field` | `spire_clusters` | 1–16 (int) | 4 | Spire clusters |
+| | `falloff` | 0.25–4 | 1.5 | Height falloff exponent from a cluster's centre (higher means a sharper crown) |
+| `void` | `debris` | unit | 0.5 | Accretion-disc debris amount |
 
 ### 3.4 Metaphysics
 
@@ -206,9 +226,11 @@ Layers are generated in ascending `order`. The `id` is the diff key. Kinds and t
 
 ### 3.6 Glyphs
 
-`{ id, kind: soul|sigil|ward|gate, position, scale (diameter m), symmetry: 1–64, complexity, hue, bound_to? }`
+`{ id, kind: soul|sigil|ward|gate, position, scale (diameter m), symmetry: 1–64, complexity, hue, bound_to?, intent? }`
 
 `bound_to` names a live entity id of the matching stream (for `kind: soul`, that is `soul_unification`). A consumer MUST render a bound glyph and its live entity as **one** object: the static spec seeds it, and the live stream drives it afterwards.
+
+`intent` is what the glyph is *for*, as a short statement in capitals (`"GUARD THE DREAM OF LUMENNE"`). Consumers SHOULD inscribe it into the glyph's form, so that different intents look different and the same intent looks the same everywhere. The reference consumer reduces it to its distinct consonants and writes them on a letter wheel (see MATERIALS_AND_NIAGARA.md §6). A glyph without an intent is inscribed from its `id`. A `soul_unification` packet MAY carry `glyph.intent` to re-inscribe its glyph live.
 
 ---
 
@@ -223,7 +245,10 @@ All randomness MUST derive from `seed` through **mulberry32** seeded with `subSe
 | Worldforge genesis | `realm` |
 | Worldforge evolution | `worldforge.evolve` |
 | Topology synthesis | `topology` |
-| Layer scatter | `layer:<layer id>` |
+| Layer scatter, primary tier (§4.3) | `layer:<layer id>` |
+| Layer scatter, other tiers | `layer:<layer id>:fixed`, `layer:<layer id>:hero`, `layer:<layer id>:detail` |
+| Worldforge composition params (§5.1) | `detail:<layer id>` |
+| Glyph intent | `glyph:<glyph id>` |
 
 Reference implementations: `node-bridge/src/prng.js` and `FPrimordiaRandom` (`PrimordiaTopology.cpp`). They are bit-identical, so the same manifest produces the same realm on every machine and in every engine.
 
@@ -233,9 +258,30 @@ Each layer gets a root at `(0, 0, altitude)`. Scatter positions are relative to 
 
 ### 4.3 Layer scatter
 
-For each layer the consumer generates an ordered **candidate list** from its layer stream: first the *fixed* elements (for example, ground terraces), then up to `MaxScatter` scatter elements. It shows `fixed + round(density × scatter)` candidates **as a prefix** of that list. Density changes therefore add or remove elements at the tail, and the rest of the realm never reshuffles. Lattice candidates are Fisher-Yates-shuffled with the layer stream before truncation, so a prefix samples the whole lattice evenly.
+Each layer is composed into up to three **tiers**. Each tier has an ordered **candidate list** drawn from its own stream (§4.1):
 
-A layer's **structural signature** covers `kind`, `altitude`, `radius`, `palette` and `params`, but not `density`. If the signature changes the layer MUST be rebuilt; a density-only change MUST be applied in place.
+| Tier | Shown | Per kind (reference consumer) |
+|---|---|---|
+| **fixed** | always, whatever the density | ground terraces · void core |
+| **hero** | `round(density × n)`, as a prefix | ground monoliths · ocean sea stacks · sky beacons · ring keystones · lattice nodes · spires |
+| **detail** | `round(density × n)` as a prefix, or **gated** (below) | ground rubble · ocean motes · sky stars · ring shards · lattice struts · spire skirts · void debris |
+
+The tier that held a layer's single scatter list before tiers existed is its **primary tier** and keeps the `layer:<id>` stream: hero for ground, lattice and spire_field; detail for ocean, sky and ring (void has none). Every other tier uses `layer:<id>:<tier>`. Adding or retuning one tier never changes another.
+
+**Prefix rule.** A tier shows its candidates **as a prefix** of its list. Density changes therefore add or remove elements at the tail, and the rest of the realm never reshuffles. Lists are ordered so that a prefix is a fair sample:
+- Lattice nodes are Fisher-Yates-shuffled with the layer stream before truncation.
+- Ring shards use random angles, not sequential ones.
+- Clustered pieces (stone circles, spire clusters) interleave ranks across clusters, so a prefix keeps every cluster's centre piece first.
+
+**Gating.** A detail candidate MAY name a hero candidate it belongs to, for example the rubble around a monolith, a spire's skirt, or a strut, which names the later of its two nodes. A gated candidate is shown exactly while its hero candidate is shown, and gated lists are sorted by that index, so they are prefixes too. Candidates that belong to no hero piece (rubble at terrace feet) come first and are always shown. Consumers MAY additionally scale the detail tier down for performance (the reference consumer's `DetailDensityScale`), but only as a prefix.
+
+**Standing on the ground.** A `ground` layer defines a height field: the top of the highest terrace containing a point. Layers that stand on the ground use it as their floor: in 1.0 that is a `spire_field` whose altitude is within 2 m of the ground layer's. The ground's own monoliths and rubble also stand on it.
+
+A layer's **structural signature** covers `kind`, `altitude`, `radius`, `palette` and `params`, but not `density`. For a layer that stands on a ground, it also covers that ground's signature. If the signature changes the layer MUST be rebuilt; a density-only change MUST be applied in place.
+
+**Placement never depends on metaphysics.** Metaphysics change every revision and are not in the signature. Reacting to them in placement would either rebuild layers every revision or let two consumers that joined at different revisions show different realms. Metaphysics act through materials (§6.3), and on the producer side through the composition params chosen at genesis (§5.1).
+
+The exact shapes (sizes, spacing, lean, distributions) belong to the reference consumer and are not normative across engines. Normative are the tiers, the stream labels, the prefix and gating rules, and the signature rule above.
 
 ### 4.4 Topology synthesis
 
@@ -265,8 +311,13 @@ Worldforge owns the manifest. Every other module writes to the shared **metaphys
 
 1. `rng = mulberry32(subSeed(seed, "realm"))`.
 2. Name: prefix + suffix + epithet, drawn from fixed syllable tables.
-3. Layers: a `ground` (70%) or an `ocean` first, then a `sky`, then 1–3 extra kinds drawn **without replacement** from {ring, lattice, void, spire_field}, each with kind-specific params.
-4. Glyphs: the bound `soul` glyph at `[0, 0, 14]`, plus 2–4 sigils/wards/gates on a 32 m circle.
+3. Layers: a `ground` (70%) or an `ocean` first, then a `sky`, then 1–3 extra kinds drawn **without replacement** from {ring, lattice, void, spire_field}, each with kind-specific params. Then every layer gets its composition params (§3.3) from its own `detail:<layer id>` stream, so they never shift the realm stream. The metaphysics at birth bias them:
+   - entropy raises `rubble`, `debris` and `gap_count`,
+   - coherence raises `monolith_clusters`, `keystones`, `struts` and the spire `falloff`,
+   - lucidity raises `band_strength`.
+
+   Designed realms get them the same way.
+4. Glyphs: the bound `soul` glyph at `[0, 0, 14]`, plus 2–4 sigils/wards/gates on a 32 m circle. The soul's intent is the realm name. Every other glyph's intent is `<VERB> <OBJECT> OF <PLACE>`. The verb is drawn from the glyph's kind (sigil: CALL, KINDLE, REMEMBER, WEAVE, NAME, AWAKEN; ward: GUARD, SHIELD, HOLD, KEEP, BIND, STILL; gate: OPEN, CROSS, UNSEAL, RETURN, ASCEND, PASS) using its own `glyph:<id>` stream. The object names the metaphysic that dominated when the glyph was born (entropy THE STORM, coherence THE PATTERN, resonance THE CHORUS, inversion THE SHADOW, lucidity THE DREAM, luminosity THE DAWN). The place is the first word of the realm name. Glyphs born during evolution use the same rule.
 5. Topology: random kind, 32–95 nodes, `edge_density` 0.2–0.8, radius 18 m.
 6. Metaphysics: a snapshot of the state bus.
 7. The result MUST pass `validateManifest` before it is published. A producer MUST NOT emit an invalid manifest.
@@ -311,8 +362,9 @@ Real PrimordiaOS modules replace the reference ones by exporting `create(seed, o
 ```
 ARealmRootActor  (one per realm_id; transform = realm placement)
 ├── Layer_<id>  USceneComponent @ altitude
-│   ├── Base_<id>     UStaticMeshComponent  (ground/ocean disc, void sphere)
-│   └── Scatter_<id>  UInstancedStaticMeshComponent (candidate prefix)
+│   ├── Base_<id>          UStaticMeshComponent  (ground/ocean disc, void sphere)
+│   └── <Tier>_<id>_<v>    one (H)ISM per tier and mesh variant v (candidate prefix), e.g.
+│                          Terraces_ground-0_0, Monoliths_ground-0_0, Rubble_ground-0_0
 ├── ACosmicWebActor        adopted as cosmic_web/web:<realm_id>
 ├── ASoulGlyphActor × N    manifest glyphs; bound ones adopted as soul_unification/<bound_to>
 └── stream entities        AHeartActor, AFateWeaveActor, ADreamNebulaActor ×n, AShadowInversionActor
@@ -333,6 +385,21 @@ Consumers MUST expose metaphysics through three channels:
 1. A **global parameter collection** (`MPC_PrimordiaMetaphysics`) with scalars `Entropy`, `Luminosity`, `Coherence`, `Resonance`, `Inversion`, `Lucidity`, `TimeDilation` and the vector `Essence`, so any material in the project can react.
 2. **Per-layer material parameters** with the same names (this works even without an MPC).
 3. **Time:** every realm entity's local time scale (`CustomTimeDilation`) equals `time_dilation`.
+
+Consumers SHOULD also show what the state *means* through a fourth channel:
+
+4. **Atmosphere:** the realm's haze and colour grade, as a pure function of metaphysics, eased with them. The same state always looks the same. The reference mapping (`PrimordiaRealmAtmosphere.cpp`):
+
+| Scalar | Reads as | Haze | Grade |
+|---|---|---|---|
+| `entropy` | disorder | thicker | film grain (above 0.3), chromatic fringe (above 0.4), a little contrast |
+| `luminosity` | light | brighter | exposure bias `1.5·(l − 0.5)` stops, bloom `0.3 + 1.5·l` |
+| `coherence` | order | kept low and layered (higher height falloff), paler (clear air) | saturation `0.55 + 0.6·c` |
+| `inversion` | shadow | darkened toward black-violet, more opaque (max opacity `0.55 + 0.4·i`) | vignette `0.25 + 0.6·i`, contrast, shadows tinted toward the complement of `essence` |
+| `lucidity` | clarity | thinner | less grain, a stronger `essence` tint |
+| `essence` | signature hue | haze colour | highlight tint |
+
+Haze stops at five times the realm's `bounds.radius`, so the sky stays visible. A level's own fog and post-process take precedence: the reference consumer's realm fog stays off when the level already has a height fog, and its grade is an unbound volume at priority −10.
 
 ### 6.4 Entity lifecycle
 

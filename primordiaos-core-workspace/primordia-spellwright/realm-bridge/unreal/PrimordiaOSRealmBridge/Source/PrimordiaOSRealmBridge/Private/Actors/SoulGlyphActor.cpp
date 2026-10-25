@@ -1,6 +1,7 @@
 #include "Actors/SoulGlyphActor.h"
 #include "PrimordiaBridgeSettings.h"
 #include "PrimordiaJson.h"
+#include "PrimordiaSigilScript.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
@@ -34,9 +35,12 @@ void ASoulGlyphActor::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 	const UPrimordiaBridgeSettings* S = UPrimordiaBridgeSettings::Get();
+	// Volume mode needs its material: without it a bare cube would render, so fall back to the plane.
+	bVolumetric = S->bVolumetricGlyphs && S->GlyphMaterial.LoadSynchronous() != nullptr;
 	if (!GlyphPlane->GetStaticMesh())
 	{
-		GlyphPlane->SetStaticMesh(UPrimordiaBridgeSettings::LoadOr(S->GlyphMesh, PrimordiaAssets::Plane));
+		GlyphPlane->SetStaticMesh(bVolumetric ? LoadObject<UStaticMesh>(nullptr, PrimordiaAssets::Cube)
+		                                      : UPrimordiaBridgeSettings::LoadOr(S->GlyphMesh, PrimordiaAssets::Plane));
 	}
 	if (!Fragments->GetStaticMesh())
 	{
@@ -46,6 +50,12 @@ void ASoulGlyphActor::OnConstruction(const FTransform& Transform)
 			Fragments->SetMaterial(0, FragmentMaterial);
 		}
 	}
+	ApplyGlyphScale();
+}
+
+void ASoulGlyphActor::ApplyGlyphScale()
+{
+	// Both the plane and the cube are 100 uu across; the volume's glyph fills the cube's inscribed sphere.
 	GlyphPlane->SetRelativeScale3D(FVector(GlyphDiameter / 100.f));
 }
 
@@ -54,21 +64,62 @@ void ASoulGlyphActor::EnsureMaterials()
 	if (!GlyphMID)
 	{
 		GlyphMID = MakeMID(GlyphPlane, UPrimordiaBridgeSettings::LoadOr(UPrimordiaBridgeSettings::Get()->GlyphMaterial, nullptr));
+		bInscribed = false;
 	}
 }
 
 void ASoulGlyphActor::ApplyGlyphSpec(const FPrimordiaGlyphSpec& Spec)
 {
-	Symmetry = Spec.Symmetry;
-	Complexity = Spec.Complexity;
-	Hue = Spec.Hue;
 	GlyphDiameter = Spec.Scale;
 	GlyphKind = Spec.Kind == TEXT("soul") ? 0.f : Spec.Kind == TEXT("sigil") ? 1.f : Spec.Kind == TEXT("ward") ? 2.f : 3.f;
-	GlyphPlane->SetRelativeScale3D(FVector(GlyphDiameter / 100.f));
+	ApplyGlyphScale();
+	InscriptionFallback = Spec.Id;
+	// PRS-1 §3.6: the static spec seeds a bound glyph; once its live stream speaks, the stream
+	// drives it, so later manifest revisions must not snap it back.
 	if (!bHasReceivedPacket)
 	{
+		Symmetry = Spec.Symmetry;
+		Complexity = Spec.Complexity;
+		Hue = Spec.Hue;
 		SetTargetLocation(Spec.Position, true);
 	}
+	if (!bLiveIntent)
+	{
+		SetIntent(Spec.Intent);
+	}
+	// Look right immediately, even where actors don't tick (a non-realtime editor viewport).
+	UpdateMaterial();
+}
+
+void ASoulGlyphActor::SetIntent(const FString& InIntent)
+{
+	if (InIntent != Intent || !bInscribed)
+	{
+		Intent = InIntent;
+		bInscribed = false;
+	}
+}
+
+void ASoulGlyphActor::PushInscription()
+{
+	const PrimordiaSigil::FInscription Inscription = PrimordiaSigil::Inscribe(Intent, InscriptionFallback.IsEmpty() ? EntityId : InscriptionFallback);
+	InscribedLetters = Inscription.Reduced;
+	SigilPoints = Inscription.Points;
+	SigilSeed = Inscription.Seed;
+	bInscribed = true;
+	if (!GlyphMID)
+	{
+		return;
+	}
+	// Two wheel points per vector: (x0, y0, x1, y1).
+	for (int32 i = 0; i < PrimordiaSigil::MaxPoints / 2; ++i)
+	{
+		const FVector2D A = SigilPoints.IsValidIndex(2 * i) ? SigilPoints[2 * i] : FVector2D::ZeroVector;
+		const FVector2D B = SigilPoints.IsValidIndex(2 * i + 1) ? SigilPoints[2 * i + 1] : FVector2D::ZeroVector;
+		GlyphMID->SetVectorParameterValue(*FString::Printf(TEXT("SigilPoints%d"), i), FLinearColor(A.X, A.Y, B.X, B.Y));
+	}
+	GlyphMID->SetScalarParameterValue(TEXT("SigilStrokes"), static_cast<float>(SigilPoints.Num()));
+	GlyphMID->SetScalarParameterValue(TEXT("SigilSeed"), SigilSeed);
 }
 
 void ASoulGlyphActor::ApplyPayload(const TSharedPtr<FJsonObject>& P)
@@ -82,6 +133,12 @@ void ASoulGlyphActor::ApplyPayload(const TSharedPtr<FJsonObject>& P)
 		Complexity = Num(Glyph, TEXT("complexity"), Complexity);
 		RotationSpeed = Num(Glyph, TEXT("rotation_speed"), RotationSpeed);
 		Hue = Num(Glyph, TEXT("hue"), Hue);
+		// Optional: a live stream may re-inscribe its glyph; otherwise the manifest's intent stands.
+		if (Glyph->HasField(TEXT("intent")))
+		{
+			bLiveIntent = true;
+			SetIntent(Str(Glyph, TEXT("intent")));
+		}
 	}
 	SetTargetLocation(Vec(P, TEXT("position"), FVector::ZeroVector, Upm));
 
@@ -113,7 +170,7 @@ void ASoulGlyphActor::ApplyPayload(const TSharedPtr<FJsonObject>& P)
 	}
 }
 
-void ASoulGlyphActor::FaceCamera()
+void ASoulGlyphActor::FaceCamera(bool bYawOnly)
 {
 	FVector ViewLocation;
 	bool bHaveView = false;
@@ -133,25 +190,35 @@ void ASoulGlyphActor::FaceCamera()
 	{
 		return;
 	}
-	const FVector ToView = (ViewLocation - GlyphPivot->GetComponentLocation()).GetSafeNormal();
-	if (!ToView.IsNearlyZero())
+	FVector ToView = ViewLocation - GlyphPivot->GetComponentLocation();
+	if (bYawOnly)
+	{
+		ToView.Z = 0.0;
+	}
+	ToView = ToView.GetSafeNormal();
+	if (ToView.IsNearlyZero())
+	{
+		return;
+	}
+	if (bYawOnly)
+	{
+		// Volume glyphs write on their local XZ plane: turn +Y toward the viewer and stay upright.
+		GlyphPivot->SetWorldRotation(FRotationMatrix::MakeFromYZ(ToView, FVector::UpVector).Rotator());
+	}
+	else
 	{
 		// The plane's normal is +Z: point it at the viewer, keep world up as the reference.
 		GlyphPivot->SetWorldRotation(FRotationMatrix::MakeFromZX(ToView, FVector::UpVector).Rotator());
 	}
 }
 
-void ASoulGlyphActor::Tick(float DeltaSeconds)
+void ASoulGlyphActor::UpdateMaterial()
 {
-	Super::Tick(DeltaSeconds);
 	EnsureMaterials();
-
-	Spin += RotationSpeed * DeltaSeconds * CustomTimeDilation;
-	if (bFaceCamera)
+	if (!bInscribed)
 	{
-		FaceCamera();
+		PushInscription();
 	}
-
 	if (GlyphMID)
 	{
 		GlyphMID->SetScalarParameterValue(TEXT("Symmetry"), static_cast<float>(Symmetry));
@@ -161,7 +228,39 @@ void ASoulGlyphActor::Tick(float DeltaSeconds)
 		GlyphMID->SetScalarParameterValue(TEXT("Spin"), Spin);
 		GlyphMID->SetScalarParameterValue(TEXT("GlyphKind"), GlyphKind);
 		GlyphMID->SetVectorParameterValue(TEXT("Color"), FLinearColor::MakeFromHSV8(static_cast<uint8>(Hue * 255.f), 160, 255));
+		if (bVolumetric)
+		{
+			GlyphMID->SetScalarParameterValue(TEXT("Entropy"), Metaphysics.Entropy);
+			GlyphMID->SetScalarParameterValue(TEXT("Coherence"), Metaphysics.Coherence);
+			GlyphMID->SetScalarParameterValue(TEXT("Inversion"), Metaphysics.Inversion);
+			GlyphMID->SetScalarParameterValue(TEXT("Luminosity"), Metaphysics.Luminosity);
+			GlyphMID->SetScalarParameterValue(TEXT("Resonance"), Metaphysics.Resonance);
+			GlyphMID->SetScalarParameterValue(TEXT("Lucidity"), Metaphysics.Lucidity);
+			GlyphMID->SetVectorParameterValue(TEXT("Essence"), Metaphysics.Essence);
+		}
 	}
+}
+
+void ASoulGlyphActor::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	Spin += RotationSpeed * DeltaSeconds * CustomTimeDilation;
+	if (bFaceCamera)
+	{
+		// A plane always faces the viewer. In a volume only written glyphs (sigils, gates) turn to
+		// present their face; the soul and wards are round and are seen from every side.
+		const bool bWritten = GlyphKind > 0.5f && (GlyphKind < 1.5f || GlyphKind > 2.5f);
+		if (!bVolumetric)
+		{
+			FaceCamera(false);
+		}
+		else if (bWritten)
+		{
+			FaceCamera(true);
+		}
+	}
+	UpdateMaterial();
 
 	const int32 Count = FragmentState.Num();
 	if (Count > 0 && Fragments->GetInstanceCount() == Count)

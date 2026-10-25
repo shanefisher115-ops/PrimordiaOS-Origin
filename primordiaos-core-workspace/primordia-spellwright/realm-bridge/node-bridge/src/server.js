@@ -3,6 +3,8 @@
 //
 //   node src/server.js [--port 7777] [--host 127.0.0.1] [--hz 60] [--seed 1234]
 //                      [--modules ./my-modules] [--evolve 15] [--validate]
+//                      [--ollama http://127.0.0.1:11434] [--realm-model llama3.2:3b]
+//                      [--voice-model llama3.2:3b] [--voice af_heart] [--voice-dtype fp32] [--voice-preload]
 //
 // Every option also reads PRIMORDIA_<NAME> from the environment.
 import { WebSocketServer } from 'ws';
@@ -10,10 +12,16 @@ import { fileURLToPath } from 'node:url';
 import { createMetaState } from './state.js';
 import { loadModules } from './modules/index.js';
 import { validatePacket } from './schemas.js';
+import { designRealm } from './realm/design.js';
+import { DEFAULT_OLLAMA_URL } from './llm/ollama.js';
+import { createTTS } from './voice/tts.js';
+import { createSpeaker } from './voice/speaker.js';
+import { direct, describeRealm } from './voice/director.js';
 
 export const VERSION = '1.0.0';
 const MAX_BUFFERED_BYTES = 1 << 20; // above this a client is lagging: drop continuous frames
-const ALWAYS_DELIVER = new Set(['realm_manifest', 'hello', 'ack', 'pong']);
+// Audio chunks are never dropped or rate-limited: a gap is audible.
+const ALWAYS_DELIVER = new Set(['realm_manifest', 'hello', 'ack', 'pong', 'voice']);
 
 export async function createBridge(options = {}) {
   const {
@@ -24,8 +32,35 @@ export async function createBridge(options = {}) {
     modulesDir = null,
     evolveSeconds = 15,
     validate = false,
+    ollamaUrl = DEFAULT_OLLAMA_URL,
+    realmModel = 'llama3.2:3b',
+    voiceModel = realmModel,     // LLM for converse
+    voiceDtype = 'fp32',         // Kokoro precision (see src/voice/tts.js)
+    voiceName = 'af_heart',
+    voicePreload = false,        // load Kokoro at startup instead of on first speech
+    ttsFactory = createTTS,      // injectable for tests
     log = console.log,
   } = options;
+  let design = null; // { controller } while a generate_realm is in flight
+  const overrides = new Map(); // perturbations: key -> { value, hold, fade, elapsed }
+  const applyOverrides = (dt) => {
+    for (const [key, o] of overrides) {
+      o.elapsed += dt;
+      const w = o.elapsed <= o.hold ? 1 : Math.max(0, 1 - (o.elapsed - o.hold) / o.fade);
+      ctx.state[key] += (o.value - ctx.state[key]) * w;
+      if (w === 0) overrides.delete(key);
+    }
+  };
+  let speaking = null; // { controller } while a speak/converse is in flight
+
+  let ttsPromise = null;
+  const getTts = () => {
+    ttsPromise ??= ttsFactory({ dtype: voiceDtype, voice: voiceName }).catch((err) => {
+      ttsPromise = null;
+      throw err;
+    });
+    return ttsPromise;
+  };
   const masterHz = Math.min(60, Math.max(30, hz));
 
   const ctx = { t: 0, state: createMetaState(), manifest: null, realmId: '' };
@@ -66,6 +101,22 @@ export async function createBridge(options = {}) {
 
   const wss = new WebSocketServer({ port, host, perMessageDeflate: false });
   const clients = new Set();
+
+  const speaker = createSpeaker({
+    getTts,
+    log,
+    emit: (packet) => {
+      const encoded = encode(packet);
+      for (const c of clients) deliver(c, encoded);
+    },
+  });
+  if (voicePreload) {
+    const t = performance.now();
+    getTts().then(
+      () => log(`[voice] Kokoro ${voiceDtype} ready in ${((performance.now() - t) / 1000).toFixed(1)}s`),
+      (err) => log(`[voice] Kokoro unavailable: ${err.message}`),
+    );
+  }
 
   function deliver(client, { env, text }) {
     const ws = client.ws;
@@ -111,16 +162,160 @@ export async function createBridge(options = {}) {
         break;
       case 'perturb': {
         // e.g. {name:"perturb", args:{key:"entropy", value:0.9}}
-        if (!(args.key in ctx.state) || typeof args.value !== 'number') throw new Error(`cannot perturb ${args.key}`);
+        // Modules recompute these every tick, so a perturbation is an override applied
+        // after each step: held for holdSeconds, then faded back to the natural value.
+        if (!(args.key in ctx.state) || typeof ctx.state[args.key] !== 'number' || typeof args.value !== 'number') {
+          throw new Error(`cannot perturb ${args.key}`);
+        }
+        overrides.set(args.key, { value: args.value, hold: Number(args.hold) || 20, fade: 10, elapsed: 0 });
         ctx.state[args.key] = args.value;
         break;
       }
       case 'load_manifest':
         worldforge.loadManifest?.(ctx, args.manifest);
         break;
+      case 'generate_realm':
+        // {name:"generate_realm", args:{description:"...", model?, seed?}}
+        startDesign(client, args);
+        return { status: 'started', model: args.model || realmModel };
+      case 'cancel_generate':
+        design?.controller.abort();
+        break;
+      case 'speak':
+        // {name:"speak", args:{text:"...", speaker?:"soul"}}: voice only, no LLM
+        startSpeech(client, 'speak', args, async (utter) => {
+          if (!String(args.text ?? '').trim()) throw new Error('speak needs args.text');
+          for (const s of splitForSpeech(args.text)) utter.say(s);
+          return {};
+        });
+        return { status: 'started' };
+      case 'converse':
+        // {name:"converse", args:{input:"...", model?}}: the LLM decides what to say and do
+        if (!String(args.input ?? '').trim()) throw new Error('converse needs args.input');
+        startSpeech(client, 'converse', args, async (utter, signal) => {
+          const { say, actions, stats } = await direct(String(args.input), {
+            url: ollamaUrl,
+            model: args.model || voiceModel,
+            realm: describeRealm(ctx.manifest, ctx.state),
+            signal,
+            onSentence: (s) => utter.say(s),
+          });
+          // Actions run as soon as the LLM finishes, while the voice may still be speaking.
+          const action_results = actions.map((a) => runAction(client, a));
+          return { say, actions, action_results, llm_seconds: Math.round(stats.seconds * 10) / 10, tokens: stats.genTokens };
+        });
+        return { status: 'started' };
+      case 'cancel_speech':
+        speaking?.controller.abort();
+        break;
       default:
         throw new Error(`unknown command ${name}`);
     }
+  }
+
+  const splitForSpeech = (text) => String(text).split(/(?<=[.!?…])\s+/).filter((s) => s.trim());
+
+  // Where the realm's voice comes from: its soul glyph.
+  const soulPosition = () => ctx.manifest?.glyphs?.find((g) => g.kind === 'soul')?.position ?? [0, 0, 14];
+
+  // An LLM-chosen action, executed through the same command paths as Unreal's.
+  function runAction(client, action) {
+    try {
+      switch (action.type) {
+        case 'perturb':
+          handleCommand(client, { name: 'perturb', args: { key: action.key, value: action.value } });
+          return `${action.key} = ${action.value}`;
+        case 'evolve_realm':
+          handleCommand(client, { name: 'evolve_realm' });
+          return 'realm evolving';
+        case 'reseed':
+          handleCommand(client, { name: 'reseed', args: { seed: action.seed } });
+          return `new realm ${ctx.manifest.realm_name}`;
+        case 'generate_realm':
+          startDesign(client, { description: action.description });
+          return 'designing realm';
+        default:
+          return 'none';
+      }
+    } catch (err) {
+      return `failed: ${err.message}`;
+    }
+  }
+
+  // speak/converse share one pipeline: ack started -> voice packets -> ack done/failed.
+  function startSpeech(client, command, args, body) {
+    if (speaking) throw new Error('already speaking');
+    const controller = new AbortController();
+    speaking = { controller };
+    const utter = speaker.begin({ speaker: args.speaker || 'soul', position: soulPosition(), voice: args.voice });
+    const t0 = performance.now();
+    (async () => {
+      let result;
+      let bodyError = null;
+      try {
+        result = await body(utter, controller.signal);
+      } catch (err) {
+        bodyError = err;
+      }
+      const audio = await utter.end(); // always close the utterance; throws if synthesis failed
+      if (bodyError) throw bodyError;
+      return { ...result, ...audio, seconds: Math.round((performance.now() - t0) / 100) / 10 };
+    })()
+      .then((done) => {
+        log(`[voice] ${command} done in ${done.seconds}s (first audio ${done.firstAudioSeconds}s, ${done.audioSeconds}s of speech)`);
+        reply(client, 'ack', { command, ok: true, status: 'done', ...done });
+      })
+      .catch((err) => {
+        log(`[voice] ${command} failed: ${err.message}`);
+        reply(client, 'ack', { command, ok: false, status: 'failed', error: err.message });
+      })
+      .finally(() => {
+        speaking = null;
+      });
+  }
+
+  // The LLM designs a compact intent; Worldforge expands it (realm/design.js).
+  // The new manifest reaches every client through the realm_manifest stream;
+  // the requesting client also gets a final ack with timings.
+  function startDesign(client, args) {
+    const description = String(args.description ?? '').trim();
+    if (!description) throw new Error('generate_realm needs args.description');
+    if (design) throw new Error('a realm is already being designed');
+    const worldforge = modules.find((m) => m.key === 'worldforge');
+    const model = args.model || realmModel;
+    const controller = new AbortController();
+    design = { controller };
+    log(`[bridge] designing realm with ${model}: "${description.slice(0, 80)}"`);
+    designRealm(description, { url: ollamaUrl, model, seed: args.seed, signal: controller.signal })
+      .then(({ manifest, intent, stats }) => {
+        if (intent.understood?.length) log(`[bridge] understood: ${intent.understood.join('; ')}`);
+        worldforge.loadManifest(ctx, manifest);
+        // Broadcast now (not at the next 1 Hz Worldforge sample) so clients have the
+        // realm before they see the "done" ack.
+        for (const p of worldforge.sample(ctx)) {
+          const encoded = encode(p);
+          for (const c of clients) deliver(c, encoded);
+        }
+        log(`[bridge] designed "${manifest.realm_name}" in ${stats.seconds.toFixed(1)}s (${stats.genTokens} tokens, ${stats.tokensPerSecond.toFixed(1)} tok/s)`);
+        reply(client, 'ack', {
+          command: 'generate_realm',
+          ok: true,
+          status: 'done',
+          realm_id: manifest.realm_id,
+          realm_name: manifest.realm_name,
+          intent,
+          seconds: Math.round(stats.seconds * 10) / 10,
+          tokens: stats.genTokens,
+          tokens_per_second: Math.round(stats.tokensPerSecond * 10) / 10,
+        });
+      })
+      .catch((err) => {
+        log(`[bridge] realm design failed: ${err.message}`);
+        reply(client, 'ack', { command: 'generate_realm', ok: false, status: 'failed', error: err.message });
+      })
+      .finally(() => {
+        design = null;
+      });
   }
 
   function onMessage(client, raw) {
@@ -149,8 +344,8 @@ export async function createBridge(options = {}) {
         return reply(client, 'pong', { nonce: msg.nonce ?? null });
       case 'command':
         try {
-          handleCommand(client, msg);
-          return reply(client, 'ack', { command: msg.name, ok: true });
+          const extra = handleCommand(client, msg);
+          return reply(client, 'ack', { command: msg.name, ok: true, ...extra });
         } catch (err) {
           return reply(client, 'ack', { command: msg.name, ok: false, error: err.message });
         }
@@ -193,6 +388,7 @@ export async function createBridge(options = {}) {
     last = now;
     stats.ticks++;
     for (const m of modules) m.step(dt, ctx);
+    applyOverrides(dt);
     for (const m of modules) {
       if (!m.stream) continue;
       const elapsed = acc.get(m) + dt;
@@ -231,6 +427,8 @@ export async function createBridge(options = {}) {
     async close() {
       running = false;
       clearTimeout(timer);
+      design?.controller.abort();
+      speaking?.controller.abort();
       for (const c of clients) c.ws.terminate();
       await new Promise((res) => wss.close(res));
     },
@@ -252,6 +450,12 @@ function parseArgs(argv) {
     modulesDir: get('--modules', 'PRIMORDIA_MODULES_DIR', null),
     evolveSeconds: Number(get('--evolve', 'PRIMORDIA_EVOLVE_SECONDS', 15)),
     validate: argv.includes('--validate') || env.PRIMORDIA_VALIDATE === '1',
+    ollamaUrl: get('--ollama', 'PRIMORDIA_OLLAMA_URL', DEFAULT_OLLAMA_URL),
+    realmModel: get('--realm-model', 'PRIMORDIA_REALM_MODEL', 'llama3.2:3b'),
+    voiceModel: get('--voice-model', 'PRIMORDIA_VOICE_MODEL', 'llama3.2:3b'),
+    voiceDtype: get('--voice-dtype', 'PRIMORDIA_VOICE_DTYPE', 'fp32'),
+    voiceName: get('--voice', 'PRIMORDIA_VOICE', 'af_heart'),
+    voicePreload: argv.includes('--voice-preload') || env.PRIMORDIA_VOICE_PRELOAD === '1',
   };
 }
 

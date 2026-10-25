@@ -18,7 +18,10 @@ struct FPrimordiaLayerRuntime;
  * FPrimordiaRandom seeded with SubSeed(realm seed, "<purpose>:<id>"), so the
  * same manifest yields the same realm on every machine. Re-applying a newer
  * revision of the same realm is a diff, not a rebuild:
+ *   - each layer is composed into fixed / hero / detail tiers (PrimordiaRealmComposition.h),
+ *     one instanced component per tier and mesh variant,
  *   - layers whose structure is unchanged only change their visible instance count,
+ *     adding or removing instances at the tail of each tier,
  *   - glyphs are matched by id (updated / spawned / retired),
  *   - the topology web is re-synthesized only if its spec changed and no live
  *     cosmic_web stream is driving it,
@@ -56,7 +59,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "PrimordiaOS|Realm")
 	void ClearRealm(ARealmRootActor* Root);
 
-	/** Upper bound for scatter instances per layer before density scaling. */
+	/** Upper bound for candidates in any one tier of a layer, before density scaling. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PrimordiaOS|Realm")
 	int32 MaxScatterPerLayer = 2000;
 
@@ -65,7 +68,8 @@ public:
 	float LiveStreamGraceSeconds = 3.f;
 
 private:
-	void BuildCandidates(const FPrimordiaRealmLayer& Layer, uint32 Seed, FPrimordiaLayerRuntime& Runtime) const;
+	/** Structural signature, plus the ground surface for layers that stand on it. */
+	uint32 LayerSignature(const ARealmRootActor* Root, const FPrimordiaRealmLayer& Layer) const;
 	void ApplyDensity(FPrimordiaLayerRuntime& Runtime, float Density) const;
 	void DestroyLayer(FPrimordiaLayerRuntime& Runtime) const;
 	void RetireGlyph(ARealmRootActor* Root, ASoulGlyphActor* Glyph) const;

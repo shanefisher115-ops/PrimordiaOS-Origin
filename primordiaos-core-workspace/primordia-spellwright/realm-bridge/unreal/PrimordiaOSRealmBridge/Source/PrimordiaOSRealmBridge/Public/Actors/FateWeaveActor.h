@@ -5,9 +5,14 @@
 #include "FateWeaveActor.generated.h"
 
 class UNiagaraComponent;
+class UInstancedStaticMeshComponent;
 
 /**
  * fate_weave -> Niagara ribbons.
+ *
+ * Without a FateRibbonSystem the threads still render: each is drawn as glowing tube
+ * segments in one instanced static mesh (M_PrimordiaThreadGlow, PerInstanceCustomData
+ * 0..2 = colour x fade), so the whole loom is a single draw call.
  *
  * Threads are resampled (Catmull-Rom) to PointsPerThread and written into
  * fixed slots so a thread keeps its ribbon for life. User parameters on
@@ -58,6 +63,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PrimordiaOS|FateWeave")
 	TObjectPtr<UNiagaraComponent> Loom;
 
+	/** Built-in thread renderer, used only while no FateRibbonSystem is assigned. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PrimordiaOS|FateWeave")
+	TObjectPtr<UInstancedStaticMeshComponent> TubeThreads;
+
 private:
 	struct FThreadSlot
 	{
@@ -77,7 +86,12 @@ private:
 	static void Resample(const TArray<FVector>& In, int32 Count, TArray<FVector>& Out);
 	int32 FindOrAllocSlot(const FString& Id);
 	void PushToNiagara();
+	void PushToTubes();
 
 	TArray<FThreadSlot> Slots;
 	float RetireMultiplier = 1.f;
+	bool bUseTubes = false;
+	/** Tube mesh bounds in its local space: it runs along Z, its radius is in X/Y. */
+	FVector TubeCenter = FVector::ZeroVector;
+	FVector TubeExtent = FVector(50.f);
 };

@@ -1,0 +1,39 @@
+{
+  "triggers": [
+    {
+      "id": "realm_unstable",
+      "when": "realm.stability < 0.35",
+      "cooldownSeconds": 300,
+      "goal": { "task": "stabilize_realm", "description": "The realm is faltering; ward it", "priority": 9, "maxAttempts": 2 }
+    },
+    {
+      "id": "lanterns_dark",
+      "when": "tag.Primordia.Lantern > 0",
+      "cooldownSeconds": 900,
+      "goal": {
+        "task": "illuminate_realm",
+        "description": "Light the lanterns that stand in the realm",
+        "params": { "tag": "Primordia.Lantern", "count": "1", "intensity": "8000", "at": "0,0,300" },
+        "priority": 4
+      }
+    },
+    {
+      "id": "fabrication_request",
+      "when": "tag.Primordia.Fabricate > 0",
+      "cooldownSeconds": 600,
+      "goal": {
+        "task": "fabricate_part",
+        "description": "An actor asks to be made real: mill its plate",
+        "params": { "subject": "plate" },
+        "priority": 5,
+        "maxAttempts": 2
+      }
+    },
+    {
+      "id": "chronicle",
+      "when": "world.time > 600",
+      "cooldownSeconds": 1800,
+      "goal": { "task": "chronicle_realm", "description": "Keep the chronicle of the realm", "priority": 2, "maxAttempts": 1 }
+    }
+  ]
+}

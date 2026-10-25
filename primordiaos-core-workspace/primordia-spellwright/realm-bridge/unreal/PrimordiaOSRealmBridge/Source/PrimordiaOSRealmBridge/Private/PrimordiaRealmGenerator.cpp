@@ -5,6 +5,8 @@
 #include "Actors/CosmicWebActor.h"
 #include "Actors/RealmRootActor.h"
 #include "Actors/SoulGlyphActor.h"
+#include "Algo/BinarySearch.h"
+#include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/CollisionProfile.h"
@@ -27,18 +29,8 @@ namespace
 		return Component;
 	}
 
-	// PRS-1 §4.3: which engine shape each layer kind scatters / uses as its base.
-	const TCHAR* ScatterMeshFor(FName Kind)
-	{
-		if (Kind == TEXT("ground")) return PrimordiaAssets::Cylinder; // terraces + monoliths
-		if (Kind == TEXT("ocean")) return PrimordiaAssets::Sphere;    // floating motes
-		if (Kind == TEXT("sky")) return PrimordiaAssets::Sphere;      // stars
-		if (Kind == TEXT("ring")) return PrimordiaAssets::Cube;       // shards
-		if (Kind == TEXT("lattice")) return PrimordiaAssets::Cube;    // lattice nodes
-		if (Kind == TEXT("spire_field")) return PrimordiaAssets::Cone;
-		return nullptr;
-	}
-
+	// PRS-1 §4.3: the engine shape each layer kind uses as its base (scatter shapes are per tier,
+	// see PrimordiaRealmComposition.cpp).
 	const TCHAR* BaseMeshFor(FName Kind)
 	{
 		if (Kind == TEXT("ground") || Kind == TEXT("ocean")) return PrimordiaAssets::Cylinder;
@@ -52,6 +44,116 @@ namespace
 	}
 
 	bool IsInWorldOf(const AActor* Actor) { return Actor && Actor->GetWorld(); }
+
+	/** Palette, density and every numeric param, exposed by name (MATERIALS_AND_NIAGARA.md §7). */
+	UMaterialInstanceDynamic* MakeLayerMID(ARealmRootActor* Root, UMaterialInterface* Material, const FPrimordiaRealmLayer& Layer)
+	{
+		UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Material, Root);
+		MID->SetVectorParameterValue(TEXT("Color"), PaletteColor(Layer, 0, FLinearColor::Gray));
+		MID->SetVectorParameterValue(TEXT("SecondaryColor"), PaletteColor(Layer, 1, FLinearColor::Black));
+		MID->SetScalarParameterValue(TEXT("Density"), Layer.Density);
+		MID->SetScalarParameterValue(TEXT("Radius"), Layer.Radius);
+		for (const TPair<FString, float>& Param : Layer.Params)
+		{
+			MID->SetScalarParameterValue(FName(*Param.Key), Param.Value);
+		}
+		return MID;
+	}
+
+	template <typename F>
+	void ForEachMID(FPrimordiaLayerRuntime& Runtime, F&& Fn)
+	{
+		if (Runtime.MID)
+		{
+			Fn(Runtime.MID.Get());
+		}
+		for (FPrimordiaTierRuntime& Tier : Runtime.Tiers)
+		{
+			if (Tier.MID)
+			{
+				Fn(Tier.MID.Get());
+			}
+		}
+	}
+
+	const FPrimordiaTierArt* TierArtFor(const FPrimordiaLayerArt* Art, EPrimordiaTier Tier)
+	{
+		if (!Art) return nullptr;
+		switch (Tier)
+		{
+		case EPrimordiaTier::Fixed: return &Art->Fixed;
+		case EPrimordiaTier::Hero: return &Art->Hero;
+		default: return &Art->Detail;
+		}
+	}
+
+	/** The ground this layer stands on, if any. Several candidates: the lowest layer id wins (deterministic). */
+	const FPrimordiaGroundSurface* FindGround(const ARealmRootActor* Root, const FPrimordiaRealmLayer& Layer)
+	{
+		const FPrimordiaGroundSurface* Best = nullptr;
+		const FString* BestId = nullptr;
+		for (const TPair<FString, FPrimordiaLayerRuntime>& Pair : Root->RealmLayers)
+		{
+			if (Pair.Key != Layer.Id && PrimordiaComposition::StandsOnGround(Layer, Pair.Value.Surface) && (!BestId || Pair.Key < *BestId))
+			{
+				Best = &Pair.Value.Surface;
+				BestId = &Pair.Key;
+			}
+		}
+		return Best;
+	}
+
+	/**
+	 * Makes each variant component hold exactly the candidates of the first Shown, in order.
+	 * Shown only ever moves the tail, so this adds or removes instances at the end and never
+	 * touches the rest (PRS-1 §4.3).
+	 */
+	void ShowPrefix(FPrimordiaTierRuntime& Tier, int32 Shown)
+	{
+		if (Shown == Tier.ShownCount)
+		{
+			return;
+		}
+		const FPrimordiaTierCandidates& C = Tier.Candidates;
+		for (int32 v = 0; v < Tier.Variants.Num(); ++v)
+		{
+			UInstancedStaticMeshComponent* ISM = Tier.Variants[v];
+			if (!ISM)
+			{
+				continue;
+			}
+			const TArray<int32>& Indices = Tier.VariantCandidates[v];
+			const int32 Target = Algo::LowerBound(Indices, Shown);
+			const int32 Current = ISM->GetInstanceCount();
+			if (Target > Current)
+			{
+				TArray<FTransform> Added;
+				Added.Reserve(Target - Current);
+				for (int32 k = Current; k < Target; ++k)
+				{
+					Added.Add(C.Transforms[Indices[k]]);
+				}
+				ISM->AddInstances(Added, false, false, C.bCollide);
+				for (int32 k = Current; k < Target; ++k)
+				{
+					const FVector4f& D = C.Data[Indices[k]];
+					ISM->SetCustomData(k, MakeArrayView(&D.X, 4), false);
+				}
+				ISM->MarkRenderStateDirty();
+			}
+			else if (Target < Current)
+			{
+				TArray<int32> Removed;
+				Removed.Reserve(Current - Target);
+				for (int32 k = Current - 1; k >= Target; --k)
+				{
+					Removed.Add(k);
+				}
+				ISM->RemoveInstances(Removed, true);
+			}
+		}
+		Tier.ShownCount = Shown;
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -75,24 +177,12 @@ void UPrimordiaRealmGenerator::GenerateRealmFromManifest(ARealmRootActor* Root, 
 	const int32 PreviousRevision = Root->Manifest.Revision;
 	Root->Manifest = M;
 
-	// Layers: diff by id.
+	// Layers: diff by id. Stale layers go first and grounds are settled before the layers
+	// that stand on them, so every signature below sees the final ground surface.
 	TSet<FString> KeepLayers;
 	for (const FPrimordiaRealmLayer& Layer : M.Layers)
 	{
 		KeepLayers.Add(Layer.Id);
-		FPrimordiaLayerRuntime* Runtime = Root->RealmLayers.Find(Layer.Id);
-		if (Runtime && Runtime->Signature == Layer.StructuralHash())
-		{
-			ApplyDensity(*Runtime, Layer.Density);
-			if (Runtime->MID)
-			{
-				Runtime->MID->SetScalarParameterValue(TEXT("Density"), Layer.Density);
-			}
-		}
-		else
-		{
-			SpawnLayer(Root, Layer, M.Seed);
-		}
 	}
 	for (auto It = Root->RealmLayers.CreateIterator(); It; ++It)
 	{
@@ -100,6 +190,26 @@ void UPrimordiaRealmGenerator::GenerateRealmFromManifest(ARealmRootActor* Root, 
 		{
 			DestroyLayer(It->Value);
 			It.RemoveCurrent();
+		}
+	}
+	for (const bool bGroundPass : { true, false })
+	{
+		for (const FPrimordiaRealmLayer& Layer : M.Layers)
+		{
+			if ((Layer.Kind == TEXT("ground")) != bGroundPass)
+			{
+				continue;
+			}
+			FPrimordiaLayerRuntime* Runtime = Root->RealmLayers.Find(Layer.Id);
+			if (Runtime && Runtime->Signature == LayerSignature(Root, Layer))
+			{
+				ApplyDensity(*Runtime, Layer.Density);
+				ForEachMID(*Runtime, [&Layer](UMaterialInstanceDynamic* MID) { MID->SetScalarParameterValue(TEXT("Density"), Layer.Density); });
+			}
+			else
+			{
+				SpawnLayer(Root, Layer, M.Seed);
+			}
 		}
 	}
 
@@ -153,9 +263,10 @@ USceneComponent* UPrimordiaRealmGenerator::SpawnLayer(ARealmRootActor* Root, con
 	}
 
 	const UPrimordiaBridgeSettings* Settings = UPrimordiaBridgeSettings::Get();
+	const FPrimordiaLayerArt* Art = Settings->LayerArt.Find(Layer.Kind);
 	FPrimordiaLayerRuntime Runtime;
 	Runtime.Kind = Layer.Kind;
-	Runtime.Signature = Layer.StructuralHash();
+	Runtime.Signature = LayerSignature(Root, Layer);
 
 	Runtime.Root = NewRealmComponent<USceneComponent>(Root, Root->RealmRoot, TEXT("Layer_") + Layer.Id);
 	Runtime.Root->SetRelativeLocation(FVector(0, 0, Layer.Altitude));
@@ -164,7 +275,7 @@ USceneComponent* UPrimordiaRealmGenerator::SpawnLayer(ARealmRootActor* Root, con
 		Runtime.Root->SetRelativeRotation(FRotator(0.f, 0.f, Layer.Param(TEXT("tilt_deg"), 0.f)));
 	}
 
-	// One MID per layer: palette, density and every numeric param are exposed by name.
+	// One MID per layer (tiers with their own material get their own, with the same parameters).
 	UMaterialInterface* Material = nullptr;
 	if (const TSoftObjectPtr<UMaterialInterface>* Override = Settings->LayerMaterials.Find(Layer.Kind))
 	{
@@ -174,27 +285,17 @@ USceneComponent* UPrimordiaRealmGenerator::SpawnLayer(ARealmRootActor* Root, con
 	{
 		Material = LoadObject<UMaterialInterface>(nullptr, PrimordiaAssets::BasicMaterial);
 	}
-	Runtime.MID = UMaterialInstanceDynamic::Create(Material, Root);
-	Runtime.MID->SetVectorParameterValue(TEXT("Color"), PaletteColor(Layer, 0, FLinearColor::Gray));
-	Runtime.MID->SetVectorParameterValue(TEXT("SecondaryColor"), PaletteColor(Layer, 1, FLinearColor::Black));
-	Runtime.MID->SetScalarParameterValue(TEXT("Density"), Layer.Density);
-	Runtime.MID->SetScalarParameterValue(TEXT("Radius"), Layer.Radius);
-	for (const TPair<FString, float>& Param : Layer.Params)
-	{
-		Runtime.MID->SetScalarParameterValue(FName(*Param.Key), Param.Value);
-	}
-
-	UStaticMesh* MeshOverride = nullptr;
-	if (const TSoftObjectPtr<UStaticMesh>* Override = Settings->LayerMeshes.Find(Layer.Kind))
-	{
-		MeshOverride = Override->LoadSynchronous();
-	}
+	Runtime.MID = MakeLayerMID(Root, Material, Layer);
 
 	if (const TCHAR* BasePath = BaseMeshFor(Layer.Kind))
 	{
+		UStaticMesh* BaseMesh = Art ? Art->BaseMesh.LoadSynchronous() : nullptr;
 		Runtime.Base = NewRealmComponent<UStaticMeshComponent>(Root, Runtime.Root, TEXT("Base_") + Layer.Id);
-		Runtime.Base->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, BasePath));
-		Runtime.Base->SetMaterial(0, Runtime.MID);
+		Runtime.Base->SetStaticMesh(BaseMesh ? BaseMesh : LoadObject<UStaticMesh>(nullptr, BasePath));
+		for (int32 Slot = 0; Slot < FMath::Max(1, Runtime.Base->GetNumMaterials()); ++Slot)
+		{
+			Runtime.Base->SetMaterial(Slot, Runtime.MID);
+		}
 		if (Layer.Kind == TEXT("void"))
 		{
 			const float Diameter = 2.f * Layer.Radius * Layer.Param(TEXT("aperture"), 0.5f);
@@ -218,155 +319,162 @@ USceneComponent* UPrimordiaRealmGenerator::SpawnLayer(ARealmRootActor* Root, con
 		}
 	}
 
-	if (const TCHAR* ScatterPath = ScatterMeshFor(Layer.Kind))
+	// Tiers (PRS-1 §4.3): one instanced component per tier and mesh variant.
+	UStaticMesh* LegacyMesh = nullptr;
+	if (const TSoftObjectPtr<UStaticMesh>* Override = Settings->LayerMeshes.Find(Layer.Kind))
 	{
-		Runtime.Instances = NewRealmComponent<UInstancedStaticMeshComponent>(Root, Runtime.Root, TEXT("Scatter_") + Layer.Id);
-		Runtime.Instances->SetStaticMesh(MeshOverride ? MeshOverride : LoadObject<UStaticMesh>(nullptr, ScatterPath));
-		Runtime.Instances->SetMaterial(0, Runtime.MID);
-		Runtime.Instances->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		Runtime.Instances->CastShadow = Layer.Kind == TEXT("ground") || Layer.Kind == TEXT("spire_field");
-		BuildCandidates(Layer, FPrimordiaRandom::SubSeed(static_cast<uint32>(RealmSeed), TEXT("layer:") + Layer.Id), Runtime);
-		ApplyDensity(Runtime, Layer.Density);
+		LegacyMesh = Override->LoadSynchronous();
 	}
+	FPrimordiaLayerComposition Composition = PrimordiaComposition::Compose(Layer, static_cast<uint32>(RealmSeed), MaxScatterPerLayer, FindGround(Root, Layer));
+	Runtime.Surface = MoveTemp(Composition.Surface);
+	for (FPrimordiaTierCandidates& Candidates : Composition.Tiers)
+	{
+		if (Candidates.Tier == EPrimordiaTier::Detail && !Settings->bEnableDetailTiers)
+		{
+			continue;
+		}
+		const FPrimordiaTierArt* TierArt = TierArtFor(Art, Candidates.Tier);
+		TArray<UStaticMesh*> Meshes;
+		if (TierArt)
+		{
+			for (const TSoftObjectPtr<UStaticMesh>& Soft : TierArt->Meshes)
+			{
+				UStaticMesh* Mesh = Meshes.Num() < 3 ? Soft.LoadSynchronous() : nullptr;
+				if (Mesh)
+				{
+					Meshes.Add(Mesh);
+				}
+			}
+		}
+		if (Meshes.IsEmpty() && Candidates.bPrimary && LegacyMesh)
+		{
+			Meshes.Add(LegacyMesh);
+		}
+		if (Meshes.IsEmpty())
+		{
+			if (UStaticMesh* Fallback = LoadObject<UStaticMesh>(nullptr, Candidates.FallbackMesh))
+			{
+				Meshes.Add(Fallback);
+			}
+		}
+		if (Meshes.IsEmpty())
+		{
+			continue;
+		}
+
+		FPrimordiaTierRuntime& Tier = Runtime.Tiers.AddDefaulted_GetRef();
+		UMaterialInstanceDynamic* TierMID = Runtime.MID;
+		if (UMaterialInterface* TierMaterial = TierArt ? TierArt->Material.LoadSynchronous() : nullptr)
+		{
+			Tier.MID = MakeLayerMID(Root, TierMaterial, Layer);
+			TierMID = Tier.MID;
+		}
+		bool bShadow = Candidates.bCastShadow;
+		float Cull = Candidates.CullDistance;
+		if (TierArt)
+		{
+			if (TierArt->Shadow != EPrimordiaTierShadow::Default)
+			{
+				bShadow = TierArt->Shadow == EPrimordiaTierShadow::On;
+			}
+			if (TierArt->CullDistance != 0.f)
+			{
+				Cull = FMath::Max(0.f, TierArt->CullDistance);
+			}
+		}
+		const bool bHierarchical = Candidates.Tier == EPrimordiaTier::Detail && Settings->bHierarchicalDetailTiers;
+
+		// Variants are dealt by the candidate's stable random, so they never depend on order or density.
+		Tier.VariantCandidates.SetNum(Meshes.Num());
+		for (int32 i = 0; i < Candidates.Num(); ++i)
+		{
+			const int32 V = FMath::Min(FMath::FloorToInt(Candidates.Data[i].X * Meshes.Num()), Meshes.Num() - 1);
+			Tier.VariantCandidates[V].Add(i);
+		}
+		for (int32 v = 0; v < Meshes.Num(); ++v)
+		{
+			const FString Name = FString::Printf(TEXT("%s_%s_%d"), Candidates.Name, *Layer.Id, v);
+			UInstancedStaticMeshComponent* ISM = bHierarchical
+				? NewRealmComponent<UHierarchicalInstancedStaticMeshComponent>(Root, Runtime.Root, Name)
+				: NewRealmComponent<UInstancedStaticMeshComponent>(Root, Runtime.Root, Name);
+			ISM->SetStaticMesh(Meshes[v]);
+			for (int32 Slot = 0; Slot < FMath::Max(1, ISM->GetNumMaterials()); ++Slot)
+			{
+				ISM->SetMaterial(Slot, TierMID);
+			}
+			ISM->SetNumCustomDataFloats(4);
+			ISM->SetCastShadow(bShadow);
+			if (Candidates.bCollide)
+			{
+				ISM->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
+			}
+			else
+			{
+				ISM->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			}
+			if (Cull > 0.f)
+			{
+				ISM->SetCullDistances(FMath::RoundToInt(0.7f * Cull), FMath::RoundToInt(Cull));
+			}
+			Tier.Variants.Add(ISM);
+		}
+		Tier.Candidates = MoveTemp(Candidates);
+	}
+	ApplyDensity(Runtime, Layer.Density);
 
 	USceneComponent* LayerRoot = Runtime.Root;
 	Root->RealmLayers.Add(Layer.Id, MoveTemp(Runtime));
 	return LayerRoot;
 }
 
-void UPrimordiaRealmGenerator::BuildCandidates(const FPrimordiaRealmLayer& Layer, uint32 Seed, FPrimordiaLayerRuntime& Runtime) const
+uint32 UPrimordiaRealmGenerator::LayerSignature(const ARealmRootActor* Root, const FPrimordiaRealmLayer& Layer) const
 {
-	FPrimordiaRandom Rng(Seed);
-	TArray<FTransform>& Out = Runtime.Candidates;
-	Out.Reset();
-	Runtime.FixedCount = 0;
-	const float R = Layer.Radius;
-	const FName Kind = Layer.Kind;
-	auto Uniform = [&Rng]() { return static_cast<float>(Rng.Next()); };
-
-	if (Kind == TEXT("ground"))
-	{
-		// Terraces (always shown): concentric discs stepping upward.
-		const float Roughness = Layer.Param(TEXT("roughness"), 0.5f);
-		const int32 Terraces = FMath::Clamp(FMath::RoundToInt(Layer.Param(TEXT("terrace_count"), 1.f)), 1, 12);
-		const float Step = 150.f * (0.5f + Roughness);
-		for (int32 t = 1; t < Terraces; ++t)
-		{
-			const float Radius = R * (1.f - static_cast<float>(t) / (Terraces + 1));
-			Out.Emplace(FQuat::Identity, FVector(0, 0, t * Step - 25.f), FVector(2.f * Radius / 100.f, 2.f * Radius / 100.f, 0.5f));
-		}
-		Runtime.FixedCount = Out.Num();
-		// Monoliths.
-		const int32 Max = FMath::Min(MaxScatterPerLayer, 400);
-		for (int32 i = 0; i < Max; ++i)
-		{
-			const float Rr = R * 0.95f * FMath::Sqrt(Uniform());
-			const float A = Uniform() * 2.f * PI;
-			const float H = 200.f + Uniform() * 800.f * (0.5f + Roughness);
-			const float W = 30.f + Uniform() * 120.f;
-			Out.Emplace(FQuat::Identity, FVector(FMath::Cos(A) * Rr, FMath::Sin(A) * Rr, H * 0.5f), FVector(W / 100.f, W / 100.f, H / 100.f));
-		}
-	}
-	else if (Kind == TEXT("ocean"))
-	{
-		const int32 Max = FMath::Min(MaxScatterPerLayer, 200);
-		for (int32 i = 0; i < Max; ++i)
-		{
-			const float Rr = R * FMath::Sqrt(Uniform());
-			const float A = Uniform() * 2.f * PI;
-			const float S = (20.f + Uniform() * 60.f) / 100.f;
-			Out.Emplace(FQuat::Identity, FVector(FMath::Cos(A) * Rr, FMath::Sin(A) * Rr, 100.f + Uniform() * 600.f), FVector(S));
-		}
-	}
-	else if (Kind == TEXT("sky"))
-	{
-		const int32 Max = FMath::Min(MaxScatterPerLayer, FMath::RoundToInt(Layer.Param(TEXT("star_count"), 800.f)));
-		for (int32 i = 0; i < Max; ++i)
-		{
-			const float Z = Uniform();
-			const float Phi = Uniform() * 2.f * PI;
-			const float Ring = FMath::Sqrt(1.f - Z * Z);
-			const float S = (30.f + Uniform() * 150.f) / 100.f;
-			Out.Emplace(FQuat::Identity, FVector(Ring * FMath::Cos(Phi), Ring * FMath::Sin(Phi), Z) * R, FVector(S));
-		}
-	}
-	else if (Kind == TEXT("ring"))
-	{
-		const int32 Max = FMath::Min(MaxScatterPerLayer, 600);
-		const float Thickness = Layer.Param(TEXT("thickness"), 300.f);
-		for (int32 i = 0; i < Max; ++i)
-		{
-			const float A = static_cast<float>(i) / Max * 2.f * PI + Uniform() * 0.02f;
-			const float Rad = R + (Uniform() - 0.5f) * Thickness;
-			const float Z = (Uniform() - 0.5f) * Thickness * 0.3f;
-			const FRotator Rot(Uniform() * 360.f, Uniform() * 360.f, Uniform() * 360.f);
-			const float S = (30.f + Uniform() * 150.f) / 100.f;
-			Out.Emplace(Rot.Quaternion(), FVector(FMath::Cos(A) * Rad, FMath::Sin(A) * Rad, Z), FVector(S));
-		}
-	}
-	else if (Kind == TEXT("lattice"))
-	{
-		const float Cell = FMath::Max(50.f, Layer.Param(TEXT("cell_size"), 800.f));
-		const int32 N = FMath::Clamp(FMath::FloorToInt(R / Cell), 1, 20);
-		for (int32 X = -N; X <= N; ++X)
-		for (int32 Y = -N; Y <= N; ++Y)
-		for (int32 Z = -N; Z <= N; ++Z)
-		{
-			const FVector P(X * Cell, Y * Cell, Z * Cell);
-			if (P.Size() <= R)
-			{
-				Out.Emplace(FQuat::Identity, P, FVector(Cell * 0.08f / 100.f));
-			}
-		}
-		// Deterministic shuffle so a density prefix samples the whole lattice evenly.
-		for (int32 i = Out.Num() - 1; i > 0; --i)
-		{
-			Out.Swap(i, FMath::Min(i, static_cast<int32>(Uniform() * (i + 1))));
-		}
-		if (Out.Num() > MaxScatterPerLayer)
-		{
-			Out.SetNum(MaxScatterPerLayer);
-		}
-	}
-	else if (Kind == TEXT("spire_field"))
-	{
-		const int32 Max = FMath::Min(MaxScatterPerLayer, 300);
-		const float MaxHeight = Layer.Param(TEXT("max_height"), 2500.f);
-		for (int32 i = 0; i < Max; ++i)
-		{
-			const float Rr = R * FMath::Sqrt(Uniform());
-			const float A = Uniform() * 2.f * PI;
-			const float U = Uniform();
-			const float H = MaxHeight * (0.2f + 0.8f * U * U);
-			const float W = H * 0.08f + 50.f;
-			// Engine cone pivot is its centre: lift by half the height.
-			Out.Emplace(FQuat::Identity, FVector(FMath::Cos(A) * Rr, FMath::Sin(A) * Rr, H * 0.5f), FVector(W / 100.f, W / 100.f, H / 100.f));
-		}
-	}
+	const uint32 Hash = Layer.StructuralHash();
+	const FPrimordiaGroundSurface* Ground = Root ? FindGround(Root, Layer) : nullptr;
+	return Ground ? HashCombine(Hash, Ground->Hash) : Hash;
 }
 
 void UPrimordiaRealmGenerator::ApplyDensity(FPrimordiaLayerRuntime& Runtime, float Density) const
 {
-	if (!Runtime.Instances)
+	const UPrimordiaBridgeSettings* Settings = UPrimordiaBridgeSettings::Get();
+	const float LayerDensity = FMath::Clamp(Density, 0.f, 1.f);
+	const float DetailScale = Settings->bEnableDetailTiers ? FMath::Clamp(Settings->DetailDensityScale, 0.f, 1.f) : 0.f;
+	int32 HeroShown = 0;
+	for (FPrimordiaTierRuntime& Tier : Runtime.Tiers)
 	{
-		return;
+		const FPrimordiaTierCandidates& C = Tier.Candidates;
+		int32 Shown = C.Num();
+		if (C.IsGated())
+		{
+			// Follows the hero prefix (rubble with its monolith, a strut with both its nodes).
+			Shown = Algo::LowerBound(C.Requires, HeroShown);
+			if (C.Tier == EPrimordiaTier::Detail)
+			{
+				Shown = FMath::Min(Shown, FMath::RoundToInt(DetailScale * C.Num()));
+			}
+		}
+		else if (C.Tier != EPrimordiaTier::Fixed)
+		{
+			const float Fraction = C.Tier == EPrimordiaTier::Detail ? LayerDensity * DetailScale : LayerDensity;
+			Shown = FMath::RoundToInt(Fraction * C.Num());
+		}
+		if (C.Tier == EPrimordiaTier::Hero)
+		{
+			HeroShown = Shown;
+		}
+		ShowPrefix(Tier, Shown);
 	}
-	const int32 Scatter = Runtime.Candidates.Num() - Runtime.FixedCount;
-	const int32 Shown = Runtime.FixedCount + FMath::RoundToInt(FMath::Clamp(Density, 0.f, 1.f) * Scatter);
-	if (Shown == Runtime.ShownCount)
-	{
-		return;
-	}
-	// Candidates are deterministic, so the visible set is always a stable prefix:
-	// density changes add or remove instances at the tail without reshuffling.
-	Runtime.Instances->ClearInstances();
-	Runtime.Instances->AddInstances(TArray<FTransform>(Runtime.Candidates.GetData(), Shown), false);
-	Runtime.ShownCount = Shown;
 }
 
 void UPrimordiaRealmGenerator::DestroyLayer(FPrimordiaLayerRuntime& Runtime) const
 {
-	if (Runtime.Instances) Runtime.Instances->DestroyComponent();
+	for (FPrimordiaTierRuntime& Tier : Runtime.Tiers)
+	{
+		for (UInstancedStaticMeshComponent* ISM : Tier.Variants)
+		{
+			if (ISM) ISM->DestroyComponent();
+		}
+	}
 	if (Runtime.Base) Runtime.Base->DestroyComponent();
 	if (Runtime.Root) Runtime.Root->DestroyComponent();
 	Runtime = FPrimordiaLayerRuntime();
@@ -522,13 +630,25 @@ void UPrimordiaRealmGenerator::ApplyMetaphysics(ARealmRootActor* Root, const FPr
 	// 2. Per-layer: the same scalars on each layer MID (works without an MPC).
 	for (TPair<FString, FPrimordiaLayerRuntime>& Pair : Root->RealmLayers)
 	{
-		if (UMaterialInstanceDynamic* MID = Pair.Value.MID)
+		ForEachMID(Pair.Value, [&M](UMaterialInstanceDynamic* MID)
 		{
 			MID->SetScalarParameterValue(TEXT("Entropy"), M.Entropy);
 			MID->SetScalarParameterValue(TEXT("Luminosity"), M.Luminosity);
 			MID->SetScalarParameterValue(TEXT("Coherence"), M.Coherence);
 			MID->SetScalarParameterValue(TEXT("Inversion"), M.Inversion);
 			MID->SetVectorParameterValue(TEXT("Essence"), M.Essence);
+		});
+	}
+
+	// 2b. Atmosphere: the realm's fog and colour grade show what its state means.
+	Root->ApplyAtmosphere(M);
+
+	// Glyphs: volumetric sigils take their light and motion from the realm's state.
+	for (TPair<FString, TObjectPtr<ASoulGlyphActor>>& Pair : Root->Glyphs)
+	{
+		if (IsValid(Pair.Value))
+		{
+			Pair.Value->SetMetaphysics(M);
 		}
 	}
 

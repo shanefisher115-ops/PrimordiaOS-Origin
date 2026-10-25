@@ -21,6 +21,8 @@ enum class EPrimordiaPacketType : uint8
 	RealmManifest    UMETA(DisplayName = "realm_manifest"),
 	Ack,
 	Pong,
+	/** Streamed speech for a speaker entity ("voice:<speaker>"); see APrimordiaVoiceActor. */
+	Voice            UMETA(DisplayName = "voice"),
 };
 
 UENUM(BlueprintType)
@@ -184,6 +186,8 @@ struct PRIMORDIAOSREALMBRIDGE_API FPrimordiaGlyphSpec
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PrimordiaOS") float Hue = 0.6f;
 	/** Live stream entity this glyph is bound to (e.g. "soul" -> soul_unification/soul). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PrimordiaOS") FString BoundTo;
+	/** What the glyph is for ("GUARD THE DREAM OF LUMENNE"); inscribed into its shape. Empty = use Id. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PrimordiaOS") FString Intent;
 };
 
 USTRUCT(BlueprintType)

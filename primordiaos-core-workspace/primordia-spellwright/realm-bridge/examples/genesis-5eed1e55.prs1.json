@@ -35,7 +35,10 @@
       ],
       "params": {
         "roughness": 0.2185,
-        "terrace_count": 5
+        "terrace_count": 5,
+        "monolith_clusters": 6,
+        "cluster_spread": 9.7142,
+        "rubble": 0.5226
       }
     },
     {
@@ -58,7 +61,9 @@
         ]
       ],
       "params": {
-        "star_count": 1978
+        "star_count": 1978,
+        "band_strength": 0.5719,
+        "band_tilt_deg": 13.764
       }
     },
     {
@@ -81,7 +86,8 @@
         ]
       ],
       "params": {
-        "cell_size": 12.7469
+        "cell_size": 12.7469,
+        "struts": 0.7263
       }
     },
     {
@@ -105,7 +111,10 @@
       ],
       "params": {
         "thickness": 2.7416,
-        "tilt_deg": 25.9662
+        "tilt_deg": 25.9662,
+        "keystones": 5,
+        "gap_count": 2,
+        "arc": 1
       }
     },
     {
@@ -128,7 +137,9 @@
         ]
       ],
       "params": {
-        "max_height": 40.2995
+        "max_height": 40.2995,
+        "spire_clusters": 3,
+        "falloff": 1.9174
       }
     }
   ],
@@ -170,7 +181,8 @@
       "symmetry": 6,
       "complexity": 0.5,
       "hue": 0.62,
-      "bound_to": "soul"
+      "bound_to": "soul",
+      "intent": "LUMENNE HOLLOW"
     },
     {
       "id": "sigil-0",
@@ -183,7 +195,8 @@
       "scale": 3.0666,
       "symmetry": 3,
       "complexity": 0.3999,
-      "hue": 0.6349
+      "hue": 0.6349,
+      "intent": "RETURN THE DAWN OF LUMENNE"
     },
     {
       "id": "sigil-1",
@@ -196,7 +209,8 @@
       "scale": 4.0822,
       "symmetry": 8,
       "complexity": 0.3323,
-      "hue": 0.4538
+      "hue": 0.4538,
+      "intent": "CROSS THE DAWN OF LUMENNE"
     }
   ]
 }

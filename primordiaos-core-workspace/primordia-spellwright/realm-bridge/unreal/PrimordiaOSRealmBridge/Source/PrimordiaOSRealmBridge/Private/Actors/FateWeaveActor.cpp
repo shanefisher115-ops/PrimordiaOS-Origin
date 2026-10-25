@@ -4,12 +4,27 @@
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
 #include "NiagaraDataInterfaceArrayFunctionLibrary.h"
+#include "Components/InstancedStaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
+#include "Materials/MaterialInterface.h"
+
+namespace
+{
+	const TCHAR* ThreadGlowMaterial = TEXT("/PrimordiaOSRealmBridge/Materials/M_PrimordiaThreadGlow.M_PrimordiaThreadGlow");
+}
 
 AFateWeaveActor::AFateWeaveActor()
 {
 	Loom = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Loom"));
 	Loom->SetupAttachment(SceneRoot);
 	Loom->bAutoActivate = true;
+
+	TubeThreads = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("TubeThreads"));
+	TubeThreads->SetupAttachment(SceneRoot);
+	TubeThreads->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	TubeThreads->SetMobility(EComponentMobility::Movable);
+	TubeThreads->NumCustomDataFloats = 3;
+	TubeThreads->CastShadow = false;
 	Smoothing = 0.f;
 }
 
@@ -24,9 +39,28 @@ void AFateWeaveActor::OnConstruction(const FTransform& Transform)
 		}
 		else
 		{
-			UE_LOG(LogPrimordia, Warning, TEXT("FateWeave: no FateRibbonSystem set in Project Settings > PrimordiaOS Realm Bridge; threads will not render."));
+			UE_LOG(LogPrimordia, Log, TEXT("FateWeave: no FateRibbonSystem set; drawing threads as built-in glowing tubes."));
 		}
 	}
+	bUseTubes = Loom->GetAsset() == nullptr;
+	if (bUseTubes && !TubeThreads->GetStaticMesh())
+	{
+		if (UStaticMesh* Tube = LoadObject<UStaticMesh>(nullptr, PrimordiaAssets::Cylinder))
+		{
+			TubeThreads->SetStaticMesh(Tube);
+			const FBox Box = Tube->GetBoundingBox();
+			if (Box.IsValid)
+			{
+				TubeCenter = Box.GetCenter();
+				TubeExtent = Box.GetExtent().ComponentMax(FVector(0.01));
+			}
+		}
+		if (UMaterialInterface* Glow = LoadObject<UMaterialInterface>(nullptr, ThreadGlowMaterial))
+		{
+			TubeThreads->SetMaterial(0, Glow);
+		}
+	}
+	TubeThreads->SetVisibility(bUseTubes);
 	Slots.SetNum(MaxThreads);
 }
 
@@ -177,7 +211,66 @@ void AFateWeaveActor::Tick(float DeltaSeconds)
 			S = FThreadSlot(); // slot free again
 		}
 	}
-	PushToNiagara();
+	if (bUseTubes)
+	{
+		PushToTubes();
+	}
+	else
+	{
+		PushToNiagara();
+	}
+}
+
+void AFateWeaveActor::PushToTubes()
+{
+	const int32 Segments = PointsPerThread - 1;
+	TArray<const FThreadSlot*> Visible;
+	for (const FThreadSlot& S : Slots)
+	{
+		if (S.bUsed && S.Alpha > 0.f && S.Current.Num() == PointsPerThread)
+		{
+			Visible.Add(&S);
+		}
+	}
+	const int32 Count = Visible.Num() * Segments;
+	if (TubeThreads->GetInstanceCount() != Count)
+	{
+		TubeThreads->ClearInstances();
+		TArray<FTransform> Identity;
+		Identity.Init(FTransform::Identity, Count);
+		TubeThreads->AddInstances(Identity, false);
+	}
+	if (Count == 0)
+	{
+		return;
+	}
+
+	const double MeshRadius = FMath::Max(TubeExtent.X, TubeExtent.Y);
+	const double MeshLength = 2.0 * TubeExtent.Z;
+	TArray<FTransform> Transforms;
+	Transforms.SetNum(Count);
+	for (int32 t = 0; t < Visible.Num(); ++t)
+	{
+		const FThreadSlot& S = *Visible[t];
+		const float Fade = S.Alpha * RetireMultiplier;
+		// Frayed threads flicker; colour carries the fade because the material is opaque.
+		const float Flicker = S.Fate == 1 ? 0.6f + 0.4f * FMath::Abs(FMath::Sin(GetWorld()->GetTimeSeconds() * 23.f + t)) : 1.f;
+		const float Data[3] = { S.Color.R * Fade * Flicker, S.Color.G * Fade * Flicker, S.Color.B * Fade * Flicker };
+		const double Thickness = 0.5 * S.WidthUnits * FMath::Max(Fade, 0.05f) / MeshRadius;
+		for (int32 k = 0; k < Segments; ++k)
+		{
+			const FVector A = S.Current[k];
+			const FVector B = S.Current[k + 1];
+			const FVector Axis = B - A;
+			const double Length = Axis.Size();
+			const FQuat Rotation = Length > UE_KINDA_SMALL_NUMBER ? FQuat::FindBetweenNormals(FVector::UpVector, Axis / Length) : FQuat::Identity;
+			const FVector Scale(Thickness, Thickness, Length / MeshLength);
+			const int32 Index = t * Segments + k;
+			Transforms[Index] = FTransform(Rotation, (A + B) * 0.5 - Rotation.RotateVector(Scale * TubeCenter), Scale);
+			TubeThreads->SetCustomData(Index, MakeArrayView(Data), false);
+		}
+	}
+	TubeThreads->BatchUpdateInstancesTransforms(0, Transforms, false, true, false);
 }
 
 void AFateWeaveActor::PushToNiagara()

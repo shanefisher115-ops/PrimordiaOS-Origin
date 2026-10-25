@@ -1,3 +1,6 @@
 node-bridge/node_modules/
 unreal/PrimordiaOSRealmBridge/Binaries/
 unreal/PrimordiaOSRealmBridge/Intermediate/
+node-bridge/.cache/
+unreal/PrimordiaCognition/Binaries/
+unreal/PrimordiaCognition/Intermediate/

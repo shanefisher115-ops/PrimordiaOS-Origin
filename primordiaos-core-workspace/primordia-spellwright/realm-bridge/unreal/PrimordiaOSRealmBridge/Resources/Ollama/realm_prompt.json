@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "system": "You are Worldforge, the realm author of PrimordiaOS. Turn the user's description of a realm into a PRS-1 realm design. Reply with JSON only.\n\nUnits are meters, +Z is up, the realm is centred on the origin and spans about 120 m.\n\nFields:\n- realm_name: an evocative 2-3 word name.\n- metaphysics: each value 0..1 except time_dilation (0.25..4, 1 = normal) and essence (linear RGB, each 0..2). entropy = disorder and turbulence; luminosity = brightness; coherence = order and symmetry; resonance = vibration and pulsing; inversion = shadow and negative space; lucidity = dream clarity; essence = the realm's signature colour.\n- layers: 2-6 strata, generated bottom to top. kind is one of:\n  ground (params: roughness 0..1, terrace_count 1..12), ocean (params: wave_height m, wave_speed 0..5), sky (altitude about 80, radius about 180, params: star_count 0..5000), ring (params: thickness m, tilt_deg -90..90), lattice (params: cell_size m), void (params: aperture 0..1, a hollow sphere), spire_field (params: max_height m).\n  Optional composition params: ground monolith_clusters 0..24, cluster_spread m, rubble 0..1; ocean islet_count 0..32; sky band_strength 0..1, band_tilt_deg -90..90; ring keystones 0..24, gap_count 0..6, arc 0.05..1; lattice struts 0..1; spire_field spire_clusters 1..16, falloff 0.25..4; void debris 0..1.\n  altitude and radius are meters, density 0..1 is how full the layer is, palette is 2 linear RGB colours [primary, secondary] with components 0..2.\n  Start with exactly one ground or ocean layer unless the description says the realm floats in nothing.\n- topology: the cosmic web of the realm. kind is lattice, small_world, scale_free, toroidal or fractal_tree; node_count 16..128; edge_density 0..1.\n- glyphs: 1-6 symbols. Include exactly one glyph of kind soul (the realm's heart glyph, near [0, 0, 14]). Other kinds: sigil, ward, gate. position [x, y, z] in meters within 40 m of the centre, scale = diameter 1..10 m, symmetry 1..12, complexity 0..1, hue 0..1.\n\nMake every value reflect the description: a calm realm has low entropy and high coherence; a nightmare has high inversion and low luminosity; a dreamy realm has high lucidity.",
+  "schema": {
+    "type": "object",
+    "required": ["realm_name", "metaphysics", "layers", "topology", "glyphs"],
+    "properties": {
+      "realm_name": { "type": "string" },
+      "metaphysics": {
+        "type": "object",
+        "required": ["entropy", "luminosity", "coherence", "resonance", "inversion", "lucidity", "time_dilation", "essence"],
+        "properties": {
+          "entropy": { "type": "number" },
+          "luminosity": { "type": "number" },
+          "coherence": { "type": "number" },
+          "resonance": { "type": "number" },
+          "inversion": { "type": "number" },
+          "lucidity": { "type": "number" },
+          "time_dilation": { "type": "number" },
+          "essence": { "type": "array", "items": { "type": "number" } }
+        }
+      },
+      "layers": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["kind", "altitude", "radius", "density", "palette", "params"],
+          "properties": {
+            "kind": { "type": "string", "enum": ["ground", "ocean", "sky", "ring", "lattice", "void", "spire_field"] },
+            "altitude": { "type": "number" },
+            "radius": { "type": "number" },
+            "density": { "type": "number" },
+            "palette": { "type": "array", "items": { "type": "array", "items": { "type": "number" } } },
+            "params": { "type": "object" }
+          }
+        }
+      },
+      "topology": {
+        "type": "object",
+        "required": ["kind", "node_count", "edge_density"],
+        "properties": {
+          "kind": { "type": "string", "enum": ["lattice", "small_world", "scale_free", "toroidal", "fractal_tree"] },
+          "node_count": { "type": "integer" },
+          "edge_density": { "type": "number" }
+        }
+      },
+      "glyphs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["kind", "position", "scale", "symmetry", "complexity", "hue"],
+          "properties": {
+            "kind": { "type": "string", "enum": ["soul", "sigil", "ward", "gate"] },
+            "position": { "type": "array", "items": { "type": "number" } },
+            "scale": { "type": "number" },
+            "symmetry": { "type": "integer" },
+            "complexity": { "type": "number" },
+            "hue": { "type": "number" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "rules": [
+    {
+      "id": "realm_law",
+      "description": "Spells obey the laws of the realm they are cast in (codex: forbidden schools and ops, allowed schools).",
+      "severity": "Error",
+      "constraints": [ { "kind": "RealmLaw" } ]
+    },
+    {
+      "id": "faction_law",
+      "description": "Factions with at least 15% influence in a realm enforce the ops they forbid.",
+      "severity": "Error",
+      "constraints": [ { "kind": "FactionLaw", "min": 0.15 } ]
+    },
+    {
+      "id": "known_realm",
+      "description": "Every spell is cast in a realm the codex knows.",
+      "severity": "Error",
+      "constraints": [ { "kind": "RequireKnownRealm" } ]
+    },
+    {
+      "id": "spell_size",
+      "description": "A spell is small enough to reason about.",
+      "severity": "Error",
+      "constraints": [ { "kind": "MaxSteps", "max": 16 }, { "kind": "MaxCost", "max": 60 } ]
+    },
+    {
+      "id": "heard_spells",
+      "description": "Law of the Heart: a spell without glyphs is not heard.",
+      "severity": "Error",
+      "realmPattern": "realm_heart",
+      "constraints": [ { "kind": "RequireGlyphs", "min": 1 } ]
+    },
+    {
+      "id": "pipeline_allowlist",
+      "description": "Only allow-listed task kinds may leave the engine through Bolt.",
+      "severity": "Error",
+      "constraints": [ { "kind": "AllowlistFile", "values": [ "Jules/bolt.allowlist.json" ] } ]
+    },
+    {
+      "id": "build_reason",
+      "description": "Covenant of the Lattice Wardens: no build without a recorded reason.",
+      "severity": "Error",
+      "constraints": [ { "kind": "RequireArg", "opPattern": "autobuilder.*", "arg": "reason" } ]
+    },
+    {
+      "id": "machine_envelope",
+      "description": "CAM jobs stay inside a 600 x 400 x 120 mm machine envelope with tools from 0.5 to 25 mm.",
+      "severity": "Error",
+      "constraints": [
+        { "kind": "ArgRange", "opPattern": "cadcam.*", "arg": "stock", "min": 1, "max": 600 },
+        { "kind": "ArgRange", "opPattern": "cadcam.*", "arg": "depth", "min": 0.05, "max": 120 },
+        { "kind": "ArgRange", "opPattern": "cadcam.*", "arg": "tool", "min": 0.5, "max": 25 },
+        { "kind": "ArgRange", "opPattern": "cadcam.*", "arg": "rpm", "min": 1000, "max": 24000 }
+      ]
+    },
+    {
+      "id": "fabrication_needs_stability",
+      "description": "Nothing is milled in a realm about to fracture.",
+      "severity": "Error",
+      "constraints": [ { "kind": "MinStability", "opPattern": "cadcam.fabricate", "min": 0.3 } ]
+    },
+    {
+      "id": "no_system_paths",
+      "description": "Pipeline output never lands in system folders.",
+      "severity": "Fatal",
+      "constraints": [
+        { "kind": "ArgDenyPrefix", "opPattern": "*", "arg": "output", "values": [ "C:/Windows", "C:/Program Files", "C:/Program Files (x86)", "/etc", "/usr", "/bin" ] },
+        { "kind": "ArgDenyPrefix", "opPattern": "*", "arg": "path", "values": [ "C:/Windows", "C:/Program Files", "C:/Program Files (x86)", "/etc", "/usr", "/bin" ] },
+        { "kind": "ArgDenyPrefix", "opPattern": "*", "arg": "target", "values": [ "C:/Windows", "C:/Program Files", "C:/Program Files (x86)", "/etc", "/usr", "/bin" ] }
+      ]
+    },
+    {
+      "id": "autonomous_unmaking",
+      "description": "The planner and the model may not destroy actors on their own; only a user-cast spell may.",
+      "severity": "Error",
+      "provenancePattern": "planner|model",
+      "constraints": [ { "kind": "DenyOps", "values": [ "world.destroy" ] } ]
+    },
+    {
+      "id": "render_rate",
+      "description": "At most 6 renders a minute, so the render farm is never flooded.",
+      "severity": "Error",
+      "constraints": [ { "kind": "RateLimit", "opPattern": "blender.render", "max": 6, "window": 60 } ]
+    },
+    {
+      "id": "build_rate",
+      "description": "At most 2 builds every 10 minutes.",
+      "severity": "Error",
+      "constraints": [ { "kind": "RateLimit", "opPattern": "autobuilder.*", "max": 2, "window": 600 } ]
+    },
+    {
+      "id": "large_spawn",
+      "description": "Spawning more than 50 actors at once is worth a warning.",
+      "severity": "Warning",
+      "constraints": [ { "kind": "ArgRange", "opPattern": "world.spawn", "arg": "count", "min": 1, "max": 50 } ]
+    }
+  ]
+}

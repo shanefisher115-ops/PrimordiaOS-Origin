@@ -1,0 +1,10 @@
+{
+  "allowed_tasks": [
+    "cadcam.fabricate",
+    "blender.*",
+    "davinci.*",
+    "autobuilder.build",
+    "autobuilder.deploy",
+    "spell.cast"
+  ]
+}

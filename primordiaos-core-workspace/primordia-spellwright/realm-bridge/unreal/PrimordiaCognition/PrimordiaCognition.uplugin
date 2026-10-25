@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0.0",
+	"FriendlyName": "PrimordiaOS Cognition",
+	"Description": "Engine-native cognition loop for PrimordiaOS: world-state, memory, lore, HTN planning, Spellwright spells, Jules constraints, and the Bolt pipeline to CAD/CAM, Blender and DaVinci Resolve.",
+	"Category": "PrimordiaOS",
+	"CreatedBy": "PrimordiaOS",
+	"EngineVersion": "5.4.0",
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"Installed": false,
+	"Modules": [
+		{ "Name": "PrimordiaLoreEngine", "Type": "Runtime", "LoadingPhase": "Default" },
+		{ "Name": "PrimordiaSpellwright", "Type": "Runtime", "LoadingPhase": "Default" },
+		{ "Name": "PrimordiaJulesSubsystem", "Type": "Runtime", "LoadingPhase": "Default" },
+		{ "Name": "PrimordiaBoltBridge", "Type": "Runtime", "LoadingPhase": "Default" },
+		{ "Name": "PrimordiaCADCAM", "Type": "Runtime", "LoadingPhase": "Default" },
+		{ "Name": "PrimordiaBlenderSubsystem", "Type": "Runtime", "LoadingPhase": "Default" },
+		{ "Name": "PrimordiaDaVinciSubsystem", "Type": "Runtime", "LoadingPhase": "Default" },
+		{ "Name": "PrimordiaCognition", "Type": "Runtime", "LoadingPhase": "Default" },
+		{ "Name": "PrimordiaAutobuilderHook", "Type": "Editor", "LoadingPhase": "PostEngineInit" }
+	]
+}

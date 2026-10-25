@@ -1,0 +1,96 @@
+# Spellwright verb templates.
+#
+# The planner emits intents (a verb, a subject, params); the compiler fills the template named by the
+# verb. ${name} must be supplied by the intent, ${name|default} falls back to the default, and dotted
+# names like ${cut.gcode_path} are output references the executor resolves at run time.
+# Project overrides: put more .spell files in Saved/Primordia/Spellwright/ (same verb = replaced).
+
+spell fabricate : forging {
+    realm ${realm|realm_worldforge}
+    cadcam.fabricate ${subject} shape=${shape|rect} feature=${feature|pocket} width=${width|60} height=${height|40} radius=${radius|20} sides=${sides|6} depth=${depth|6} stock=${stock|100x80x20} tool=${tool|6} submit=${submit|true} as cut
+    lore.record title="Forged ${subject}" account="G-code at ${cut.gcode_path}" realm=${realm|realm_worldforge} after cut
+}
+
+spell simulate : forging {
+    realm ${realm|realm_worldforge}
+    cadcam.simulate ${subject} shape=${shape|rect} feature=${feature|pocket} width=${width|60} height=${height|40} radius=${radius|20} sides=${sides|6} depth=${depth|6} stock=${stock|100x80x20} tool=${tool|6}
+}
+
+spell sculpt : forging {
+    realm ${realm|realm_worldforge}
+    blender.mesh ${tag} name=${subject} as mesh
+    blender.export path=${path|auto} format=${format|glb} import=${import|false} after mesh
+}
+
+spell render : illumination {
+    realm ${realm|realm_dreamforge}
+    blender.render scene=${scene|current} output=${output|auto} engine=${engine|eevee} resolution=${resolution|1280x720} samples=${samples|32}
+}
+
+spell animate : dreaming {
+    realm ${realm|realm_dreamforge}
+    blender.animate ${object} turntable=${turntable|true} frames=${frames|120} fps=${fps|30} scene=${scene|current} as anim
+    blender.render animation=true frame_start=1 frame_end=${frames|120} output=${output|auto} engine=${engine|eevee} resolution=${resolution|1280x720} after anim
+}
+
+spell edit : chronicle {
+    realm ${realm|realm_continuum}
+    davinci.assemble source=${source} project=${project|Primordia} timeline=${timeline|Primordia} fps=${fps|30} as cut
+    davinci.grade project=${project|Primordia} timeline=${timeline|Primordia} saturation=${saturation|1} slope=${slope|1,1,1} offset=${offset|0,0,0} power=${power|1,1,1} after cut as grade
+    davinci.render project=${project|Primordia} timeline=${timeline|Primordia} target=${target|auto} name=${name|primordia} format=${format|mp4} codec=${codec|H264} after grade
+}
+
+spell film : dreaming {
+    realm ${realm|realm_continuum}
+    blender.animate ${object} turntable=true frames=${frames|120} fps=${fps|30} scene=${scene|current} as anim
+    blender.render animation=true frame_start=1 frame_end=${frames|120} output=auto engine=${engine|eevee} resolution=${resolution|1280x720} after anim as shoot
+    davinci.assemble source=${shoot.output_dir} project=${project|Primordia} timeline=${subject} fps=${fps|30} after shoot as cut
+    davinci.grade project=${project|Primordia} timeline=${subject} saturation=${saturation|1.1} after cut as grade
+    davinci.render project=${project|Primordia} timeline=${subject} target=auto name=${subject} format=mp4 codec=H264 after grade
+}
+
+spell manifest : forging {
+    realm ${realm|realm_worldforge}
+    world.spawn class=${class} at=${at|0,0,0} tag=${tag|Primordia.Manifest} count=${count|1} spacing=${spacing|300} as spawn
+    world.log message="Manifested ${subject}" after spawn
+}
+
+spell illuminate : illumination {
+    realm ${realm|realm_heart}
+    world.light ${tag} intensity=${intensity|5000} color=${color|1,0.85,0.6}
+}
+
+# Unmaking is binding work, and the Lattice Wardens forbid it wherever they hold sway, so the
+# default realm is the Shadowforge, where they have no influence.
+spell unmake : binding {
+    realm ${realm|realm_shadowforge}
+    world.destroy ${tag} limit=${limit|64}
+    lore.record title="Unmade ${tag}" realm=${realm|realm_shadowforge}
+}
+
+spell chronicle : chronicle {
+    realm ${realm|realm_omniscience}
+    lore.record title=${subject} account=${account|""} realm=${realm|realm_omniscience} stability=${stability|0}
+}
+
+spell evolve : chronicle {
+    realm ${realm|realm_continuum}
+    lore.evolve eras=${eras|1}
+}
+
+spell inscribe : chronicle {
+    realm ${realm|realm_omniscience}
+    lore.inscribe text=${subject} as words
+    world.log message="${subject} is written ${words.glyphs}" after words
+}
+
+spell rebuild : forging {
+    realm ${realm|realm_worldforge}
+    autobuilder.build reason=${reason} mode=${mode|project} configuration=${configuration|Development}
+}
+
+spell deploy : forging {
+    realm ${realm|realm_worldforge}
+    autobuilder.deploy reason=${reason} as install
+    autobuilder.build reason=${reason} mode=project after install
+}
