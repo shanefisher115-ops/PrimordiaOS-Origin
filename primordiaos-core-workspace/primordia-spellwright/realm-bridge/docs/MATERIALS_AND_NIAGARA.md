@@ -432,7 +432,11 @@ The tiers per kind, with their engine fallback shape, shadow and cull defaults (
 **Shipped starting point.** The plugin ships `M_PrimordiaLayer` and one instance per kind, `MI_PrimordiaLayer_<kind>`, in `/PrimordiaOSRealmBridge/Materials/`. `Scripts/build_layer_material.py` builds them (re-run it to rebuild the graph in place).
 - The graph uses only the MID parameters (§7b) and the custom data, so it reacts to metaphysics on the GPU.
 - It has no WPO: on shadow-casting instances, WPO makes virtual shadow maps re-render every frame.
-- The instances differ only in `EmissiveGain`, `Metallic` and `RoughnessBase`.
+- The instances differ in `EmissiveGain`, `Metallic` and `RoughnessBase`, and in four surface terms (the `KINDS` table in the script):
+  - `MacroVariation`: two octaves of world-space noise (24 m and 4.8 m) on albedo, roughness and the secondary→primary mix. It breaks up the big flat discs.
+  - `SideTint`: faces that don't point up (terrace cliffs) lean to `SecondaryColor` and darken, so each step reads as a ledge.
+  - `HeightShade`: an instance is darker at its foot than its top, from the height in instance space (engine shapes span −50..50 cm). It stands in for the occlusion that the iGPU settings (no Lumen, no distance fields) don't give.
+  - `TipGlow`: the top tenth of an instance glows in `(Color + Essence) / 2 × Luminosity`, so spire crowns light up.
 
 Wire them in `Config/DefaultGame.ini`:
 
@@ -517,6 +521,19 @@ Every layer MID, and every tier MID, gets:
 Settings: *Project Settings → PrimordiaOS Realm Bridge → Realm Atmosphere*: `bRealmFog`, `bRealmColorGrade`, `RealmColorGradeStrength` (0–1).
 
 Cost: one height-fog pass plus values on the tonemapper that runs anyway. Values are only written while metaphysics are easing.
+
+### 8b. The live-realm bench: `RealmBench`
+
+`/Game/Primordia/Maps/RealmBench` in PrimordiaRealms is the map `PlayRealm-iGPU.bat` opens for the live realm. `Scripts/build_realm_bench.py` lights it and builds the mist sea. Re-running it updates the actors by label and leaves the camera alone.
+
+| Piece | Setting | Why |
+|---|---|---|
+| `Sun` | about 34° up and 100° to the left of the bench camera; warm; 5.5 lux; 600 m of shadow cascades | It used to sit behind the camera, which lit every face head-on and flattened the realm. The shadows now reach the far terraces. |
+| `BenchLook` post-process volume | manual exposure, physical camera exposure off, SSAO 0.7 | Auto exposure brightened the pale realm until it washed out. The volume leaves the exposure *bias* to the realm grade, so luminosity still brightens and darkens the realm. |
+| `MistSea` | 400 km plane 60 m under the ground, `M_PrimordiaMistSea`: unlit translucent with *Apply Fogging* off; soft noise banks, a faint underglow beneath the realm; fades by depth to `HorizonColor` | A sky atmosphere draws no planet surface, so everything below the horizon was black. The sea fades itself because the realm fog (cut off at 5× the realm so the sky stays clear) drew a seam on an opaque sea where it stopped. Without the cutoff, the fog buried the whole sea in one flat colour that didn't match the sky. |
+| `SkyLight` | real-time capture, lower hemisphere lit with the mist colour | The sea bounces some light up. |
+
+Light values are relative to the manual exposure, so change them together. Render the bench with the look-dev skill's `scripts/live_shot.ps1`.
 
 ## 9. Neo-Gothic cathedral look-dev scene: `NeoGothicCathedral`
 

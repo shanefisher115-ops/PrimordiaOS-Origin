@@ -24,16 +24,23 @@ ASSET = f"{PACKAGE_DIR}/{NAME}"
 
 MEL = unreal.MaterialEditingLibrary
 
-# Per-kind look (MATERIALS_AND_NIAGARA.md §7c): emissive gain, metallic, base roughness.
+# Per-kind look (MATERIALS_AND_NIAGARA.md §7c): emissive gain, metallic, base roughness,
+# then the surface terms: macro variation (world-space noise on albedo and roughness), side
+# tint (cliff faces lean to the secondary colour and darken), height shade (an instance is
+# darker at its foot than its top, a cheap stand-in for occlusion that Lumen-off iGPU
+# settings don't give) and tip glow (the top of an instance glows in the realm's essence).
 KINDS = {
-    "ground":      (0.15, 0.0, 0.70),
-    "ocean":       (0.30, 0.1, 0.15),
-    "sky":         (8.00, 0.0, 1.00),
-    "ring":        (0.80, 0.7, 0.35),
-    "lattice":     (1.50, 0.8, 0.25),
-    "spire_field": (0.60, 0.6, 0.35),
-    "void":        (0.05, 0.0, 0.90),
+    #               gain  metal rough  macro side  shade  tip
+    "ground":      (0.15, 0.0, 0.70,  0.35, 0.65, 0.45, 0.0),
+    "ocean":       (0.30, 0.1, 0.15,  0.20, 0.00, 0.00, 0.0),
+    "sky":         (8.00, 0.0, 1.00,  0.00, 0.00, 0.00, 0.0),
+    "ring":        (0.80, 0.7, 0.35,  0.10, 0.00, 0.00, 0.0),
+    "lattice":     (1.50, 0.8, 0.25,  0.10, 0.00, 0.00, 0.0),
+    "spire_field": (0.60, 0.6, 0.35,  0.15, 0.00, 0.65, 4.0),
+    "void":        (0.05, 0.0, 0.90,  0.00, 0.00, 0.00, 0.0),
 }
+# World-space size of the macro variation, cm (two octaves: this and a fifth of it).
+MACRO_SCALE_CM = 2400.0
 
 
 def connect(src, src_out, dst, dst_in):
@@ -102,16 +109,55 @@ def build():
     gain = scalar("EmissiveGain", 0.3)
     metallic = scalar("Metallic", 0.1)
     roughness = scalar("RoughnessBase", 0.55)
+    macro_amount = scalar("MacroVariation", 0.0)
+    side_tint = scalar("SideTint", 0.0)
+    height_shade = scalar("HeightShade", 0.0)
+    tip_glow = scalar("TipGlow", 0.0)
     cd = [node(unreal.MaterialExpressionPerInstanceCustomData, -900, data_index=i) for i in range(4)]
     seed, size, _radial, special = cd
 
-    # Base colour: secondary -> primary by size and the stable random; inversion darkens.
-    t = unary(unreal.MaterialExpressionSaturate, add(add(mul(size, k=0.5), k=0.2), mul(seed, k=0.3)))
-    lerp = node(unreal.MaterialExpressionLinearInterpolate)
-    connect(secondary, "", lerp, "A")
-    connect(color, "", lerp, "B")
-    connect(t, "", lerp, "Alpha")
-    base = mul(lerp, unary(unreal.MaterialExpressionOneMinus, mul(inversion, k=0.5)))
+    def lerp3(a, b, alpha):
+        e = node(unreal.MaterialExpressionLinearInterpolate)
+        connect(a, "", e, "A")
+        connect(b, "", e, "B")
+        connect(alpha, "", e, "Alpha")
+        return e
+
+    def noise(scale_cm):
+        # 0..1 simplex noise over world position, two levels; tiling off.
+        return node(unreal.MaterialExpressionNoise, scale=1.0 / scale_cm, levels=2, output_min=0.0, output_max=1.0,
+                    quality=1, turbulence=False)
+
+    # Surface terms. The macro noise breaks up the flat discs; n is centred on 0.
+    world = node(unreal.MaterialExpressionWorldPosition, -900)
+    n_big = noise(MACRO_SCALE_CM)
+    n_small = noise(MACRO_SCALE_CM / 5.0)
+    connect(world, "", n_big, "")
+    connect(world, "", n_small, "")
+    n = add(add(mul(n_big, k=0.7), mul(n_small, k=0.3)), k=-0.5)
+    # Height along the instance (0 at its foot, 1 at its top): the engine shapes span -50..50 cm
+    # in their own space, and instance space undoes each instance's scale and lean.
+    local = node(unreal.MaterialExpressionTransformPosition, transform_source_type=unreal.MaterialPositionTransformSource.TRANSFORMPOSSOURCE_WORLD,
+                 transform_type=unreal.MaterialPositionTransformSource.TRANSFORMPOSSOURCE_INSTANCE)
+    connect(world, "", local, "")
+    local_z = node(unreal.MaterialExpressionComponentMask, r=False, g=False, b=True, a=False)
+    connect(local, "", local_z, "")
+    h01 = unary(unreal.MaterialExpressionSaturate, add(mul(local_z, k=0.01), k=0.5))
+    # Faces that point up (terrace tops) vs. cliff faces.
+    normal = node(unreal.MaterialExpressionVertexNormalWS, -900)
+    normal_z = node(unreal.MaterialExpressionComponentMask, r=False, g=False, b=True, a=False)
+    connect(normal, "", normal_z, "")
+    top = unary(unreal.MaterialExpressionSaturate, mul(add(normal_z, k=-0.55), k=4.0))
+
+    # Base colour: secondary -> primary by size, the stable random and the macro noise; cliff
+    # faces lean back to the secondary colour; the foot of an instance is darker; inversion darkens.
+    t = unary(unreal.MaterialExpressionSaturate, add(add(add(mul(size, k=0.5), k=0.2), mul(seed, k=0.3)), mul(n, macro_amount)))
+    albedo = lerp3(secondary, color, t)
+    side = mul(lerp3(albedo, secondary, side_tint), unary(unreal.MaterialExpressionOneMinus, mul(side_tint, k=0.35)))
+    albedo = lerp3(side, albedo, add(mul(top, side_tint), unary(unreal.MaterialExpressionOneMinus, side_tint)))
+    albedo = mul(albedo, add(mul(n, mul(macro_amount, k=0.8)), k=1.0))
+    foot = unary(unreal.MaterialExpressionOneMinus, mul(height_shade, unary(unreal.MaterialExpressionOneMinus, unary(unreal.MaterialExpressionSquareRoot, h01))))
+    base = mul(mul(albedo, foot), unary(unreal.MaterialExpressionOneMinus, mul(inversion, k=0.5)))
     MEL.connect_material_property(base, "", unreal.MaterialProperty.MP_BASE_COLOR)
 
     # Emissive: crowns, circle stones, band stars and big pieces glow with coherence and light;
@@ -121,9 +167,14 @@ def build():
     phase = add(mul(time, add(mul(seed, k=6.0), k=2.0)), mul(seed, k=40.0))
     flicker = add(mul(mul(unary(unreal.MaterialExpressionSine, phase), entropy), k=0.5), k=1.0)
     emissive = mul(mul(color, essence), mul(glow, flicker))
+    # Tip glow: the top tenth of an instance burns in the essence (spire crowns light up).
+    h2 = mul(h01, h01)
+    tip = mul(mul(mul(mul(h2, h2), h2), tip_glow), luminosity)
+    emissive = add(emissive, mul(mul(add(color, essence), k=0.5), mul(tip, flicker)))
     MEL.connect_material_property(emissive, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
 
-    MEL.connect_material_property(unary(unreal.MaterialExpressionSaturate, add(roughness, mul(seed, k=0.3))), "", unreal.MaterialProperty.MP_ROUGHNESS)
+    rough = add(add(roughness, mul(seed, k=0.3)), mul(n, mul(macro_amount, k=0.6)))
+    MEL.connect_material_property(unary(unreal.MaterialExpressionSaturate, rough), "", unreal.MaterialProperty.MP_ROUGHNESS)
     MEL.connect_material_property(metallic, "", unreal.MaterialProperty.MP_METALLIC)
 
     MEL.recompile_material(m)
@@ -136,7 +187,7 @@ def build():
 def build_instances(parent):
     tools = unreal.AssetToolsHelpers.get_asset_tools()
     entries = []
-    for kind, (gain, metal, rough) in KINDS.items():
+    for kind, (gain, metal, rough, macro, side, shade, tip) in KINDS.items():
         name = f"MI_PrimordiaLayer_{kind}"
         path = f"{PACKAGE_DIR}/{name}"
         mi = unreal.load_asset(path)
@@ -146,6 +197,10 @@ def build_instances(parent):
         MEL.set_material_instance_scalar_parameter_value(mi, "EmissiveGain", gain)
         MEL.set_material_instance_scalar_parameter_value(mi, "Metallic", metal)
         MEL.set_material_instance_scalar_parameter_value(mi, "RoughnessBase", rough)
+        MEL.set_material_instance_scalar_parameter_value(mi, "MacroVariation", macro)
+        MEL.set_material_instance_scalar_parameter_value(mi, "SideTint", side)
+        MEL.set_material_instance_scalar_parameter_value(mi, "HeightShade", shade)
+        MEL.set_material_instance_scalar_parameter_value(mi, "TipGlow", tip)
         MEL.update_material_instance(mi)
         if not unreal.EditorAssetLibrary.save_asset(path, only_if_is_dirty=False):
             raise RuntimeError(f"could not save {path}")
