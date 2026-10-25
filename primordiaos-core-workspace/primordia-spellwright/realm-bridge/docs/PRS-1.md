@@ -91,6 +91,7 @@ Commands: `evolve_realm` · `reseed {seed}` · `perturb {key, value}` (any metap
 | `realm_manifest` | Worldforge | on revision change | `<realm_id>` |
 | `voice` | Voice (Kokoro TTS) | while speaking, ~0.5 s chunks | `voice:<speaker>` (default `voice:soul`; the Sovereign speaks as `voice:sovereign` with `spatial: false`) |
 | `sovereign_cycle` | Primordia Sovereign | once per cycle, **opt-in** like `gpu_telemetry` | `sovereign` |
+| `species` | Primordia Sovereign | 1 Hz while it is awake; `retire` when a species dies out | `species:<slug>` (e.g. `species:echo-swarm`) |
 | `gpu_telemetry` | Onyx (relayed by the bridge) | 4 Hz per source, **opt-in**: only to clients whose stream filter names it | `onyx:<source>` (`onyx:unreal`, `onyx:vulkan-sidecar`) |
 
 The server's master loop runs at 30–60 Hz. Every module **steps** every tick, and each stream **samples** at `min(stream rate, master rate)`. Continuum and Omniscience emit no packets: their output reaches the renderer through `t` and the manifest's `metaphysics`.
@@ -122,6 +123,8 @@ Consumers SHOULD dead-reckon `phase` locally from `bpm` and pull toward each rec
 **`realm_manifest`**: a complete PRS-1 manifest (§3). When the bridge's GPU tuner has lowered the realm quality below 1, every layer `density` is the authored density times that quality and the manifest carries `gpu_quality` (informational; consumers that ignore it still render correctly). Evolution always continues from the authored manifest.
 
 **`sovereign_cycle`**: `cycle, realm, title, narration, metaphysics[{key, value}], evolve, changes[], evolution[{name, archetype, population, change, trait, status}], species[], ecology {total_population, species_count, diversity, stability, predator_share}, realm_events[{name, kind, description}], lore[{title, text}], fab_assets[], model, llm_seconds, tokens`. See [SOVEREIGN.md](SOVEREIGN.md).
+
+**`species`**: `name, archetype, manifestation (rooted|individual|swarm|floating|abyssal), population, bodies (0-400), position (home, realm-local m), range (m), color, glow, size (m), speed (m/s), seed, traits[], look, born_cycle, cycle`. Unreal draws it with `ASpeciesActor`. See [SOVEREIGN.md](SOVEREIGN.md#species-in-the-realm).
 
 **`gpu_telemetry`**: `source`, `tick`, `gpu {frame_ms, budget_ms, realm_tick_ms?, render_ms?, headroom?, memory_pressure?, queues?, scopes?}`, plus optional `device`, `realm_id`, `fps`, `cpu_ms`, `quality`, `pipelines {<id>: {ms, budget_ms, saturation, invocations, dispatches}}`, `actors {count, gpu_us_total, gpu_us_mean, hottest[], actions{}}`, `sigils [{index, gpu_us, voxels}]`, `structures`, `tuner {quality, load, pinned}` (added by the bridge) and `mcp` (the sidecar's latest MCP results summary). Latest-wins; MAY be dropped under backpressure.
 

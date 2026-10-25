@@ -141,3 +141,55 @@ test('a new bridge continues the chronicle from disk', async () => {
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('species incarnate deterministically, by archetype, with bodies that follow the population', async () => {
+  const { incarnate, bodiesFor, createIncarnations, slug } = await import('../src/sovereign/incarnation.js');
+  const manifest = { layers: [{ kind: 'ground', radius: 120, altitude: 0 }] };
+  const wisp = { name: 'Echo-Swarm', archetype: 'Collective', population: 23, traits: ['wave motion'], look: 'blue motes' };
+  const a = incarnate(wisp, manifest, 3);
+  assert.deepEqual(a, incarnate(wisp, manifest, 3)); // same species, same realm -> same incarnation
+  assert.equal(a.manifestation, 'swarm');
+  assert.ok(Math.hypot(a.position[0], a.position[1]) <= 120 * 0.72 + 1e-9, 'home lies on the ground');
+  assert.equal(incarnate({ name: 'Lumen-Seed', archetype: 'Photosynthetic', population: 13 }, manifest).manifestation, 'rooted');
+  assert.equal(incarnate({ name: 'Gravemind', archetype: 'Predatory', population: 9 }, manifest).manifestation, 'individual');
+  const deep = incarnate({ name: 'Leviathan', archetype: 'Abyssal', population: 3 }, manifest);
+  assert.equal(deep.manifestation, 'abyssal');
+  assert.ok(deep.position[2] < -40, 'abyssal species live in the cloud sea under the realm');
+  assert.equal(incarnate({ name: 'X', archetype: 'Wizard', population: 1 }, manifest).manifestation, 'floating'); // unknown -> Elemental
+  // Bodies: logarithmic, capped, never more than the population.
+  assert.equal(bodiesFor(0, 60), 0);
+  assert.equal(bodiesFor(3, 60), 3);
+  assert.ok(bodiesFor(1800, 400) > bodiesFor(23, 400));
+  assert.equal(bodiesFor(10_000_000, 24), 24);
+  assert.equal(slug('Spireborn Choir!'), 'spireborn-choir');
+
+  const inc = createIncarnations();
+  const chron = { cycle: 1, species: [wisp, { name: 'Gravemind', archetype: 'Predatory', population: 9 }] };
+  assert.deepEqual(inc.packets(chron, manifest).map((p) => [p.id, p.op ?? 'upsert']), [['species:echo-swarm', 'upsert'], ['species:gravemind', 'upsert']]);
+  chron.species = [wisp];
+  assert.deepEqual(inc.packets(chron, manifest).map((p) => [p.id, p.op ?? 'upsert']), [['species:echo-swarm', 'upsert'], ['species:gravemind', 'retire']]);
+  assert.deepEqual(inc.retireAll().map((p) => [p.id, p.op]), [['species:echo-swarm', 'retire']]);
+});
+
+test('after a cycle the bridge streams each species as a valid entity', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sovereign-'));
+  const fake = await fakeOllama(CYCLE);
+  const bridge = await createBridge({ port: 0, log: quiet, evolveSeconds: 0, validate: true, ollamaUrl: fake.url, sovereignDir: dir, ttsFactory: fakeTtsFactory });
+  try {
+    const seen = new Map();
+    await session(bridge.port, [{ type: 'command', name: 'sovereign', args: { op: 'cycle' } }], (p) => {
+      if (p.type === 'species') seen.set(p.id, p);
+      return seen.size === 2;
+    });
+    assert.deepEqual([...seen.keys()].sort(), ['species:lumenwisp', 'species:spireborn-choir']);
+    for (const p of seen.values()) assert.deepEqual(validatePacket(p), [], p.id);
+    const wisp = seen.get('species:lumenwisp').payload;
+    assert.equal(wisp.manifestation, 'swarm');
+    assert.equal(wisp.population, 1800);
+    assert.ok(wisp.bodies > 100 && wisp.bodies <= 400);
+  } finally {
+    await bridge.close();
+    fake.server.close();
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

@@ -18,6 +18,7 @@ namespace PrimordiaPacketType
 		{ TEXT("ack"), EPrimordiaPacketType::Ack },
 		{ TEXT("pong"), EPrimordiaPacketType::Pong },
 		{ TEXT("voice"), EPrimordiaPacketType::Voice },
+		{ TEXT("species"), EPrimordiaPacketType::Species },
 	};
 
 	EPrimordiaPacketType FromString(const FString& Name)
@@ -55,6 +56,7 @@ namespace PrimordiaPacketType
 		case EPrimordiaPacketType::DreamNebula:
 		case EPrimordiaPacketType::ShadowInversion:
 		case EPrimordiaPacketType::Voice:
+		case EPrimordiaPacketType::Species:
 			return true;
 		default:
 			return false;

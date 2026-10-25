@@ -24,6 +24,7 @@ import { createOnyxHub } from './gpu/onyx.js';
 import { createTuner } from './gpu/tuner.js';
 import { startGpuSidecar } from './gpu/sidecar.js';
 import { applyCycle, createChronicleStore, cyclePrompt, dreamCycle, ecologyOf } from './sovereign/sovereign.js';
+import { createIncarnations } from './sovereign/incarnation.js';
 
 export const VERSION = '1.0.0';
 const MAX_BUFFERED_BYTES = 1 << 20; // above this a client is lagging: drop continuous frames
@@ -410,6 +411,11 @@ export async function createBridge(options = {}) {
     let timer = null;
     let running = false;
     let last = null; // summary of the last cycle
+    const incarnations = createIncarnations(); // species -> `species:<slug>` entities in the realm
+    let speciesClock = 0;
+    const sendSpecies = () => {
+      for (const p of incarnations.packets(chronicle, ctx.manifest)) broadcast(p);
+    };
 
     const schedule = (seconds) => {
       clearTimeout(timer);
@@ -485,6 +491,7 @@ export async function createBridge(options = {}) {
             tokens: stats.genTokens,
           };
           broadcast({ type: 'sovereign_cycle', id: 'sovereign', payload: result });
+          sendSpecies(); // the new and changed species appear at once, not at the next 1 Hz sample
           return { title: c.title, llm_seconds: result.llm_seconds };
         });
         const audio = { pcm: Buffer.concat(pcm), sampleRate };
@@ -514,7 +521,15 @@ export async function createBridge(options = {}) {
         once = false;
         clearTimeout(timer);
         timer = null;
+        for (const p of incarnations.retireAll()) broadcast(p); // its creatures fade with it
         log('[sovereign] resting');
+      },
+      /** Streams the living species at 1 Hz while awake (renderers retire entities not refreshed in 5 s). */
+      pump(dt) {
+        speciesClock += dt;
+        if (speciesClock < 1) return;
+        speciesClock = 0;
+        if ((enabled || running) && clients.size) sendSpecies();
       },
       cycleNow() {
         if (running) return;
@@ -668,6 +683,7 @@ export async function createBridge(options = {}) {
       }
     }
     pumpGpu();
+    sov.pump(dt);
     nextAt += period;
     if (nextAt < now) nextAt = now + period; // fell behind (debugger, sleep): don't spiral
     timer = setTimeout(tick, Math.max(0, nextAt - performance.now()));

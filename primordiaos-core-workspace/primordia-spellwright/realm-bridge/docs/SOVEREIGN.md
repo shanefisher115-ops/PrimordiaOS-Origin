@@ -63,6 +63,25 @@ Everything the model writes is validated (`normalizeCycle`). Unknown qualities, 
 
 **Why so compact?** The local models run at about 3–7 tokens/s here. A full species, evolution, ecology, biomes, lore and Fab-assets document per cycle would take minutes and delay the voice. The chronicle carries populations and history between cycles instead.
 
+## Species in the realm
+
+While the Sovereign is awake, every living species of its chronicle **appears in Unreal** as one streamed entity, `species:<slug>` (`src/sovereign/incarnation.js` → `ASpeciesActor`). The bridge decides what each species is; Unreal only animates it. The same species in the same realm always looks and lives the same way: its home, hue and seed come from its name.
+
+| Archetype | Manifestation | In the realm | Bodies drawn (cap) |
+|---|---|---|---|
+| Photosynthetic, Fungal | rooted | clusters of glowing bulbs on stalks that breathe, on the real ground | 60 |
+| Predatory | individual | long, low bodies with a glowing eye that roam the terraces fast (3.5 m/s) | 24 |
+| Synthetic | individual | the same, slower (1.4 m/s), steel-blue | 32 |
+| Collective | swarm | a flock of glowing motes orbiting a centre that wanders across the terraces, with waves through it | 400 |
+| Elemental, Spectral | floating | turning shards, point down, hovering 6–14 m up with a light at their heart | 24 / 30 |
+| Abyssal | abyssal | great flat ray-like shapes circling in the cloud sea 48 m under the realm | 10 |
+
+- **Bodies follow the population, logarithmically.** A population of 13 draws a few, 1800 draws most of the cap and 5000 or more draws the full cap. A species never draws more bodies than its population.
+- **A shrinking species loses its last-born bodies first.** A species that dies out (population 0, or dropped from the chronicle) gets one `retire` packet and fades over 3 s. When the Sovereign rests (`sovereign stop`), all its species fade with it.
+- The stream runs at 1 Hz, and right after each cycle. Unreal retires an entity that isn't refreshed for 5 s, so a stopped bridge clears its creatures.
+
+`species` payload: `name, archetype, manifestation (rooted|individual|swarm|floating|abyssal), population, bodies, position (home centre, realm-local m), range (m), color (linear RGB), glow, size (m), speed (m/s), seed, traits, look, born_cycle, cycle`.
+
 ## The chronicle
 
 `node-bridge/.cache/sovereign/` (gitignored):

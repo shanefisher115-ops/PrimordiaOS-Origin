@@ -23,6 +23,8 @@ enum class EPrimordiaPacketType : uint8
 	Pong,
 	/** Streamed speech for a speaker entity ("voice:<speaker>"); see APrimordiaVoiceActor. */
 	Voice            UMETA(DisplayName = "voice"),
+	/** A living species of the Primordia Sovereign ("species:<slug>"); see ASpeciesActor. */
+	Species          UMETA(DisplayName = "species"),
 };
 
 UENUM(BlueprintType)

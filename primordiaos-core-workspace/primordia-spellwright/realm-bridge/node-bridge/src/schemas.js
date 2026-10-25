@@ -21,6 +21,7 @@ export const PACKET_TYPES = [
   'voice',
   'gpu_telemetry',
   'sovereign_cycle',
+  'species',
 ];
 
 export const envelopeSchema = {
@@ -80,6 +81,31 @@ const gpuTelemetry = {
 
 export const payloadSchemas = {
   gpu_telemetry: gpuTelemetry,
+
+  // A living species of the Sovereign's chronicle, incarnated in the realm (id "species:<slug>";
+  // src/sovereign/incarnation.js). 1 Hz while the Sovereign is awake; retired when it dies out.
+  species: {
+    type: 'object',
+    required: ['name', 'archetype', 'manifestation', 'population', 'bodies', 'position', 'range', 'color', 'glow', 'size', 'speed', 'seed'],
+    properties: {
+      name: { type: 'string' },
+      archetype: { type: 'string' },
+      manifestation: { type: 'string', enum: ['rooted', 'individual', 'swarm', 'floating', 'abyssal'] },
+      population: { type: 'integer', minimum: 0 },
+      bodies: { type: 'integer', minimum: 0, maximum: 400 },
+      position: vec3, // home centre, realm-local metres
+      range: num(0), // how far it roams from home, metres
+      color: rgb,
+      glow: num(0, 16),
+      size: num(0), // body height, metres
+      speed: num(0), // m/s
+      seed: { type: 'integer', minimum: 0 },
+      traits: { type: 'array', items: { type: 'string' } },
+      look: { type: 'string' },
+      born_cycle: { type: 'integer', minimum: 0 },
+      cycle: { type: 'integer', minimum: 0 },
+    },
+  },
 
   // One cycle of the Primordia Sovereign, the realm's world-mind (docs/SOVEREIGN.md). Opt-in.
   sovereign_cycle: {
