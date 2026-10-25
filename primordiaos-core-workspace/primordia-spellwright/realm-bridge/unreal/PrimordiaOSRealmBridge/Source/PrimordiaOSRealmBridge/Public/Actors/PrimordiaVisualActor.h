@@ -38,6 +38,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "PrimordiaOS")
 	bool IsRetiring() const { return bRetiring; }
 
+	/** True while the actor is still doing something no packet will refresh (e.g. playing queued audio); exempts it from the entity timeout. */
+	virtual bool IsBusy() const { return false; }
+
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "PrimordiaOS")
 	FString EntityId;
 

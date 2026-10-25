@@ -2,9 +2,14 @@
 #include "Actors/CosmicWebActor.h"
 #include "Actors/SoulGlyphActor.h"
 #include "PrimordiaBridgeSettings.h"
+#include "PrimordiaRealmAtmosphere.h"
 #include "PrimordiaRealmGenerator.h"
+#include "Components/ExponentialHeightFogComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
+#include "Components/PostProcessComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Engine/ExponentialHeightFog.h"
+#include "EngineUtils.h"
 
 ARealmRootActor::ARealmRootActor()
 {
@@ -12,6 +17,44 @@ ARealmRootActor::ARealmRootActor()
 	RealmRoot = CreateDefaultSubobject<USceneComponent>(TEXT("RealmRoot"));
 	RealmRoot->SetMobility(EComponentMobility::Movable);
 	RootComponent = RealmRoot;
+
+	// Off until the first ApplyAtmosphere decides (the level may bring its own fog).
+	AtmosphereFog = CreateDefaultSubobject<UExponentialHeightFogComponent>(TEXT("AtmosphereFog"));
+	AtmosphereFog->SetupAttachment(RealmRoot);
+	AtmosphereFog->SetAutoActivate(false);
+	AtmosphereFog->SetVisibility(false);
+
+	AtmosphereGrade = CreateDefaultSubobject<UPostProcessComponent>(TEXT("AtmosphereGrade"));
+	AtmosphereGrade->SetupAttachment(RealmRoot);
+	AtmosphereGrade->bUnbound = true;
+	AtmosphereGrade->Priority = -10.f;
+	AtmosphereGrade->BlendWeight = 0.f;
+}
+
+void ARealmRootActor::ApplyAtmosphere(const FPrimordiaMetaphysics& M)
+{
+	const UPrimordiaBridgeSettings* Settings = UPrimordiaBridgeSettings::Get();
+	if (!bFogChecked && GetWorld())
+	{
+		// One height fog per scene: a level that already has one keeps it.
+		bool bLevelFog = false;
+		for (TActorIterator<AExponentialHeightFog> It(GetWorld()); It; ++It)
+		{
+			bLevelFog = true;
+			break;
+		}
+		const bool bUseFog = Settings->bRealmFog && !bLevelFog;
+		AtmosphereFog->SetVisibility(bUseFog);
+		AtmosphereFog->SetActive(bUseFog);
+		bFogChecked = true;
+		if (bLevelFog && Settings->bRealmFog)
+		{
+			UE_LOG(LogPrimordia, Log, TEXT("%s: the level has its own height fog; realm fog stays off."), *GetName());
+		}
+	}
+	const FPrimordiaAtmosphereLook Look = PrimordiaAtmosphere::Evaluate(M);
+	PrimordiaAtmosphere::Apply(Look, AtmosphereFog->IsVisible() ? AtmosphereFog.Get() : nullptr, AtmosphereGrade,
+		Settings->bRealmColorGrade ? Settings->RealmColorGradeStrength : 0.f, 5.f * FMath::Max(1000.f, Manifest.BoundsRadius));
 }
 
 UPrimordiaRealmGenerator* ARealmRootActor::GetOrCreateGenerator()

@@ -3,14 +3,34 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "PrimordiaTypes.h"
+#include "PrimordiaRealmComposition.h"
 #include "RealmRootActor.generated.h"
 
 class UInstancedStaticMeshComponent;
 class UStaticMeshComponent;
+class UExponentialHeightFogComponent;
+class UPostProcessComponent;
 class UMaterialInstanceDynamic;
 class UPrimordiaRealmGenerator;
 class ASoulGlyphActor;
 class ACosmicWebActor;
+
+/** Runtime state of one scatter tier of a layer: one (H)ISM per mesh variant. */
+USTRUCT()
+struct PRIMORDIAOSREALMBRIDGE_API FPrimordiaTierRuntime
+{
+	GENERATED_BODY()
+
+	UPROPERTY() TArray<TObjectPtr<UInstancedStaticMeshComponent>> Variants;
+	/** Only when the tier has its own material; otherwise it shares the layer MID. */
+	UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> MID;
+
+	/** Deterministic candidates; density shows a prefix of them (PRS-1 §4.3). */
+	FPrimordiaTierCandidates Candidates;
+	/** Candidate indices dealt to each variant, ascending. */
+	TArray<TArray<int32>> VariantCandidates;
+	int32 ShownCount = -1;
+};
 
 /** Runtime state of one generated PRS-1 layer. */
 USTRUCT()
@@ -20,15 +40,14 @@ struct PRIMORDIAOSREALMBRIDGE_API FPrimordiaLayerRuntime
 
 	UPROPERTY() TObjectPtr<USceneComponent> Root;
 	UPROPERTY() TObjectPtr<UStaticMeshComponent> Base;
-	UPROPERTY() TObjectPtr<UInstancedStaticMeshComponent> Instances;
 	UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> MID;
+	/** Fixed, hero and detail tiers that have candidates, in that order. */
+	UPROPERTY() TArray<FPrimordiaTierRuntime> Tiers;
 
 	FName Kind;
 	uint32 Signature = 0;
-	/** Deterministic candidate transforms; the first FixedCount always show, then density picks a prefix of the rest. */
-	TArray<FTransform> Candidates;
-	int32 FixedCount = 0;
-	int32 ShownCount = -1;
+	/** Ground layers only: the terrace height field other layers stand on. */
+	FPrimordiaGroundSurface Surface;
 };
 
 /**
@@ -70,6 +89,12 @@ public:
 	/** Starts easing toward Target; Seconds <= 0 applies immediately. */
 	void SetTargetMetaphysics(const FPrimordiaMetaphysics& Target, float Seconds);
 
+	/**
+	 * Shows what the metaphysics mean through the realm's own fog and colour grade
+	 * (PrimordiaRealmAtmosphere.h). The fog stands down when the level already has one.
+	 */
+	void ApplyAtmosphere(const FPrimordiaMetaphysics& Metaphysics);
+
 	/** Raised after each (re)generation. */
 	UFUNCTION(BlueprintImplementableEvent, Category = "PrimordiaOS|Realm")
 	void OnRealmGenerated(const FPrimordiaRealmManifest& GeneratedManifest);
@@ -87,6 +112,14 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PrimordiaOS|Realm")
 	TObjectPtr<USceneComponent> RealmRoot;
+
+	/** Realm haze driven by metaphysics (inactive when the level has its own height fog). */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PrimordiaOS|Realm")
+	TObjectPtr<UExponentialHeightFogComponent> AtmosphereFog;
+
+	/** Unbound colour grade driven by metaphysics; priority -10, so the level's own volumes win where they set a value. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PrimordiaOS|Realm")
+	TObjectPtr<UPostProcessComponent> AtmosphereGrade;
 
 	// Populated by UPrimordiaRealmGenerator. (Not "Layers": that would shadow AActor::Layers.)
 	UPROPERTY(Transient) TMap<FString, FPrimordiaLayerRuntime> RealmLayers;
@@ -108,4 +141,6 @@ private:
 	float TransitionDuration = 0.f;
 	bool bTransitioning = false;
 	bool bTearingDown = false;
+	/** Set once the fog has checked the level for a height fog of its own. */
+	bool bFogChecked = false;
 };

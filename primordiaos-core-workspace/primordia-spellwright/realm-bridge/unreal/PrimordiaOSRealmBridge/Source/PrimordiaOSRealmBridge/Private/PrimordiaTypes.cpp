@@ -17,6 +17,7 @@ namespace PrimordiaPacketType
 		{ TEXT("realm_manifest"), EPrimordiaPacketType::RealmManifest },
 		{ TEXT("ack"), EPrimordiaPacketType::Ack },
 		{ TEXT("pong"), EPrimordiaPacketType::Pong },
+		{ TEXT("voice"), EPrimordiaPacketType::Voice },
 	};
 
 	EPrimordiaPacketType FromString(const FString& Name)
@@ -53,6 +54,7 @@ namespace PrimordiaPacketType
 		case EPrimordiaPacketType::SoulUnification:
 		case EPrimordiaPacketType::DreamNebula:
 		case EPrimordiaPacketType::ShadowInversion:
+		case EPrimordiaPacketType::Voice:
 			return true;
 		default:
 			return false;
@@ -61,7 +63,8 @@ namespace PrimordiaPacketType
 
 	bool IsCoalescible(EPrimordiaPacketType Type)
 	{
-		return IsVisual(Type);
+		// Every voice chunk is audio that must play: never keep only the latest.
+		return IsVisual(Type) && Type != EPrimordiaPacketType::Voice;
 	}
 }
 
@@ -164,7 +167,7 @@ FPrimordiaMetaphysics FPrimordiaMetaphysics::Lerp(const FPrimordiaMetaphysics& A
 namespace
 {
 	// Layer params that are lengths in meters and must be scaled to cm.
-	const TCHAR* GLengthParams[] = { TEXT("thickness"), TEXT("cell_size"), TEXT("max_height"), TEXT("wave_height") };
+	const TCHAR* GLengthParams[] = { TEXT("thickness"), TEXT("cell_size"), TEXT("max_height"), TEXT("wave_height"), TEXT("cluster_spread") };
 
 	bool IsLengthParam(const FString& Key)
 	{

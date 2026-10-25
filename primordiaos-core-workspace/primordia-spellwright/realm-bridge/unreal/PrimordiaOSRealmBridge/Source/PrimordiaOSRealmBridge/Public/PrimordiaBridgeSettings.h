@@ -11,6 +11,64 @@ class UNiagaraSystem;
 class UMaterialParameterCollection;
 class ARealmRootActor;
 
+UENUM()
+enum class EPrimordiaTierShadow : uint8
+{
+	/** Per-tier default (docs/MATERIALS_AND_NIAGARA.md §7). */
+	Default,
+	On,
+	Off,
+};
+
+/** Art for one scatter tier of a layer kind (PRS-1 §4.3, MATERIALS_AND_NIAGARA.md §7). */
+USTRUCT()
+struct PRIMORDIAOSREALMBRIDGE_API FPrimordiaTierArt
+{
+	GENERATED_BODY()
+
+	/**
+	 * Mesh variants (up to 3). Instances are dealt to variants by their stable random, so a
+	 * realm looks the same everywhere. Each variant is its own component: one more draw call.
+	 * Empty = the engine basic shape for the tier.
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Tier")
+	TArray<TSoftObjectPtr<UStaticMesh>> Meshes;
+
+	/** Empty = the layer material (LayerMaterials, then BasicShapeMaterial). */
+	UPROPERTY(Config, EditAnywhere, Category = "Tier")
+	TSoftObjectPtr<UMaterialInterface> Material;
+
+	/** Instances beyond this distance are culled (fade starts at 70 %). 0 = tier default; negative = never cull. */
+	UPROPERTY(Config, EditAnywhere, Category = "Tier", meta = (Units = "cm"))
+	float CullDistance = 0.f;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Tier")
+	EPrimordiaTierShadow Shadow = EPrimordiaTierShadow::Default;
+};
+
+/** Art for one layer kind: its base mesh and its three scatter tiers. */
+USTRUCT()
+struct PRIMORDIAOSREALMBRIDGE_API FPrimordiaLayerArt
+{
+	GENERATED_BODY()
+
+	/** Ground/ocean disc or void shell. Empty = engine cylinder / sphere. */
+	UPROPERTY(Config, EditAnywhere, Category = "Layer")
+	TSoftObjectPtr<UStaticMesh> BaseMesh;
+
+	/** Always shown: ground terraces, the void's core. */
+	UPROPERTY(Config, EditAnywhere, Category = "Layer")
+	FPrimordiaTierArt Fixed;
+
+	/** Few, large, shown as a density prefix: monoliths, sea stacks, beacons, keystones, lattice nodes, spires. */
+	UPROPERTY(Config, EditAnywhere, Category = "Layer")
+	FPrimordiaTierArt Hero;
+
+	/** Many, small: rubble, motes, stars, shards, struts, spire skirts, void debris. */
+	UPROPERTY(Config, EditAnywhere, Category = "Layer")
+	FPrimordiaTierArt Detail;
+};
+
 /**
  * Project Settings > Plugins > PrimordiaOS Realm Bridge.
  * Stored in Config/DefaultGame.ini under [/Script/PrimordiaOSRealmBridge.PrimordiaBridgeSettings].
@@ -139,9 +197,42 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Assets|Shadow", meta = (ClampMin = 1, ClampMax = 255)) int32 ShadowStencilValue = 200;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Assets|Realm") TSoftObjectPtr<UMaterialParameterCollection> MetaphysicsCollection;
-	/** Mesh per layer kind (ground, ocean, sky, ring, lattice, void, spire_field). */
+	/**
+	 * Base mesh and per-tier art per layer kind (ground, ocean, sky, ring, lattice, void, spire_field).
+	 * Empty slots fall back to LayerMeshes (primary tier only), then to engine basic shapes.
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Assets|Realm") TMap<FName, FPrimordiaLayerArt> LayerArt;
+	/** Legacy: mesh for the primary scatter tier of a layer kind. LayerArt wins when it sets one. */
 	UPROPERTY(Config, EditAnywhere, Category = "Assets|Realm") TMap<FName, TSoftObjectPtr<UStaticMesh>> LayerMeshes;
 	UPROPERTY(Config, EditAnywhere, Category = "Assets|Realm") TMap<FName, TSoftObjectPtr<UMaterialInterface>> LayerMaterials;
+
+	// --- Realm detail (cost knobs; applied on the next density change or Regenerate) ---
+
+	/** Build the detail tier (rubble, motes, stars, shards, struts, skirts, debris). Off = about one draw call less per layer. */
+	UPROPERTY(Config, EditAnywhere, Category = "Realm Detail")
+	bool bEnableDetailTiers = true;
+
+	/** Multiplies the detail tier's visible instance count (a prefix, so it never reshuffles). */
+	UPROPERTY(Config, EditAnywhere, Category = "Realm Detail", meta = (ClampMin = 0, ClampMax = 1))
+	float DetailDensityScale = 1.f;
+
+	/** Detail tiers use HISM (per-cluster culling and LOD, needs mesh LODs to pay off) instead of ISM. */
+	UPROPERTY(Config, EditAnywhere, Category = "Realm Detail")
+	bool bHierarchicalDetailTiers = true;
+
+	// --- Realm atmosphere (PRS-1 §6.3 channel 4; PrimordiaRealmAtmosphere.h) --------------------
+
+	/** Realm haze from metaphysics. Stays off in levels that already have an Exponential Height Fog. */
+	UPROPERTY(Config, EditAnywhere, Category = "Realm Atmosphere")
+	bool bRealmFog = true;
+
+	/** Colour grade from metaphysics (exposure, bloom, saturation, contrast, tint, vignette, grain, fringe). */
+	UPROPERTY(Config, EditAnywhere, Category = "Realm Atmosphere")
+	bool bRealmColorGrade = true;
+
+	/** Blend weight of that grade. The level's own post-process volumes still win where they set a value. */
+	UPROPERTY(Config, EditAnywhere, Category = "Realm Atmosphere", meta = (ClampMin = 0, ClampMax = 1))
+	float RealmColorGradeStrength = 1.f;
 };
 
 namespace PrimordiaAssets

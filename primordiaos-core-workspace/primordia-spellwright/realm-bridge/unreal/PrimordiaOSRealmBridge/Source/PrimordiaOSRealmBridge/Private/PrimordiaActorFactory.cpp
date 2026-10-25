@@ -9,6 +9,7 @@
 #include "Actors/SoulGlyphActor.h"
 #include "Actors/DreamNebulaActor.h"
 #include "Actors/ShadowInversionActor.h"
+#include "Actors/PrimordiaVoiceActor.h"
 #include "Engine/World.h"
 
 void UPrimordiaActorFactory::Initialize(UWorld* InWorld)
@@ -54,6 +55,7 @@ TSubclassOf<AActor> UPrimordiaActorFactory::ResolveClass(EPrimordiaPacketType Ty
 	case EPrimordiaPacketType::SoulUnification: return ASoulGlyphActor::StaticClass();
 	case EPrimordiaPacketType::DreamNebula: return ADreamNebulaActor::StaticClass();
 	case EPrimordiaPacketType::ShadowInversion: return AShadowInversionActor::StaticClass();
+	case EPrimordiaPacketType::Voice: return APrimordiaVoiceActor::StaticClass();
 	default: return nullptr;
 	}
 }
@@ -233,8 +235,10 @@ void UPrimordiaActorFactory::CollectStale(double Now, float TimeoutSeconds)
 		{
 			Stale.Add(Pair.Key); // destroyed externally
 		}
-		else if (!R.bAdopted && PrimordiaPacketType::IsVisual(R.Type) && R.LastUpdate > 0.0 && Now - R.LastUpdate > TimeoutSeconds)
+		else if (!R.bAdopted && PrimordiaPacketType::IsVisual(R.Type) && R.LastUpdate > 0.0 && Now - R.LastUpdate > TimeoutSeconds
+			&& !(Cast<APrimordiaVisualActor>(R.Actor.Get()) && Cast<APrimordiaVisualActor>(R.Actor.Get())->IsBusy()))
 		{
+			// (A busy actor, e.g. a speaker still playing queued audio, outlives the timeout.)
 			Stale.Add(Pair.Key);
 		}
 	}

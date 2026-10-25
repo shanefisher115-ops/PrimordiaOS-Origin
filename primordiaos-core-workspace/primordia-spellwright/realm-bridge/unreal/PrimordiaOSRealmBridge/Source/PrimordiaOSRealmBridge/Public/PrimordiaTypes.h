@@ -21,6 +21,8 @@ enum class EPrimordiaPacketType : uint8
 	RealmManifest    UMETA(DisplayName = "realm_manifest"),
 	Ack,
 	Pong,
+	/** Streamed speech for a speaker entity ("voice:<speaker>"); see APrimordiaVoiceActor. */
+	Voice            UMETA(DisplayName = "voice"),
 };
 
 UENUM(BlueprintType)
