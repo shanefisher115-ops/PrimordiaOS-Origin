@@ -19,6 +19,8 @@ This visualizes the PrimordiaOS metaphysical substrate (Heart, Omniscience, Soul
 | Node.js WebSocket bridge + packet schemas | [`node-bridge/`](node-bridge/) (schemas: [`src/schemas.js`](node-bridge/src/schemas.js)) |
 | **PRS-1**, the Primordia Realm Standard | [`docs/PRS-1.md`](docs/PRS-1.md) |
 | Materials + Niagara build recipes | [`docs/MATERIALS_AND_NIAGARA.md`](docs/MATERIALS_AND_NIAGARA.md) |
+| **The voice of PrimordiaOS**: LLM says + acts, Kokoro-82M speaks, audio plays spatialized in Unreal | [`docs/VOICE.md`](docs/VOICE.md) (bridge: `src/voice/`; Unreal: `APrimordiaVoiceActor`) |
+| **Ollama + PrimordiaOS**: realms designed by a local LLM in the bridge (`generate_realm`, 5.6× faster than full-manifest generation), plus in-Unreal chat | [`docs/OLLAMA.md`](docs/OLLAMA.md) (bridge: `src/realm/design.js`; Unreal: `Source/PrimordiaOllama/`) |
 | Example PRS-1 manifest | [`examples/genesis-5eed1e55.prs1.json`](examples/genesis-5eed1e55.prs1.json) |
 | **Cognition**: engine-native loop (world-state, memory, lore, HTN planner, Spellwright spells, Jules constraints) driving CAD/CAM, Blender and DaVinci Resolve | [`unreal/PrimordiaCognition/`](unreal/PrimordiaCognition/README.md) |
 | **Bolt pipeline** (REST 7778, events 7780) and **Autobuilder** (7790), Blender/Resolve workers, build scripts | [`pipeline/`](pipeline/README.md) |
@@ -138,7 +140,7 @@ Expect roughly `heart_beat=60/s cosmic_web=30/s fate_weave=30/s soul_unification
 2. Press **Play**. With `bAutoConnect` on (the default), the bridge connects to `ws://127.0.0.1:7777`, receives the manifest, spawns `ARealmRootActor`, and streams entities into it. The bridge terminal prints `UnrealEngine says hello`.
 3. In the console (`~`), `Primordia.Stats` should show packets flowing, about 6 live entities, and a latency of a few ms on localhost.
 
-At this stage most things render with engine basic shapes: the heart sphere, node spheres with cylinder edges, ground discs, monoliths and stars. Glyphs are the exception: the plugin ships `M_PrimordiaSigilVolume`, so sigils, wards, gates and the soul appear as volumetric light from the first run, each inscribed with its manifest `intent`. FateWeave threads draw as built-in glowing tubes (`M_PrimordiaThreadGlow`, also shipped) until you assign `NS_PrimordiaFateWeave`. The nebula cube stays hidden until it has a translucent material.
+At this stage most things render with engine basic shapes: the heart sphere, node spheres with cylinder edges, ground terraces, stone circles, spires and stars. Glyphs are the exception: the plugin ships `M_PrimordiaSigilVolume`, so sigils, wards, gates and the soul appear as volumetric light from the first run, each inscribed with its manifest `intent`. FateWeave threads draw as built-in glowing tubes (`M_PrimordiaThreadGlow`, also shipped) until you assign `NS_PrimordiaFateWeave`. The nebula cube stays hidden until it has a translucent material.
 
 ### Step 4: build the art
 
@@ -179,10 +181,11 @@ Set *Run In Editor World = true* in the plugin settings and reopen the level. Th
 ### The processing layer: your machine as a realm
 
 ```bash
+cd realm-bridge/node-bridge
 npm start -- --modules realms/machine
 ```
 
-This replaces all nine reference modules with ones that read the computer the bridge runs on. The result is **"<Host> Crucible"**, a realm that lives at the pace of your hardware. Everything below is live telemetry: per-core CPU load, RAM, the process tree, and network bytes.
+Run it from `node-bridge`: elsewhere npm can pick up a parent folder's `package.json` and start the wrong server. This replaces all nine reference modules with ones that read the computer the bridge runs on. The result is **"<Host> Crucible"**, a realm that lives at the pace of your hardware. Everything below is live telemetry: per-core CPU load, RAM, the process tree, and network bytes.
 
 | What you see | What it is |
 |---|---|
@@ -276,7 +279,7 @@ All derive from `APrimordiaVisualActor`. That base provides an ordering guard on
 | Function | Does |
 |---|---|
 | `GenerateRealmFromManifest(Root, Manifest)` | Full generation for a new `realm_id`; otherwise a **diff**: layers by structural hash, glyphs by id, topology only when its spec changes, metaphysics eased over `transition_seconds`. |
-| `SpawnLayer(Root, Layer, Seed)` | Builds a layer root at its altitude, with a base mesh (ground/ocean disc, void sphere) and deterministic scatter instances. Density shows a stable prefix of the candidates. |
+| `SpawnLayer(Root, Layer, Seed)` | Builds a layer root at its altitude, with a base mesh (ground/ocean disc, void sphere). It then adds up to three deterministic instanced tiers: fixed, hero and detail, such as terraces, stone circles and rubble, or spire clusters and skirts (PRS-1 §4.3). Density shows a stable prefix of each tier. Art slots per kind and tier are listed in [MATERIALS_AND_NIAGARA.md §7](docs/MATERIALS_AND_NIAGARA.md#7-layer-materials-and-art-m_primordialayer). |
 | `SpawnGlyph(Root, Glyph)` | Spawns or updates an `ASoulGlyphActor`. Glyphs with `bound_to` are adopted by the live stream. |
 | `SpawnTopology(Root, Topology, Seed)` | Spawns or reuses the realm's `ACosmicWebActor` and seeds it from C++ topology synthesis, unless a live `cosmic_web` stream is already driving it. |
 | `ApplyMetaphysics(Root, Metaphysics)` | Writes `MPC_PrimordiaMetaphysics` and the layer material parameters, and sets `CustomTimeDilation` on every realm entity. |

@@ -401,24 +401,122 @@ return rgb * I;
 
 ---
 
-## 7. Layer material: `M_PrimordiaLayer`
+## 7. Layer materials and art: `M_PrimordiaLayer`
 
-One parent material, with one material instance per kind assigned in *Settings → Assets → Realm → Layer Materials*. The generator sets:
+Each layer is a base mesh plus up to three instanced **tiers** (PRS-1 §4.3): *fixed* (always shown), *hero* (few, large) and *detail* (many, small). Every tier is one component per mesh variant, so each tier costs **one draw call per variant per pass**, whatever its instance count.
+
+### 7a. Asset slots
+
+*Settings → Assets → Realm → Layer Art*, keyed by layer kind (`ground`, `ocean`, `sky`, `ring`, `lattice`, `void`, `spire_field`):
+
+| Slot | Used for | Empty → |
+|---|---|---|
+| `BaseMesh` | ground/ocean disc, void shell | engine cylinder / sphere |
+| `Fixed` / `Hero` / `Detail` → `Meshes` (up to 3) | the tier's mesh variants. Instances are dealt to variants by their stable random `[0]`, so a realm looks the same everywhere. | legacy `LayerMeshes[kind]` (primary tier only), then the engine shape below |
+| … → `Material` | every slot of the tier's meshes, as a MID with the same parameters as the layer | the layer material: `LayerMaterials[kind]`, then `BasicShapeMaterial` |
+| … → `CullDistance` | instances fade from 70 % of it, and are culled beyond it (needs `PerInstanceFadeAmount` in the material for a dithered fade) | tier default; negative = never |
+| … → `Shadow` | `Default` / `On` / `Off` | tier default |
+
+The tiers per kind, with their engine fallback shape, shadow and cull defaults (✱ = primary tier, which keeps `layer:<id>` and the legacy mesh):
+
+| kind | fixed | hero | detail |
+|---|---|---|---|
+| ground | `Terraces` cylinder, shadow, **collides** | `Monoliths`✱ cube, shadow | `Rubble` cube, cull 90 m, gated by monoliths |
+| ocean | — | `SeaStacks` cylinder, shadow | `Motes`✱ sphere |
+| sky | — | `Beacons` sphere | `Stars`✱ cube |
+| ring | — | `Keystones` cube, shadow | `Shards`✱ cube |
+| lattice | — | `Nodes`✱ cube on its corner | `Struts` cylinder, gated by nodes |
+| spire_field | — | `Spires`✱ cone, shadow | `Skirts` cone, cull 120 m, gated by spires |
+| void | `Core` sphere | — | `Debris` cube |
+
+**Shipped starting point.** The plugin ships `M_PrimordiaLayer` and one instance per kind, `MI_PrimordiaLayer_<kind>`, in `/PrimordiaOSRealmBridge/Materials/`. `Scripts/build_layer_material.py` builds them (re-run it to rebuild the graph in place).
+- The graph uses only the MID parameters (§7b) and the custom data, so it reacts to metaphysics on the GPU.
+- It has no WPO: on shadow-casting instances, WPO makes virtual shadow maps re-render every frame.
+- The instances differ only in `EmissiveGain`, `Metallic` and `RoughnessBase`.
+
+Wire them in `Config/DefaultGame.ini`:
+
+```ini
+[/Script/PrimordiaOSRealmBridge.PrimordiaBridgeSettings]
+LayerMaterials=(("ground", "/PrimordiaOSRealmBridge/Materials/MI_PrimordiaLayer_ground.MI_PrimordiaLayer_ground"),("ocean", "/PrimordiaOSRealmBridge/Materials/MI_PrimordiaLayer_ocean.MI_PrimordiaLayer_ocean"),("sky", "/PrimordiaOSRealmBridge/Materials/MI_PrimordiaLayer_sky.MI_PrimordiaLayer_sky"),("ring", "/PrimordiaOSRealmBridge/Materials/MI_PrimordiaLayer_ring.MI_PrimordiaLayer_ring"),("lattice", "/PrimordiaOSRealmBridge/Materials/MI_PrimordiaLayer_lattice.MI_PrimordiaLayer_lattice"),("spire_field", "/PrimordiaOSRealmBridge/Materials/MI_PrimordiaLayer_spire_field.MI_PrimordiaLayer_spire_field"),("void", "/PrimordiaOSRealmBridge/Materials/MI_PrimordiaLayer_void.MI_PrimordiaLayer_void"))
+```
+
+**Mesh authoring rules** (the generator scales your mesh exactly like the engine shape it replaces):
+- Fit the mesh in a **100 cm box with the pivot at its centre**. Length runs along +Z for terraces, sea stacks, spires, skirts and struts, and along +X for keystones and shards (the orbit tangent). Monolith slabs are thin in X and broad in Y; local +X faces the circle's centre.
+- Enable **Used with Instanced Static Meshes** on every material that a tier uses.
+- **Integrated GPU (Ryzen 3 4300U / Radeon Vega).** Use **non-Nanite** meshes with **3 LODs** (screen size about 0.5 / 0.15 / 0.04). Keep detail meshes at or under 200 triangles at LOD0, and hero meshes at or under 2k. Detail tiers use HISM by default (`bHierarchicalDetailTiers`), which only pays off when the meshes have LODs.
+- A mesh with several material slots gets the tier material in **all** of them. Use one slot per mesh to keep one draw per variant.
+
+**Cost knobs** (*Settings → Realm Detail*): `bEnableDetailTiers` (off = no detail components; turning it back on takes a Regenerate), `DetailDensityScale` (0–1, a prefix, applied on the next density change), `bHierarchicalDetailTiers`. `UPrimordiaRealmGenerator::MaxScatterPerLayer` (default 2000) caps every tier.
+
+For measuring (the user's "measure, change one thing, measure again" loop), a typical genesis realm (ground + sky + two extras) draws about 10 tier components per pass. Before tiers it was about 5. Shadows only add passes for the shadowed tiers above. Compare `stat rhi` with `bEnableDetailTiers` on and off.
+
+### 7b. Parameters
+
+Every layer MID, and every tier MID, gets:
 
 | Param | Source |
 |---|---|
 | Color, SecondaryColor | `palette[0]`, `palette[1]` |
 | Density, Radius | layer fields (radius in cm) |
 | Entropy, Luminosity, Coherence, Inversion, Essence | metaphysics, eased |
-| every numeric `params` key, by exact name | e.g. `roughness`, `terrace_count`, `wave_height` (cm), `wave_speed`, `star_count`, `tilt_deg`, `thickness` (cm), `cell_size` (cm), `aperture`, `max_height` (cm) |
+| every numeric `params` key, by exact name | e.g. `roughness`, `terrace_count`, `wave_height` (cm), `wave_speed`, `star_count`, `tilt_deg`, `thickness` (cm), `cell_size` (cm), `aperture`, `max_height` (cm), and the composition params `monolith_clusters`, `cluster_spread` (cm), `rubble`, `islet_count`, `band_strength`, `band_tilt_deg`, `keystones`, `gap_count`, `arc`, `struts`, `spire_clusters`, `falloff`, `debris` |
 
-Suggested per-kind looks:
+**PerInstanceCustomData** (4 floats on every tier instance; set once when the instance appears, so it costs nothing per frame):
 
-- **ground:** `BaseColor = lerp(SecondaryColor, Color, Noise(WorldPos × 0.001))`, `Roughness = 0.6 + 0.4 × roughness`. Mix in a little `Emissive = Essence × Inversion × 0.2` along crack masks.
-- **ocean:** WPO waves `= sin(dot(WorldPos.xy, dir) × 0.002 + Time × wave_speed) × wave_height`. Low roughness, Fresnel tinted by `Color`.
-- **sky:** unlit and emissive, `Color × (5 + 20 × Luminosity)`, twinkling with `PerInstanceRandom`.
-- **ring / lattice / spire_field:** lit and metallic, with emissive edges `= Color × Fresnel × (1 + 4 × Coherence)`.
-- **void:** unlit, `Emissive = SecondaryColor × 0.02`, plus a faint `1 − Essence` rim. The mesh uses reverse culling, so this paints the inside of the hollow.
+| Index | Meaning | Notes per kind |
+|---|---|---|
+| `[0]` | stable random 0–1 | use instead of `PerInstanceRandom`, which HISM reorders |
+| `[1]` | size within its tier, 0–1 | terrace step · monolith height / 25 m · star magnitude (power law: mostly near 0) · spire height / `max_height` · keystone length |
+| `[2]` | radial position, 0–1 | distance from the layer centre / radius; sky: elevation (0 horizon, 1 zenith); ring: position across the ring's width; void: radius in the hollow |
+| `[3]` | kind-specific | ground terraces: step / count · monoliths: 1 circle centre, 0.6 circle slab, 0 lone stone · rubble: 1 terrace foot, 0 stone base · sea stacks: emerged fraction · motes: height 0–1 · stars: band membership · ring and void: orbit phase 0–1 · lattice nodes: height 0–1 · struts: axis (0 x, 0.5 y, 1 z) · spires and skirts: cluster weight (1 at a crown) |
+
+**Metaphysics belong here, on the GPU.** Placement never reacts to metaphysics (PRS-1 §4.3), so every visible reaction to them is a material effect: MPC or MID scalars combined with the custom data above. That costs nothing on the CPU.
+
+### 7c. Suggested looks per kind
+
+- **ground**
+  - Terraces: `BaseColor = lerp(SecondaryColor, Color, Noise(WorldPos × 0.001))`, `Roughness = 0.6 + 0.4 × roughness`, darken toward the lower steps with `[3]`.
+  - Cracks: emissive `Essence × Inversion × 0.2` along a crack mask, stronger on circle stones (`[3] ≥ 0.6`).
+  - **Entropy:** WPO jitters only lone stones (`[3] = 0`) by `Entropy × 3 cm × sin(Time × 7 + [0] × 40)`, so circles stay calm while the realm is stormy.
+  - **Coherence:** brightens a rune band on circle stones.
+- **ocean**
+  - Surface: WPO waves `= sin(dot(WorldPos.xy, dir) × 0.002 + Time × wave_speed) × wave_height`, low roughness, Fresnel tinted by `Color`.
+  - Sea stacks: a wet band where `LocalZ` is near the waterline. `[3]` gives the emerged fraction.
+  - Motes: unlit; they bob with `[0]`.
+- **sky**
+  - Stars: unlit, `Color × (5 + 20 × Luminosity) × (0.2 + [1])`. Twinkle `= 1 + 0.5 × Entropy × sin(Time × (3 + 9 × [0]))`. Band stars (`[3]`) are tinted toward `Essence × Lucidity`.
+  - Beacons: emissive halos that pulse with `Resonance`.
+- **ring**
+  - Lit and metallic, with emissive edges `= Color × Fresnel × (1 + 4 × Coherence)`.
+  - Orbit WPO: rotate each shard about the layer's Z axis by `Time × 0.02 × (1 + [2])`. Use the instance origin, not the vertex, so shards stay rigid.
+- **lattice**
+  - Nodes glow `Color × (1 + 4 × Coherence) × [1]`.
+  - Struts carry a flow pulse along their axis, `frac(Time × Resonance + [0])`.
+  - **Entropy** fades struts out (masked dither by `Entropy > [0]`), so a stormy lattice breaks apart with no CPU cost.
+- **spire_field**
+  - Lit and metallic. Crowns (`[3]` near 1) get an emissive tip that grows with `Luminosity`.
+  - Skirts: rougher and darker.
+  - **Inversion** darkens toward `1 − Essence` from the tip down.
+- **void**
+  - Shell: unlit, `Emissive = SecondaryColor × 0.02`, plus a faint `1 − Essence` rim. The mesh uses reverse culling, so this paints the inside of the hollow.
+  - Core: an event horizon. Black, with a Fresnel ring `Essence × (2 + 8 × Inversion)`.
+  - Debris: lit by the core. The inner disc (`[2]` near 0) is hottest; it orbits with WPO by phase `[3]`.
+
+---
+
+## 8. Realm atmosphere: fog and colour grade (no assets needed)
+
+`ARealmRootActor` owns two components that show what the metaphysics *mean* (PRS-1 §6.3, channel 4). The mapping is in `PrimordiaRealmAtmosphere.cpp`.
+
+| Component | What it does | Notes |
+|---|---|---|
+| `AtmosphereFog` (Exponential Height Fog) | Density from entropy, inversion and lucidity; height falloff from coherence; colour from essence and luminosity, darkened by inversion | Stays off when the level already has an `ExponentialHeightFog` (one fog per scene), so levels such as the MoneyPlugHub ones keep theirs. |
+| `AtmosphereGrade` (unbound Post Process, priority −10) | Exposure bias, bloom, saturation, contrast, highlight tint, shadow tint, vignette, film grain, chromatic fringe | The level's own volumes win on any value they set. Lumen/GI settings are never touched. |
+
+Settings: *Project Settings → PrimordiaOS Realm Bridge → Realm Atmosphere*: `bRealmFog`, `bRealmColorGrade`, `RealmColorGradeStrength` (0–1).
+
+Cost: one height-fog pass plus values on the tonemapper that runs anyway. Values are only written while metaphysics are easing.
 
 ## 9. Neo-Gothic cathedral look-dev scene: `NeoGothicCathedral`
 

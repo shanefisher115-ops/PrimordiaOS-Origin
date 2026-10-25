@@ -75,13 +75,80 @@ function sigil(rng, index, ringRadius, seed, state, realmName) {
   };
 }
 
-export function genesis(seed, state) {
+// Composition params (PRS-1 §3.3): how a layer is dressed (monolith circles, sea
+// stacks, the star band, ring keystones and gaps, lattice struts, spire clusters,
+// void debris). Drawn from each layer's own stream (label `detail:<layer id>`) so
+// they never shift the realm or design streams: existing seeds keep their layers,
+// glyphs and topology. The metaphysics at the realm's birth leave their mark:
+// entropy breaks things (rubble, debris, ring gaps), coherence orders them
+// (keystones, tight spire crowns), lucidity brightens the star band.
+function compositionParams(seed, layer, state) {
+  const rng = mulberry32(subSeed(seed, `detail:${layer.id}`));
+  const entropy = clamp01(state.entropy ?? 0.35);
+  const coherence = clamp01(state.coherence ?? 0.6);
+  const lucidity = clamp01(state.lucidity ?? 0.55);
+  switch (layer.kind) {
+    case 'ground':
+      return {
+        monolith_clusters: 1 + Math.floor(coherence * 5 + rng() * 3),
+        cluster_spread: r4(4 + rng() * 8),
+        rubble: r4(clamp01(0.2 + 0.6 * entropy + 0.2 * rng())),
+      };
+    case 'ocean':
+      return { islet_count: 2 + Math.floor(rng() * 10) };
+    case 'sky':
+      return { band_strength: r4(clamp01(0.15 + 0.6 * lucidity + 0.25 * rng())), band_tilt_deg: r4(-60 + rng() * 120) };
+    case 'ring': {
+      const keystones = Math.floor(coherence * 8 + rng() * 2);
+      const gap_count = Math.min(6, Math.floor(entropy * 4 + rng() * 2));
+      const arc = rng() < 0.75 ? 1 : r4(0.4 + rng() * 0.5);
+      return { keystones, gap_count, arc };
+    }
+    case 'lattice':
+      return { struts: r4(clamp01(0.25 + 0.5 * coherence + 0.25 * rng())) };
+    case 'spire_field':
+      return { spire_clusters: 2 + Math.floor(rng() * 6), falloff: r4(0.6 + 2 * coherence + rng() * 0.6) };
+    case 'void':
+      return { debris: r4(clamp01(0.2 + 0.6 * entropy + 0.2 * rng())) };
+    default:
+      return {};
+  }
+}
+
+// Layer recipe per kind, shared by designed realms (genesis keeps its original
+// inline draws so existing seeds reproduce exactly).
+function kindLayer(rng, kind, order, bounds) {
+  switch (kind) {
+    case 'ground':
+      return layer(rng, 'ground', order, 0, bounds, 0.4 + rng() * 0.4, { roughness: r4(rng()), terrace_count: 1 + Math.floor(rng() * 5) });
+    case 'ocean':
+      return layer(rng, 'ocean', order, 0, bounds, 0.5 + rng() * 0.3, { wave_height: r4(0.2 + rng()), wave_speed: r4(0.2 + rng()) });
+    case 'sky':
+      return layer(rng, 'sky', order, 80, bounds * 1.5, 0.3 + rng() * 0.5, { star_count: 200 + Math.floor(rng() * 1800) });
+    case 'ring':
+      return layer(rng, 'ring', order, 5 + rng() * 50, 20 + rng() * 80, rng(), { thickness: r4(1 + rng() * 4), tilt_deg: r4(rng() * 35) });
+    case 'lattice':
+      return layer(rng, 'lattice', order, 5 + rng() * 50, 20 + rng() * 80, rng(), { cell_size: r4(6 + rng() * 10) });
+    case 'spire_field':
+      return layer(rng, 'spire_field', order, 0, 20 + rng() * 80, rng(), { max_height: r4(10 + rng() * 40) });
+    default: // void
+      return layer(rng, 'void', order, 5 + rng() * 50, 20 + rng() * 80, rng(), { aperture: r4(0.2 + rng() * 0.6) });
+  }
+}
+
+/**
+ * @param design optional high-level choices (e.g. from an LLM): { name, layers: kind[], topology: kind }.
+ *   Everything not chosen is still filled in procedurally. Designed layers draw from their
+ *   own stream (`design`), so a realm without a design is unchanged by this feature.
+ */
+export function genesis(seed, state, design = null) {
   seed = seed >>> 0;
   const rng = mulberry32(subSeed(seed, 'realm'));
-  const realm_name = `${pick(rng, PREFIX)}${pick(rng, SUFFIX)} ${pick(rng, EPITHET)}`;
+  const generatedName = `${pick(rng, PREFIX)}${pick(rng, SUFFIX)} ${pick(rng, EPITHET)}`;
+  const realm_name = design?.name || generatedName;
   const bounds = 120;
 
-  const layers = [];
+  let layers = [];
   layers.push(rng() < 0.7
     ? layer(rng, 'ground', 0, 0, bounds, 0.4 + rng() * 0.4, { roughness: r4(rng()), terrace_count: 1 + Math.floor(rng() * 5) })
     : layer(rng, 'ocean', 0, 0, bounds, 0.5 + rng() * 0.3, { wave_height: r4(0.2 + rng()), wave_speed: r4(0.2 + rng()) }));
@@ -102,6 +169,12 @@ export function genesis(seed, state) {
       : { aperture: r4(0.2 + rng() * 0.6) };
     layers.push(layer(rng, kind, 2 + i, 5 + rng() * 50, 20 + rng() * 80, rng(), params));
   }
+  if (design?.layers?.length) {
+    const drng = mulberry32(subSeed(seed, 'design'));
+    layers = design.layers.map((kind, i) => kindLayer(drng, kind, i, bounds));
+  }
+  // A design may pin params per kind (the description's words, semantics.js); they win.
+  for (const l of layers) Object.assign(l.params, compositionParams(seed, l, state), design?.params?.[l.kind]);
 
   const glyphs = [{
     id: 'soul',
@@ -118,6 +191,7 @@ export function genesis(seed, state) {
   const sigils = 2 + Math.floor(rng() * 3);
   for (let i = 0; i < sigils; i++) glyphs.push(sigil(rng, i, 32, seed, state, realm_name));
 
+  const topologyKind = pick(rng, TOPOLOGIES);
   return {
     prs: '1.0',
     realm_id: `realm-${seed.toString(16).padStart(8, '0')}`,
@@ -125,13 +199,13 @@ export function genesis(seed, state) {
     seed,
     revision: 0,
     transition_seconds: 4,
-    generated_by: { module: 'Worldforge', at: new Date().toISOString() },
+    generated_by: { module: 'Worldforge', at: new Date().toISOString(), ...(design && { designed: true }) },
     units: { length: 'meter', up: '+Z', handedness: 'left' },
     bounds: { radius: bounds },
     layers,
     metaphysics: snapshotMetaphysics(state),
     topology: {
-      kind: pick(rng, TOPOLOGIES),
+      kind: design?.topology || topologyKind,
       node_count: 32 + Math.floor(rng() * 64),
       edge_density: r4(0.2 + rng() * 0.6),
       radius: 18,

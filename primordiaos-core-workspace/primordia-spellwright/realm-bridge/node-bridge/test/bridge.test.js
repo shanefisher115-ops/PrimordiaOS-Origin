@@ -47,6 +47,42 @@ test('every glyph carries a deterministic intent', () => {
   assert.ok(stormy.glyphs.filter((g) => g.kind !== 'soul').every((g) => g.intent.includes('THE STORM')));
 });
 
+// Composition params per kind (PRS-1 §3.3) with the range the repair rules allow.
+const COMPOSITION = {
+  ground: { monolith_clusters: [0, 24], cluster_spread: [1, 40], rubble: [0, 1] },
+  ocean: { islet_count: [0, 32] },
+  sky: { band_strength: [0, 1], band_tilt_deg: [-90, 90] },
+  ring: { keystones: [0, 24], gap_count: [0, 6], arc: [0.05, 1] },
+  lattice: { struts: [0, 1] },
+  spire_field: { spire_clusters: [1, 16], falloff: [0.25, 4] },
+  void: { debris: [0, 1] },
+};
+
+test('genesis dresses every layer with in-range composition params', () => {
+  const kinds = new Set();
+  for (let seed = 1; seed <= 60; seed++) {
+    for (const l of genesis(seed, createMetaState()).layers) {
+      kinds.add(l.kind);
+      for (const [key, [lo, hi]] of Object.entries(COMPOSITION[l.kind])) {
+        assert.equal(typeof l.params[key], 'number', `seed ${seed} ${l.id}.${key}`);
+        assert.ok(l.params[key] >= lo && l.params[key] <= hi, `seed ${seed} ${l.id}.${key}=${l.params[key]}`);
+      }
+    }
+  }
+  assert.equal(kinds.size, 7, 'every layer kind was covered');
+});
+
+test('composition params never shift the realm stream', () => {
+  // Same seed, different metaphysics: the composition params may differ, everything else in a layer may not.
+  const calm = genesis(0x5eed1e55, { ...createMetaState(), entropy: 0.05, coherence: 0.95 });
+  const storm = genesis(0x5eed1e55, { ...createMetaState(), entropy: 0.95, coherence: 0.05 });
+  const strip = (l) => ({ ...l, params: Object.fromEntries(Object.entries(l.params).filter(([k]) => !(k in COMPOSITION[l.kind]))) });
+  assert.deepEqual(calm.layers.map(strip), storm.layers.map(strip));
+  assert.deepEqual(calm.topology, storm.topology);
+  const ground = (m) => m.layers.find((l) => l.kind === 'ground');
+  if (ground(calm)) assert.ok(ground(storm).params.rubble > ground(calm).params.rubble, 'entropy breaks the ground into rubble');
+});
+
 test('evolution keeps manifests valid and bumps revision', () => {
   const state = createMetaState();
   const rng = mulberry32(7);

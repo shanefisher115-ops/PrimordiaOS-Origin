@@ -18,6 +18,7 @@ export const PACKET_TYPES = [
   'realm_manifest',
   'ack',
   'pong',
+  'voice',
 ];
 
 export const envelopeSchema = {
@@ -167,6 +168,25 @@ export const payloadSchemas = {
       extent: vec3,
       position: vec3,
       mirror_of: { type: 'string' },
+    },
+  },
+
+  // Spoken audio for a speaker entity (id "voice:<speaker>"). Chunks of one utterance
+  // arrive in order; `text` is set on the first chunk of each sentence (subtitles);
+  // a final chunk with empty pcm and final:true ends the utterance.
+  voice: {
+    type: 'object',
+    required: ['utterance', 'chunk', 'sample_rate', 'channels', 'format', 'pcm', 'final', 'position'],
+    properties: {
+      utterance: { type: 'integer', minimum: 1 },
+      chunk: { type: 'integer', minimum: 0 },
+      text: { type: 'string' },
+      sample_rate: { type: 'integer', minimum: 8000, maximum: 48000 },
+      channels: { type: 'integer', enum: [1] },
+      format: { type: 'string', enum: ['s16le'] },
+      pcm: { type: 'string' }, // base64
+      final: { type: 'boolean' },
+      position: vec3,
     },
   },
 
