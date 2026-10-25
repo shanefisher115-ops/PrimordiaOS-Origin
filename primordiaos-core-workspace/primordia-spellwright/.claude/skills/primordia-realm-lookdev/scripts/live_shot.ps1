@@ -28,8 +28,8 @@ $ErrorActionPreference = "Stop"
 $log = Join-Path (Split-Path -Parent $Project) "Saved\Logs\RealmLiveShot.log"
 Remove-Item $Out -ErrorAction SilentlyContinue
 $argv = @("`"$Project`"", $Map, "-game", "-windowed", "-ResX=1280", "-ResY=720",
-    "-dpcvars=r.DynamicGlobalIlluminationMethod=0,r.ReflectionMethod=2,r.Shadow.Virtual.Enable=0,r.ScreenPercentage=67,r.AntiAliasingMethod=2,r.TranslucentLightingVolume=0,r.MotionBlurQuality=0,sg.PostProcessQuality=2,sg.ShadowQuality=2,sg.EffectsQuality=2",
-    "-ini:Game:[/Script/PrimordiaOSRealmBridge.PrimordiaBridgeSettings]:ServerUrl=ws://127.0.0.1:$Port",
+    "-dpcvars=r.DynamicGlobalIlluminationMethod=0,r.ReflectionMethod=0,r.Shadow.Virtual.Enable=0,r.ScreenPercentage=67,r.AntiAliasingMethod=2,r.TranslucentLightingVolume=0,r.MotionBlurQuality=0,sg.PostProcessQuality=2,sg.ShadowQuality=2,sg.EffectsQuality=2,r.AmbientOcclusionLevels=0,r.Shadow.MaxCSMResolution=1024,r.Shadow.CSM.MaxCascades=2,r.BloomQuality=3,r.LensFlareQuality=0,r.PrimordiaRealm.AuraSteps=24,r.SkyLight.RealTimeReflectionCapture=0",
+    "-ini:Game:[/Script/PrimordiaOSRealmBridge.PrimordiaBridgeSettings]:ServerUrl=ws://127.0.0.1:$Port", "-ini:Game:[/Script/PrimordiaOSRealmBridge.PrimordiaBridgeSettings]:RequestedRateHz=30",
     "-PrimordiaShot=`"$Out`"", "-PrimordiaShotDelay=$Delay", "-PrimordiaShotQuit", "-abslog=`"$log`"")
 if ($Camera) { $argv += "-PrimordiaShotCamera=$Camera" }
 $p = Start-Process "$Engine\UnrealEditor.exe" -ArgumentList $argv -PassThru

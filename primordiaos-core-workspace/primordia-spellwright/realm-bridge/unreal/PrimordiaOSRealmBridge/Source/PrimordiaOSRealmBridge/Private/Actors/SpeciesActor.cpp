@@ -10,6 +10,8 @@
 namespace
 {
 	// Unlit, colour from per-instance custom data (RGB x gain); bloom makes it glow.
+	// Swarms draw hundreds of small bodies: the engine's 528-triangle sphere instead of the 960 one.
+	const TCHAR* const LowSphere = TEXT("/Engine/EngineMeshes/Sphere.Sphere");
 	const TCHAR* const GlowMaterial = TEXT("/PrimordiaOSRealmBridge/Materials/M_PrimordiaThreadGlow.M_PrimordiaThreadGlow");
 
 	EPrimordiaManifestation ParseManifestation(const FString& S)
@@ -103,7 +105,7 @@ void ASpeciesActor::BuildForm()
 	{
 	case EPrimordiaManifestation::Rooted:     BodyMesh->SetStaticMesh(Mesh(PrimordiaAssets::Cylinder)); AccentMesh->SetStaticMesh(Mesh(PrimordiaAssets::Sphere)); break;
 	case EPrimordiaManifestation::Individual: BodyMesh->SetStaticMesh(Mesh(PrimordiaAssets::Cube)); AccentMesh->SetStaticMesh(Mesh(PrimordiaAssets::Sphere)); break;
-	case EPrimordiaManifestation::Swarm:      BodyMesh->SetStaticMesh(Mesh(PrimordiaAssets::Sphere)); AccentMesh->SetStaticMesh(nullptr); bBodyGlows = true; break;
+	case EPrimordiaManifestation::Swarm:      BodyMesh->SetStaticMesh(Mesh(LowSphere)); AccentMesh->SetStaticMesh(nullptr); bBodyGlows = true; break;
 	case EPrimordiaManifestation::Floating:   BodyMesh->SetStaticMesh(Mesh(PrimordiaAssets::Cone)); AccentMesh->SetStaticMesh(Mesh(PrimordiaAssets::Sphere)); bBodyGlows = true; break;
 	case EPrimordiaManifestation::Abyssal:    BodyMesh->SetStaticMesh(Mesh(PrimordiaAssets::Sphere)); AccentMesh->SetStaticMesh(Mesh(PrimordiaAssets::Sphere)); break;
 	}
@@ -273,7 +275,10 @@ void ASpeciesActor::Draw()
 		return;
 	}
 	const double U = UnitsPerMeter();
-	const double Size = SizeMeters * U / 100.0; // engine shapes are 100 cm
+	// Engine shapes are 100 cm; the low-poly swarm sphere is 200 cm, so size from the mesh's bounds.
+	const UStaticMesh* BodyAsset = BodyMesh->GetStaticMesh();
+	const double BodyMeshSize = BodyAsset ? FMath::Max(1.0, BodyAsset->GetBoundingBox().GetSize().GetMax()) : 100.0;
+	const double Size = SizeMeters * U / 100.0 * (Manifestation == EPrimordiaManifestation::Swarm ? 100.0 / BodyMeshSize : 1.0);
 	const float T = Time;
 	TArray<FTransform> BodyT, AccentT;
 	BodyT.Reserve(Swarm.Num());

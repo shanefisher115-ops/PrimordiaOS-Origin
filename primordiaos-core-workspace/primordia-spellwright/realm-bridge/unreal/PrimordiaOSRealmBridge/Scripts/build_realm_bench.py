@@ -38,11 +38,16 @@ MIST_MATERIAL = "M_PrimordiaMistSea"
 SUN_PITCH, SUN_YAW = -34.0, 109.0
 SUN_LUX = 5.5
 SUN_COLOR = unreal.LinearColor(1.0, 0.86, 0.70, 1.0)
-SUN_SHADOW_DISTANCE_CM = 60000.0  # the far edge of the realm is ~320 m from the camera
+# Measured on the iGPU (CSV profile): 4 cascades to 600 m cost 4.8 ms of shadow depths per frame.
+# 2 cascades to 400 m still reach the realm's far side from the bench camera (~320 m).
+SUN_SHADOW_DISTANCE_CM = 40000.0
+SUN_SHADOW_CASCADES = 2
 SKY_LIGHT_INTENSITY = 1.0
 # Manual exposure, physical camera exposure off: the scene is scaled by 2^bias, and the bias
 # comes from the realm's grade (about +0.3 for a default realm).
-AO_INTENSITY, AO_RADIUS_CM = 0.7, 250.0
+# SSAO cost 1.3 ms per frame on the iGPU for a subtle darkening the layer material's height
+# shade already approximates: off.
+AO_INTENSITY, AO_RADIUS_CM = 0.0, 250.0
 # Aerial perspective: 1 is Earth scale; the realm is a few hundred metres across, so haze
 # builds over kilometres instead of tens of kilometres.
 AERIAL_PERSPECTIVE_SCALE = 4.0
@@ -187,7 +192,7 @@ def light_sun():
     c.set_editor_property("atmosphere_sun_light", True)
     c.set_editor_property("dynamic_shadow_distance_movable_light", SUN_SHADOW_DISTANCE_CM)
     c.set_editor_property("dynamic_shadow_distance_stationary_light", SUN_SHADOW_DISTANCE_CM)
-    c.set_editor_property("dynamic_shadow_cascades", 4)
+    c.set_editor_property("dynamic_shadow_cascades", SUN_SHADOW_CASCADES)
     log(f"sun pitch {SUN_PITCH} yaw {SUN_YAW}, {SUN_LUX} lux")
 
 
@@ -195,7 +200,8 @@ def light_sky(mist_color):
     sky = find("SkyLight", unreal.SkyLight) or find_or_spawn("SkyLight", unreal.SkyLight, unreal.Vector(0, 0, 500))
     c = sky.get_component_by_class(unreal.SkyLightComponent)
     c.set_editor_property("intensity", SKY_LIGHT_INTENSITY)
-    c.set_editor_property("real_time_capture", True)
+    # Captured once at load: real-time capture re-renders the sky into a cubemap every frame.
+    c.set_editor_property("real_time_capture", False)
     # Below the horizon the sky light now sees the mist sea, not black.
     c.set_editor_property("lower_hemisphere_is_black", False)
     c.set_editor_property("lower_hemisphere_color", unreal.LinearColor(mist_color.r * 0.35, mist_color.g * 0.35, mist_color.b * 0.35, 1.0))

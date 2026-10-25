@@ -553,6 +553,20 @@ Cost: one height-fog pass plus values on the tonemapper that runs anyway. Values
 
 Light values are relative to the manual exposure, so change them together.
 
+**Frame budget on the Ryzen 3 4300U.** Measured with the CSV profiler (`-ExecCmds="r.GPUCsvStatsEnabled 1, csv.DetailedTicks 1, CsvProfile FRAMES=2400"`, the last 1200 frames, bench camera, editor open alongside). The GPU is the limit: the game thread does only about 8.5 ms of work and waits the rest of the frame.
+
+| | Before | After |
+|---|---|---|
+| fps (frame time, p95) | **34.2** (29.2 ms, 32.0) | **48.6** (20.6 ms, 20.6) |
+| GPU total | 26.7 ms | 17.1 ms |
+| shadow depths | 4.75 | 0.78: 2 cascades to 400 m, `r.Shadow.MaxCSMResolution=1024` |
+| post-processing | 4.83 | 3.44: `r.BloomQuality=3`, `r.LensFlareQuality=0`, aura `r.PrimordiaRealm.AuraSteps=24` |
+| depth prepass + base pass | 6.49 | 4.05: 4 LODs on every scan (100/30/8/2 %), 528-triangle sphere for wisps and swarms |
+| SSAO + SSR | 1.97 | 0: `r.AmbientOcclusionLevels=0`, `r.ReflectionMethod=0` |
+| sky capture | real-time | captured once (`r.SkyLight.RealTimeReflectionCapture=0`) |
+
+The play settings live in `PlayRealm-iGPU.bat` and the look-dev skill's `live_shot.ps1`. The project settings stay at full quality for Movie Render Queue. Unreal also asks the bridge for 30 Hz streams instead of 60 (`RequestedRateHz=30`), which saves CPU. On this chip the CPU and GPU share one power budget.
+
 **First person.** The map's GameMode Override is `APrimordiaExplorerGameMode`, which spawns `APrimordiaExplorer` at `ExplorerStart` on the base disc, facing the spires. The controls are WASD to move, mouse to look, Space to jump, Shift to sprint, and F to toggle flight (Space up, C down). Falling off the realm returns you to the start. `BenchCamera` no longer takes over the player, so renders look through it by name (`live_shot.ps1 -Camera BenchCamera`, the default). Render the bench with the look-dev skill's `scripts/live_shot.ps1`.
 
 ## 9. Neo-Gothic cathedral look-dev scene: `NeoGothicCathedral`

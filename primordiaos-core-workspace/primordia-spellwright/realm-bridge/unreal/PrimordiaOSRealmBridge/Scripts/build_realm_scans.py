@@ -33,6 +33,10 @@ BRIGHTNESS = 1.6       # the scans' albedo is dark (~0.15) next to the realm's p
 MACRO_CM = 3000.0
 
 MEL = unreal.MaterialEditingLibrary
+# The scans come with one LOD (4-8k triangles). As rubble they are drawn by the hundred at a few
+# pixels each, so they get engine-reduced LODs: (fraction of triangles, screen size).
+SCAN_LODS = ((1.0, 1.0), (0.3, 0.35), (0.08, 0.12), (0.02, 0.04))
+SCAN_MESHES = ("ForestCliffLarge/ForestCliffLarge", "BeachRockFormation/BeachRockFormation", "TundraFormation/TundraFormation")
 
 
 def log(msg):
@@ -152,6 +156,27 @@ def build_ground_material():
     log(f"built {MATERIAL}")
 
 
+def build_lods():
+    # StaticMeshEditorSubsystem needs an editor plugin this project doesn't enable; the library works everywhere.
+    meshes = getattr(unreal, "StaticMeshEditorSubsystem", None)
+    meshes = unreal.get_editor_subsystem(meshes) if meshes else unreal.EditorStaticMeshLibrary
+    options = unreal.EditorScriptingMeshReductionOptions()
+    options.set_editor_property("auto_compute_lod_screen_size", False)
+    settings = []
+    for fraction, screen in SCAN_LODS:
+        s = unreal.EditorScriptingMeshReductionSettings()
+        s.set_editor_property("percent_triangles", fraction)
+        s.set_editor_property("screen_size", screen)
+        settings.append(s)
+    options.set_editor_property("reduction_settings", settings)
+    for rel in SCAN_MESHES:
+        path = f"{SCANS}/{rel}"
+        mesh = need(path)
+        lods = meshes.set_lods(mesh, options)
+        unreal.EditorAssetLibrary.save_asset(path, only_if_is_dirty=False)
+        log(f"{rel}: {lods} LODs, " + ", ".join(str(mesh.get_num_triangles(i)) for i in range(mesh.get_num_lods())) + " triangles")
+
+
 def soft(path):
     need(path)
     name = path.rsplit("/", 1)[-1]
@@ -193,4 +218,5 @@ def write_config():
 
 
 build_ground_material()
+build_lods()
 write_config()

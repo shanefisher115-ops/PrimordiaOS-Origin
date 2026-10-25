@@ -28,7 +28,9 @@ AMCPCrowdVisualizer::AMCPCrowdVisualizer()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+	// The engine's 528-triangle sphere: at wisp size it looks the same as BasicShapes/Sphere (960),
+	// and thousands of wisps make the difference in the depth and base passes on an integrated GPU.
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/EngineMeshes/Sphere.Sphere"));
 	Wisps = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Wisps"));
 	Wisps->SetupAttachment(RootComponent);
 	Wisps->SetMobility(EComponentMobility::Movable);
@@ -92,7 +94,9 @@ void AMCPCrowdVisualizer::Refresh(const FMCPResults& Results, const UMCPComputeS
 	const int32 Count = FMath::Min(Results.Actors.Num(), MaxDrawn);
 	const double UnitsPerMeter = FVector::Distance(MCP.RealmToWorld(FVector::ZeroVector), MCP.RealmToWorld(FVector(1, 0, 0)));
 	const double Height = WispHeightMeters * UnitsPerMeter;
-	const FVector Scale(Height * 0.45 / 100.0, Height * 0.45 / 100.0, Height / 100.0); // the engine sphere is 1 m across
+	// Size from the mesh's real bounds (EngineMeshes/Sphere is 2 m across, BasicShapes/Sphere 1 m).
+	const double MeshSize = Wisps->GetStaticMesh() ? FMath::Max(1.0, Wisps->GetStaticMesh()->GetBoundingBox().GetSize().GetMax()) : 100.0;
+	const FVector Scale(Height * 0.45 / MeshSize, Height * 0.45 / MeshSize, Height / MeshSize);
 
 	TArray<FTransform> Transforms;
 	Transforms.Reserve(Count);
