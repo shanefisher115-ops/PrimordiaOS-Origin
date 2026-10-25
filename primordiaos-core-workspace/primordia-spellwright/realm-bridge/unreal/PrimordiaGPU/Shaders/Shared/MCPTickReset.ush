@@ -1,0 +1,21 @@
+// MCP kernel body: per-tick reset. One 64-thread group, dispatched first every tick.
+//
+// Globals the including entry file must declare:
+//   RWStructuredBuffer<uint> StructureArgs, RWStructuredBuffer<uint> SigilCost
+
+/** One 64-thread group: zero this tick's counters and re-arm the spire draw's indirect args. */
+void MCPTickReset(uint Thread)
+{
+	if (Thread < MCP_MAX_SIGILS)
+	{
+		SigilCost[Thread] = 0;
+	}
+	if (Thread == 0)
+	{
+		// VkDrawIndirectCommand / D3D12 draw args: vertexCount, instanceCount, firstVertex, firstInstance.
+		StructureArgs[0] = MCP_SPIRE_VERTICES;
+		StructureArgs[1] = 0;
+		StructureArgs[2] = 0;
+		StructureArgs[3] = 0;
+	}
+}

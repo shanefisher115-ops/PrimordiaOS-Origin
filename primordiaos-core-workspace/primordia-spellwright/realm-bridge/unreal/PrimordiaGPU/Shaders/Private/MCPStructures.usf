@@ -1,0 +1,20 @@
+// Unreal entry point for MCPStructures (kernel body: ../Shared/MCPStructures.ush, shared with the standalone
+// Vulkan engine). The globals below are bound by FMCPStructuresCS::FParameters in
+// Source/MCPComputeBridge/Private/MCPShaders.h; their names are the body's contract.
+// numthreads repeats the MCP_GROUP_* constants as literals; MCPShaders.cpp static_asserts them.
+#include "/Engine/Public/Platform.ush"
+#include "/Plugin/PrimordiaGPU/Shared/MCPTypes.ush"
+#include "/Plugin/PrimordiaGPU/Shared/MCPCommon.ush"
+
+StructuredBuffer<FRealmTickGPU> TickBuffer;
+StructuredBuffer<FTerrainCellGPU> TerrainCurrent;
+RWStructuredBuffer<FStructureGPU> Structures;
+RWStructuredBuffer<uint> StructureArgs;
+
+#include "/Plugin/PrimordiaGPU/Shared/MCPStructures.ush"
+
+[numthreads(8, 8, 1)]
+void MainCS(uint3 Id : SV_DispatchThreadID)
+{
+	MCPStructureSpawn(Id.xy);
+}

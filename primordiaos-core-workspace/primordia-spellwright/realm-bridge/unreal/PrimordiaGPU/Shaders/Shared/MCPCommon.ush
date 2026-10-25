@@ -1,0 +1,125 @@
+// Shared MCP helpers: integer hashing, noise, color, quantization and field addressing.
+// Pure functions only, so the same text compiles under DXC (SPIR-V) and Unreal.
+// Realm generation must be reproducible from the PRS-1 seed, so all randomness is integer
+// hashing (PCG), never time or thread order.
+#pragma once
+
+uint MCPHash(uint V)
+{
+	// PCG-RXS-M-XS (Jarzynski & Olano, "Hash Functions for GPU Rendering", 2020).
+	uint State = V * 747796405u + 2891336453u;
+	uint Word = ((State >> ((State >> 28u) + 4u)) ^ State) * 277803737u;
+	return (Word >> 22u) ^ Word;
+}
+
+uint MCPHash3(uint A, uint B, uint C)
+{
+	return MCPHash(A ^ MCPHash(B ^ MCPHash(C)));
+}
+
+float MCPUnorm(uint Bits)
+{
+	return float(Bits >> 8) * (1.0 / 16777216.0);
+}
+
+/** Advances an actor's rng state and returns a uniform [0,1). */
+float MCPRandom(inout uint State)
+{
+	State = MCPHash(State);
+	return MCPUnorm(State);
+}
+
+float MCPLatticeValue(int2 Cell, uint Seed)
+{
+	return MCPUnorm(MCPHash3(uint(Cell.x), uint(Cell.y), Seed));
+}
+
+/** Smooth value noise in [0,1]. */
+float MCPValueNoise(float2 P, uint Seed)
+{
+	const float2 Cell = floor(P);
+	const float2 F = P - Cell;
+	const float2 U = F * F * (3.0 - 2.0 * F);
+	const int2 C = int2(Cell);
+	const float A = MCPLatticeValue(C, Seed);
+	const float B = MCPLatticeValue(C + int2(1, 0), Seed);
+	const float D = MCPLatticeValue(C + int2(0, 1), Seed);
+	const float E = MCPLatticeValue(C + int2(1, 1), Seed);
+	return lerp(lerp(A, B, U.x), lerp(D, E, U.x), U.y);
+}
+
+/** Five-octave fractal noise in [0,1]. */
+float MCPFbm(float2 P, uint Seed)
+{
+	float Sum = 0.0;
+	float Amplitude = 0.5;
+	float Norm = 0.0;
+	for (uint Octave = 0; Octave < 5; ++Octave)
+	{
+		Sum += Amplitude * MCPValueNoise(P, Seed + Octave * 1013u);
+		Norm += Amplitude;
+		P = P * 2.03 + float2(17.1, -9.7);
+		Amplitude *= 0.5;
+	}
+	return Sum / Norm;
+}
+
+float3 MCPHsvToRgb(float H, float S, float V)
+{
+	const float3 K = saturate(abs(frac(H + float3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0) - 1.0);
+	return V * lerp(float3(1.0, 1.0, 1.0), K, S);
+}
+
+// --- int8 quantization (world-memory compression) ---------------------------
+
+uint MCPPackInt8x4(float4 Q)
+{
+	const int4 I = int4(clamp(round(Q), -127.0, 127.0));
+	return (uint(I.x) & 0xFFu) | ((uint(I.y) & 0xFFu) << 8) | ((uint(I.z) & 0xFFu) << 16) | ((uint(I.w) & 0xFFu) << 24);
+}
+
+float4 MCPUnpackInt8x4(uint Word)
+{
+	// Sign-extend each byte: shift it to the top, then arithmetic-shift back down.
+	const int4 I = int4(int(Word << 24), int(Word << 16), int(Word << 8), int(Word)) >> 24;
+	return float4(I);
+}
+
+// --- Sigil field addressing ---------------------------------------------------
+
+uint MCPFieldIndex(uint3 Voxel, uint N)
+{
+	return (Voxel.z * N + Voxel.y) * N + Voxel.x;
+}
+
+float3 MCPFieldVoxelCenter(uint3 Voxel, float4 Field)
+{
+	return Field.xyz + (float3(Voxel) + 0.5) * Field.w;
+}
+
+/** Nearest voxel containing world point P, clamped into the field box. */
+uint3 MCPFieldVoxelAt(float3 P, float4 Field, uint N)
+{
+	const float3 G = (P - Field.xyz) / Field.w;
+	return uint3(clamp(int3(floor(G)), int3(0, 0, 0), int3(int(N) - 1, int(N) - 1, int(N) - 1)));
+}
+
+// --- Terrain addressing ---------------------------------------------------------
+
+/** World xy (m) of terrain cell (i, j) for a ground disc of radius R, N cells per side. */
+float2 MCPTerrainCellXY(uint2 Cell, uint N, float R)
+{
+	return ((float2(Cell) + 0.5) / float(N) * 2.0 - 1.0) * R;
+}
+
+/** Continuous cell coordinate of world xy (cell centers at integer + 0.5). */
+float2 MCPTerrainGrid(float2 XY, uint N, float R)
+{
+	return (XY / R * 0.5 + 0.5) * float(N);
+}
+
+uint MCPTerrainIndex(int2 Cell, uint N)
+{
+	const int2 C = clamp(Cell, int2(0, 0), int2(int(N) - 1, int(N) - 1));
+	return uint(C.y) * N + uint(C.x);
+}

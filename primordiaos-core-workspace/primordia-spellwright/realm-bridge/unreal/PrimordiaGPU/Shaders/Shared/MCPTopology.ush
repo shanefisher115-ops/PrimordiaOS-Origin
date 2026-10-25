@@ -1,0 +1,126 @@
+// MCP kernel body: realm topology mutation (terrain, moisture, temperature, biomes).
+//
+// Globals the including entry file must declare:
+//   StructuredBuffer<FRealmTickGPU> TickBuffer,
+//   StructuredBuffer<FTerrainCellGPU> TerrainIn, RWStructuredBuffer<FTerrainCellGPU> TerrainOut
+// The terrain is ping-ponged by the host (TerrainIn = last tick, TerrainOut = this tick), so
+// every cell reads a consistent neighborhood without atomics.
+
+float MCPSeaFloor(FRealmTickGPU T)
+{
+	return T.Misc.x - 0.25 * T.Essence.w;
+}
+
+/** The shape the ground wants to have under the current metaphysics (meters). */
+float MCPTerrainTarget(float2 XY, FRealmTickGPU T)
+{
+	const float R = T.MetaB.z;
+	const uint Seed = T.Counts.w;
+	const float Entropy = T.MetaA.x;
+	const float Coherence = T.MetaA.z;
+	const float Terraces = max(1.0, T.MetaB.w);
+	const float Roughness = T.Misc.w;
+	const float Time = T.Time.x;
+
+	// An island: full relief inside 0.7 R, sinking to the sea floor at the rim.
+	const float Rim = length(XY) / R;
+	const float Mask = 1.0 - smoothstep(0.7, 1.0, Rim);
+	const float2 P = XY / R * (1.6 + 2.4 * Roughness);
+	float H = MCPFbm(P, Seed);
+	// Entropy: a slowly drifting turbulence layer, so a disordered realm's ground breathes.
+	H += Entropy * 0.3 * (MCPFbm(P * 2.7 + float2(Time * 0.05, -Time * 0.031), Seed ^ 0x9E3779B9u) - 0.5);
+	H = saturate((H - 0.25) * 1.6) * Mask;
+	// Coherence: snaps the ground into PRS-1's stepped terraces (§3.3 ground).
+	const float Stepped = floor(H * Terraces + 0.5) / Terraces;
+	H = lerp(H, Stepped, saturate(Coherence));
+	return lerp(MCPSeaFloor(T), T.Essence.w, H);
+}
+
+uint MCPClassifyBiome(float Height, float Moisture, float Temperature, FRealmTickGPU T)
+{
+	const float Sea = T.Misc.x;
+	if (Height < Sea - 0.5)
+	{
+		return MCP_BIOME_ABYSS;
+	}
+	if (Height < Sea + 0.6)
+	{
+		return MCP_BIOME_SHORE;
+	}
+	const float Altitude = saturate((Height - Sea) / max(0.001, T.Essence.w - Sea));
+	if (T.MetaB.x > 0.55 && Temperature > 0.55 && Moisture < 0.45)
+	{
+		return MCP_BIOME_ASHLAND;
+	}
+	if (Altitude > 0.62)
+	{
+		return T.MetaB.y > 0.55 ? MCP_BIOME_CRYSTAL : MCP_BIOME_HIGHLAND;
+	}
+	return Moisture > 0.55 ? MCP_BIOME_FOREST : MCP_BIOME_MEADOW;
+}
+
+void MCPTopologyMutate(uint2 Cell)
+{
+	const FRealmTickGPU T = TickBuffer[0];
+	const uint N = T.Grid.x;
+	if (Cell.x >= N || Cell.y >= N)
+	{
+		return;
+	}
+	const float R = T.MetaB.z;
+	const float Dt = T.Time.y;
+	const float Entropy = T.MetaA.x;
+	const float Sea = T.Misc.x;
+	const float MaxH = T.Essence.w;
+
+	const uint Index = MCPTerrainIndex(int2(Cell), N);
+	const float4 Prev = TerrainIn[Index].Data;
+	const float Target = MCPTerrainTarget(MCPTerrainCellXY(Cell, N, R), T);
+
+	float Height;
+	if ((T.Flags.x & MCP_FLAG_GENESIS) != 0u)
+	{
+		Height = Target;
+	}
+	else
+	{
+		// Relax toward the target: the realm reshapes itself over seconds, never in one frame.
+		Height = lerp(Prev.x, Target, 1.0 - exp(-Dt * (0.4 + 2.0 * Entropy)));
+
+		// Thermal erosion in gather form: material slides in from any neighbor steeper than
+		// the talus slope and out to any lower one. Both sides use last tick's heights, so the
+		// exchange is symmetric and conserves mass across the grid.
+		const float CellSize = 2.0 * R / float(N);
+		const float Talus = CellSize * lerp(1.2, 0.45, Entropy);
+		const float Rate = 0.12 * saturate(Dt * 30.0);
+		const int2 Offsets[4] = { int2(1, 0), int2(-1, 0), int2(0, 1), int2(0, -1) };
+		float Flow = 0.0;
+		for (uint K = 0; K < 4; ++K)
+		{
+			const float Neighbor = TerrainIn[MCPTerrainIndex(int2(Cell) + Offsets[K], N)].Data.x;
+			Flow += max(0.0, Neighbor - Prev.x - Talus) - max(0.0, Prev.x - Neighbor - Talus);
+		}
+		Height += Rate * 0.25 * Flow;
+	}
+
+	// Moisture diffuses from the sea inland; lucid realms rain more.
+	float NeighborMoisture = 0.0;
+	{
+		const int2 Offsets[4] = { int2(1, 0), int2(-1, 0), int2(0, 1), int2(0, -1) };
+		for (uint K = 0; K < 4; ++K)
+		{
+			NeighborMoisture += TerrainIn[MCPTerrainIndex(int2(Cell) + Offsets[K], N)].Data.y;
+		}
+		NeighborMoisture *= 0.25;
+	}
+	const float Altitude = saturate((Height - Sea) / max(0.001, MaxH - Sea));
+	const float Source = Height < Sea ? 1.0 : saturate(0.3 + 0.45 * (1.0 - Altitude) + 0.25 * T.MetaB.y);
+	const float MoistureGoal = lerp(NeighborMoisture, Source, 0.35);
+	const float Moisture = (T.Flags.x & MCP_FLAG_GENESIS) != 0u ? Source : lerp(Prev.y, MoistureGoal, 1.0 - exp(-Dt * 1.5));
+
+	// Luminosity warms, altitude cools, inversion scorches.
+	const float Temperature = saturate(0.25 + 0.6 * T.MetaA.y - 0.5 * Altitude + 0.2 * T.MetaB.x);
+
+	const uint Biome = MCPClassifyBiome(Height, Moisture, Temperature, T);
+	TerrainOut[Index].Data = float4(Height, Moisture, Temperature, float(Biome));
+}

@@ -1,0 +1,46 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0.0",
+	"FriendlyName": "PrimordiaOS GPU (Onyx + Vulkan + MCP)",
+	"Description": "GPU-accelerated continuous realm building for PrimordiaOS: MCP compute kernels (topology mutation, sigil fields, actor cognition, world memory) on the render graph, Onyx GPU telemetry and inspector, a Vulkan-aware realm renderer, and bindings to the PrimordiaOS realm bridge. Kernels are shared with the standalone Vulkan engine in realm-bridge/gpu.",
+	"Category": "PrimordiaOS",
+	"CreatedBy": "PrimordiaOS",
+	"EngineVersion": "5.4.0",
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "OnyxRuntime",
+			"Type": "Runtime",
+			"LoadingPhase": "PostConfigInit"
+		},
+		{
+			"Name": "MCPComputeBridge",
+			"Type": "Runtime",
+			"LoadingPhase": "PostConfigInit"
+		},
+		{
+			"Name": "VulkanRealmRenderer",
+			"Type": "Runtime",
+			"LoadingPhase": "PostConfigInit"
+		},
+		{
+			"Name": "PrimordiaRealmGPU",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "OnyxInspector",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "PrimordiaOSRealmBridge",
+			"Enabled": true
+		}
+	]
+}

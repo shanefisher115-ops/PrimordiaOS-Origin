@@ -1,0 +1,18 @@
+// Unreal entry point for MCPTickReset (kernel body: ../Shared/MCPTickReset.ush, shared with the standalone
+// Vulkan engine). The globals below are bound by FMCPTickResetCS::FParameters in
+// Source/MCPComputeBridge/Private/MCPShaders.h; their names are the body's contract.
+// numthreads repeats the MCP_GROUP_* constants as literals; MCPShaders.cpp static_asserts them.
+#include "/Engine/Public/Platform.ush"
+#include "/Plugin/PrimordiaGPU/Shared/MCPTypes.ush"
+#include "/Plugin/PrimordiaGPU/Shared/MCPCommon.ush"
+
+RWStructuredBuffer<uint> StructureArgs;
+RWStructuredBuffer<uint> SigilCost;
+
+#include "/Plugin/PrimordiaGPU/Shared/MCPTickReset.ush"
+
+[numthreads(64, 1, 1)]
+void MainCS(uint3 Id : SV_DispatchThreadID)
+{
+	MCPTickReset(Id.x);
+}

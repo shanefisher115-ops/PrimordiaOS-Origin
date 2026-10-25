@@ -1,0 +1,71 @@
+// MCP kernel body: world-memory retrieval. One 64-thread group per actor, one thread per
+// memory slot. Each thread dequantizes its memory and scores it against the actor's current
+// episode (cosine similarity); a shared-memory reduction picks the best. Next tick's
+// cognition reads the result, so a situation that frightened an actor before frightens it
+// again.
+//
+// Globals the including entry file must declare:
+//   StructuredBuffer<FRealmTickGPU> TickBuffer, StructuredBuffer<FEpisodeGPU> EpisodesIn,
+//   StructuredBuffer<FActorGPU> ActorsCurrent, StructuredBuffer<FMemoryGPU> MemoryCurrent,
+//   RWStructuredBuffer<FRecallGPU> RecallOut, RWStructuredBuffer<FActorCostGPU> ActorCost
+
+groupshared float GRecallScore[MCP_MEMORY_SLOTS];
+groupshared uint GRecallSlot[MCP_MEMORY_SLOTS];
+
+void MCPMemoryRetrieve(uint Actor, uint Slot)
+{
+	const FRealmTickGPU T = TickBuffer[0];
+	const bool bActor = Actor < T.Counts.x;
+	const uint Slots = T.Grid.z;
+
+	float Score = -2.0; // below any cosine: "nothing here"
+	if (bActor && Slot < Slots)
+	{
+		const uint Written = ActorsCurrent[Actor].State.w;
+		if (Slot < min(Written, Slots))
+		{
+			const FMemoryGPU M = MemoryCurrent[Actor * Slots + Slot];
+			if (T.Time.x - M.Meta.y >= T.Misc.z) // too recent to be a memory yet
+			{
+				const FEpisodeGPU E = EpisodesIn[Actor];
+				const float Dq = M.Meta.x / 127.0;
+				const float4 V0 = MCPUnpackInt8x4(M.Packed.x) * Dq;
+				const float4 V1 = MCPUnpackInt8x4(M.Packed.y) * Dq;
+				const float4 V2 = MCPUnpackInt8x4(M.Packed.z) * Dq;
+				const float4 V3 = MCPUnpackInt8x4(M.Packed.w) * Dq;
+				const float Dot = dot(E.V0, V0) + dot(E.V1, V1) + dot(E.V2, V2) + dot(E.V3, V3);
+				const float Qn = dot(E.V0, E.V0) + dot(E.V1, E.V1) + dot(E.V2, E.V2) + dot(E.V3, E.V3);
+				const float Mn = dot(V0, V0) + dot(V1, V1) + dot(V2, V2) + dot(V3, V3);
+				Score = Dot * rsqrt(max(Qn * Mn, 1e-12));
+			}
+		}
+	}
+	GRecallScore[Slot] = Score;
+	GRecallSlot[Slot] = Slot;
+	GroupMemoryBarrierWithGroupSync();
+
+	// Tree reduction to the best score (ties go to the lower slot, so results are stable).
+	for (uint Stride = MCP_MEMORY_SLOTS / 2; Stride > 0; Stride >>= 1)
+	{
+		if (Slot < Stride && GRecallScore[Slot + Stride] > GRecallScore[Slot])
+		{
+			GRecallScore[Slot] = GRecallScore[Slot + Stride];
+			GRecallSlot[Slot] = GRecallSlot[Slot + Stride];
+		}
+		GroupMemoryBarrierWithGroupSync();
+	}
+
+	if (Slot == 0 && bActor)
+	{
+		FRecallGPU Out;
+		Out.Value = float4(0.0, 0.0, 0.0, 0.0);
+		if (GRecallScore[0] > -1.5)
+		{
+			const FMemoryGPU Best = MemoryCurrent[Actor * Slots + GRecallSlot[0]];
+			const float Fear = MCPUnpackInt8x4(Best.Packed.x).z * (Best.Meta.x / 127.0);
+			Out.Value = float4(max(0.0, GRecallScore[0]), Fear, T.Time.x - Best.Meta.y, float(GRecallSlot[0]));
+		}
+		RecallOut[Actor] = Out;
+		ActorCost[Actor].Work.z = min(ActorsCurrent[Actor].State.w, Slots);
+	}
+}

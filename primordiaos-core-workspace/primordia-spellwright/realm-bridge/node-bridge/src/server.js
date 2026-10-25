@@ -9,7 +9,7 @@
 // Every option also reads PRIMORDIA_<NAME> from the environment.
 import { WebSocketServer } from 'ws';
 import { fileURLToPath } from 'node:url';
-import { createMetaState } from './state.js';
+import { createMetaState, snapshotMetaphysics } from './state.js';
 import { loadModules } from './modules/index.js';
 import { validatePacket } from './schemas.js';
 import { designRealm } from './realm/design.js';
@@ -17,6 +17,9 @@ import { DEFAULT_OLLAMA_URL } from './llm/ollama.js';
 import { createTTS } from './voice/tts.js';
 import { createSpeaker } from './voice/speaker.js';
 import { direct, describeRealm } from './voice/director.js';
+import { createOnyxHub } from './gpu/onyx.js';
+import { createTuner } from './gpu/tuner.js';
+import { startGpuSidecar } from './gpu/sidecar.js';
 
 export const VERSION = '1.0.0';
 const MAX_BUFFERED_BYTES = 1 << 20; // above this a client is lagging: drop continuous frames
@@ -39,6 +42,10 @@ export async function createBridge(options = {}) {
     voiceName = 'af_heart',
     voicePreload = false,        // load Kokoro at startup instead of on first speech
     ttsFactory = createTTS,      // injectable for tests
+    gpuSidecar = null,           // path to primordia_realmd: run the Vulkan engine as a sidecar
+    gpuSidecarArgs = [],
+    gpuTuner = {},               // tuner thresholds (src/gpu/tuner.js)
+    gpuTelemetryHz = 4,          // gpu_telemetry broadcast rate per source
     log = console.log,
   } = options;
   let design = null; // { controller } while a generate_realm is in flight
@@ -142,6 +149,76 @@ export async function createBridge(options = {}) {
     stats.bytes += text.length;
   }
 
+  // --- The GPU loop: Onyx telemetry in, realm quality out (docs/GPU_PIPELINE.md) -----------
+  ctx.gpuQuality = 1;
+  const onyxHub = createOnyxHub();
+  const tuner = createTuner(gpuTuner);
+  let sidecar = null;
+  let sidecarManifestKey = '';
+  let sidecarMetaAt = 0;
+  let gpuBroadcastAt = 0;
+
+  function applyGpuQuality(reason) {
+    const quality = tuner.quality;
+    if (quality === ctx.gpuQuality) return;
+    ctx.gpuQuality = quality;
+    log(`[gpu] realm quality ${quality} (${reason})`);
+    sidecar?.send({ type: 'quality', scale: quality });
+  }
+
+  function ingestTelemetry(source, frame) {
+    const errors = onyxHub.ingest(source, frame);
+    if (errors.length) return errors;
+    const worst = onyxHub.worst();
+    const decision = worst && tuner.observe(worst.load, performance.now() / 1000);
+    if (decision) applyGpuQuality(`${decision.reason}: ${worst.source} at ${Math.round(decision.load * 100)}% of budget`);
+    return [];
+  }
+
+  function pumpGpu() {
+    const now = performance.now() / 1000;
+    if (clients.size && now - gpuBroadcastAt >= 1 / gpuTelemetryHz) {
+      gpuBroadcastAt = now;
+      for (const p of onyxHub.takePackets({ tuner: tuner.state() }, gpuTelemetryHz)) {
+        const encoded = encode(p);
+        for (const c of clients) deliver(c, encoded);
+      }
+    }
+    if (sidecar?.alive) {
+      // The sidecar simulates the authored realm; quality reaches it as its own message.
+      const key = `${ctx.manifest.realm_id}#${ctx.manifest.revision}`;
+      if (key !== sidecarManifestKey) {
+        sidecarManifestKey = key;
+        sidecar.send({ type: 'manifest', manifest: ctx.manifest });
+      }
+      if (now - sidecarMetaAt >= 0.1) {
+        sidecarMetaAt = now;
+        sidecar.send({ type: 'metaphysics', metaphysics: snapshotMetaphysics(ctx.state) });
+      }
+    }
+  }
+
+  if (gpuSidecar) {
+    sidecar = startGpuSidecar({
+      exe: gpuSidecar,
+      args: gpuSidecarArgs,
+      log,
+      onMessage(msg) {
+        if (msg.type === 'telemetry') {
+          const errors = ingestTelemetry(msg.source ?? 'vulkan-sidecar', msg);
+          if (errors.length) log(`[gpu] sidecar telemetry rejected: ${errors.slice(0, 3).join('; ')}`);
+        } else if (msg.type === 'mcp_results') {
+          const { type, ...results } = msg;
+          onyxHub.attachResults('vulkan-sidecar', results);
+        } else if (msg.type === 'ready') {
+          log(`[gpu] Vulkan sidecar ready on ${msg.device} (${msg.actors} actors)`);
+        } else if (msg.type === 'error') {
+          log(`[gpu] sidecar error: ${msg.message}`);
+        }
+      },
+    });
+  }
+
   function sendFullState(client) {
     for (const m of modules) {
       for (const p of m.sample(ctx, { full: true })) deliver(client, encode(p));
@@ -208,6 +285,20 @@ export async function createBridge(options = {}) {
       case 'cancel_speech':
         speaking?.controller.abort();
         break;
+      case 'set_quality': {
+        // {name:"set_quality", args:{scale:0.6}} pins the GPU quality; {scale:null} unpins it.
+        const scale = args.scale === null || args.scale === undefined ? null : Number(args.scale);
+        if (scale !== null && !Number.isFinite(scale)) throw new Error('set_quality needs a numeric scale or null');
+        tuner.pin(scale);
+        applyGpuQuality(scale === null ? 'tuner resumed' : 'pinned by command');
+        return { quality: tuner.quality };
+      }
+      case 'set_gpu_budget': {
+        const ms = Number(args.ms);
+        if (!(ms > 0)) throw new Error('set_gpu_budget needs args.ms > 0');
+        sidecar?.send({ type: 'budget', ms });
+        return { budget_ms: ms, sidecar: Boolean(sidecar?.alive) };
+      }
       default:
         throw new Error(`unknown command ${name}`);
     }
@@ -342,6 +433,12 @@ export async function createBridge(options = {}) {
         return sendFullState(client);
       case 'ping':
         return reply(client, 'pong', { nonce: msg.nonce ?? null });
+      case 'telemetry': {
+        // Onyx frames from a renderer (Unreal's OnyxRuntime module sends these).
+        const errors = ingestTelemetry(String(msg.source ?? client.name), msg);
+        if (errors.length) reply(client, 'ack', { command: 'telemetry', ok: false, error: errors.slice(0, 3).join('; ') });
+        return;
+      }
       case 'command':
         try {
           const extra = handleCommand(client, msg);
@@ -367,7 +464,7 @@ export async function createBridge(options = {}) {
     reply(client, 'hello', {
       server: 'PrimordiaOS',
       version: VERSION,
-      streams,
+      streams: { ...streams, gpu_telemetry: gpuTelemetryHz },
       units: { length: 'meter', up: '+Z', handedness: 'left', color: 'linear' },
     });
     sendFullState(client);
@@ -404,6 +501,7 @@ export async function createBridge(options = {}) {
         for (const c of clients) deliver(c, encoded);
       }
     }
+    pumpGpu();
     nextAt += period;
     if (nextAt < now) nextAt = now + period; // fell behind (debugger, sleep): don't spiral
     timer = setTimeout(tick, Math.max(0, nextAt - performance.now()));
@@ -427,6 +525,7 @@ export async function createBridge(options = {}) {
     async close() {
       running = false;
       clearTimeout(timer);
+      await sidecar?.close();
       design?.controller.abort();
       speaking?.controller.abort();
       for (const c of clients) c.ws.terminate();
@@ -456,6 +555,11 @@ function parseArgs(argv) {
     voiceDtype: get('--voice-dtype', 'PRIMORDIA_VOICE_DTYPE', 'fp32'),
     voiceName: get('--voice', 'PRIMORDIA_VOICE', 'af_heart'),
     voicePreload: argv.includes('--voice-preload') || env.PRIMORDIA_VOICE_PRELOAD === '1',
+    // The standalone Vulkan engine (realm-bridge/gpu): path to primordia_realmd.exe.
+    gpuSidecar: get('--gpu-sidecar', 'PRIMORDIA_GPU_SIDECAR', null),
+    gpuSidecarArgs: ['--actors', String(Number(get('--gpu-actors', 'PRIMORDIA_GPU_ACTORS', 2048)))].concat(
+      argv.includes('--gpu-window') || env.PRIMORDIA_GPU_WINDOW === '1' ? ['--window'] : [],
+    ),
   };
 }
 

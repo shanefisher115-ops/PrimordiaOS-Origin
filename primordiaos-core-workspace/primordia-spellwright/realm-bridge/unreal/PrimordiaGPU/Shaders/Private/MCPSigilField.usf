@@ -1,0 +1,20 @@
+// Unreal entry point for MCPSigil (kernel body: ../Shared/MCPSigil.ush, shared with the standalone
+// Vulkan engine). The globals below are bound by FMCPSigilFieldCS::FParameters in
+// Source/MCPComputeBridge/Private/MCPShaders.h; their names are the body's contract.
+// numthreads repeats the MCP_GROUP_* constants as literals; MCPShaders.cpp static_asserts them.
+#include "/Engine/Public/Platform.ush"
+#include "/Plugin/PrimordiaGPU/Shared/MCPTypes.ush"
+#include "/Plugin/PrimordiaGPU/Shared/MCPCommon.ush"
+
+StructuredBuffer<FRealmTickGPU> TickBuffer;
+StructuredBuffer<FSigilGPU> Sigils;
+RWStructuredBuffer<FFieldVoxelGPU> SigilFieldOut;
+RWStructuredBuffer<uint> SigilCost;
+
+#include "/Plugin/PrimordiaGPU/Shared/MCPSigil.ush"
+
+[numthreads(4, 4, 4)]
+void MainCS(uint3 Id : SV_DispatchThreadID, uint Local : SV_GroupIndex)
+{
+	MCPSigilField(Id, Local);
+}

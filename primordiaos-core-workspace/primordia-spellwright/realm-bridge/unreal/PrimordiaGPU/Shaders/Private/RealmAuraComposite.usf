@@ -1,0 +1,61 @@
+// Realm aura composite: marches each pixel's view ray through the MCP sigil field (realm
+// space, meters) up to the scene depth and adds the aura light it passes through. Runs after
+// motion blur, on linear HDR scene color, before tonemapping. Parameters: FRealmAuraPS
+// (Source/VulkanRealmRenderer/Private/RealmAuraShaders.h).
+#include "/Engine/Private/Common.ush"
+#include "/Engine/Private/SceneTexturesCommon.ush"
+#include "/Plugin/PrimordiaGPU/Shared/MCPTypes.ush"
+#include "/Plugin/PrimordiaGPU/Shared/MCPCommon.ush"
+
+Texture2D SceneColorTexture;
+StructuredBuffer<FRealmTickGPU> TickBuffer;
+StructuredBuffer<FFieldVoxelGPU> SigilField;
+float4x4 TranslatedWorldToRealm;
+float AuraIntensity;
+uint AuraSteps;
+
+void MainPS(noperspective float4 UVAndScreenPos : TEXCOORD0, float4 SvPosition : SV_POSITION, out float4 OutColor : SV_Target0)
+{
+	const float4 Scene = SceneColorTexture.Load(int3(SvPosition.xy, 0));
+	const FRealmTickGPU T = TickBuffer[0];
+	const uint N = T.Grid.y;
+	if (N == 0)
+	{
+		OutColor = Scene;
+		return;
+	}
+
+	const float SceneDepth = CalcSceneDepth(SvPositionToBufferUV(SvPosition));
+	const float3 FarTranslated = SvPositionToTranslatedWorld(float4(SvPosition.xy, ConvertToDeviceZ(SceneDepth), 1.0));
+	const float3 Eye = mul(float4(PrimaryView.TranslatedWorldCameraOrigin, 1.0), TranslatedWorldToRealm).xyz;
+	const float3 Far = mul(float4(FarTranslated, 1.0), TranslatedWorldToRealm).xyz;
+
+	// Clip the ray to the field box (slab test).
+	const float3 BoxMin = T.Field.xyz;
+	const float3 BoxMax = T.Field.xyz + float(N) * T.Field.w;
+	const float3 Dir = Far - Eye;
+	const float3 DirSign = step(0.0, Dir) * 2.0 - 1.0; // no vector ?: (invalid in HLSL 2021)
+	const float3 InvDir = 1.0 / (DirSign * max(abs(Dir), 1e-6));
+	const float3 T0 = (BoxMin - Eye) * InvDir;
+	const float3 T1 = (BoxMax - Eye) * InvDir;
+	const float3 Near3 = min(T0, T1);
+	const float3 Far3 = max(T0, T1);
+	const float Enter = max(max(max(Near3.x, Near3.y), Near3.z), 0.0);
+	const float Exit = min(min(min(Far3.x, Far3.y), Far3.z), 1.0);
+	if (Exit <= Enter)
+	{
+		OutColor = Scene;
+		return;
+	}
+
+	const uint Steps = max(AuraSteps, 1u);
+	const float Step = (Exit - Enter) / float(Steps);
+	const float StepMeters = length(Dir) * Step;
+	float3 Aura = float3(0.0, 0.0, 0.0);
+	for (uint I = 0; I < Steps; ++I)
+	{
+		const float3 P = Eye + Dir * (Enter + (float(I) + 0.5) * Step);
+		Aura += SigilField[MCPFieldIndex(MCPFieldVoxelAt(P, T.Field, N), N)].Value.rgb * StepMeters;
+	}
+	OutColor = float4(Scene.rgb + Aura * AuraIntensity, Scene.a);
+}

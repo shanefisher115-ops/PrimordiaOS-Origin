@@ -3,11 +3,13 @@
 // revision changes (plus on connect, handled by the server).
 import { mulberry32, subSeed } from '../prng.js';
 import { genesis, evolve, validateManifest } from '../realm/prs1.js';
+import { applyQuality } from '../gpu/tuner.js';
 
 export function create(seed, { evolveSeconds = 15 } = {}) {
   let rng = mulberry32(subSeed(seed, 'worldforge.evolve'));
   let since = 0;
   let lastSentRevision = -1;
+  let lastSentQuality = 1;
   let forced = false;
 
   const commit = (ctx, manifest) => {
@@ -32,10 +34,16 @@ export function create(seed, { evolveSeconds = 15 } = {}) {
         commit(ctx, evolve(ctx.manifest, ctx.state, rng));
       }
     },
+    // Renderers receive the authored manifest thinned by the GPU tuner (ctx.gpuQuality, see
+    // src/gpu/tuner.js); evolution always continues from the authored one.
     sample(ctx, { full = false } = {}) {
-      if (!full && ctx.manifest.revision === lastSentRevision) return [];
-      if (!full) lastSentRevision = ctx.manifest.revision;
-      return [{ type: 'realm_manifest', id: ctx.manifest.realm_id, payload: ctx.manifest }];
+      const quality = ctx.gpuQuality ?? 1;
+      if (!full && ctx.manifest.revision === lastSentRevision && quality === lastSentQuality) return [];
+      if (!full) {
+        lastSentRevision = ctx.manifest.revision;
+        lastSentQuality = quality;
+      }
+      return [{ type: 'realm_manifest', id: ctx.manifest.realm_id, payload: applyQuality(ctx.manifest, quality) }];
     },
     // Commands (from Unreal via {type:"command"}).
     forceEvolve() {

@@ -19,6 +19,7 @@ export const PACKET_TYPES = [
   'ack',
   'pong',
   'voice',
+  'gpu_telemetry',
 ];
 
 export const envelopeSchema = {
@@ -37,7 +38,48 @@ export const envelopeSchema = {
   },
 };
 
+// Onyx GPU telemetry (docs/GPU_PIPELINE.md). Clients send it as {"type":"telemetry",...};
+// the bridge rebroadcasts it as gpu_telemetry with id "onyx:<source>" and the tuner state.
+const gpuTelemetry = {
+  type: 'object',
+  required: ['source', 'tick', 'gpu'],
+  properties: {
+    source: { type: 'string' },
+    tick: { type: 'integer', minimum: 0 },
+    device: { type: 'string' },
+    realm_id: { type: 'string' },
+    fps: num(0),
+    cpu_ms: num(0),
+    quality: num(0, 1),
+    gpu: {
+      type: 'object',
+      required: ['frame_ms', 'budget_ms'],
+      properties: {
+        frame_ms: num(0),
+        budget_ms: num(0.1),
+        realm_tick_ms: num(0),
+        render_ms: num(0),
+        headroom: num(-1000, 1),
+        memory_pressure: num(0, 8),
+        queues: { type: 'object' },
+        scopes: { type: 'object' },
+      },
+    },
+    pipelines: { type: 'object' },
+    actors: {
+      type: 'object',
+      properties: { count: { type: 'integer', minimum: 0 }, gpu_us_total: num(0), gpu_us_mean: num(0), hottest: { type: 'array' }, actions: { type: 'object' } },
+    },
+    sigils: { type: 'array' },
+    structures: { type: 'integer', minimum: 0 },
+    tuner: { type: 'object', properties: { quality: num(0, 1), pinned: { type: 'boolean' } } },
+    mcp: { type: 'object' },
+  },
+};
+
 export const payloadSchemas = {
+  gpu_telemetry: gpuTelemetry,
+
   hello: {
     type: 'object',
     required: ['server', 'version', 'streams', 'units'],

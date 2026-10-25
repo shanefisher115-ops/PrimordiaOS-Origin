@@ -4,3 +4,6 @@ unreal/PrimordiaOSRealmBridge/Intermediate/
 node-bridge/.cache/
 unreal/PrimordiaCognition/Binaries/
 unreal/PrimordiaCognition/Intermediate/
+gpu/build/
+unreal/PrimordiaGPU/Binaries/
+unreal/PrimordiaGPU/Intermediate/

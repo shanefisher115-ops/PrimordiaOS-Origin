@@ -1,0 +1,59 @@
+// MCP kernel body: structure growth (spires on the summits of the high biomes).
+//
+// Globals the including entry file must declare:
+//   StructuredBuffer<FRealmTickGPU> TickBuffer, StructuredBuffer<FTerrainCellGPU> TerrainCurrent,
+//   RWStructuredBuffer<FStructureGPU> Structures, RWStructuredBuffer<uint> StructureArgs
+
+/** One thread per coarse cell: grows a spire on every local summit of the high biomes.
+ *  Instances are appended with an atomic on the indirect args, so the renderer draws exactly
+ *  what the GPU grew without a CPU round trip. */
+void MCPStructureSpawn(uint2 Coarse)
+{
+	const FRealmTickGPU T = TickBuffer[0];
+	const uint N = T.Grid.x;
+	const uint Nc = N / MCP_STRUCTURE_STRIDE;
+	if (Coarse.x >= Nc || Coarse.y >= Nc)
+	{
+		return;
+	}
+	const int2 Cell = int2(Coarse * MCP_STRUCTURE_STRIDE + MCP_STRUCTURE_STRIDE / 2);
+	const float4 C = TerrainCurrent[MCPTerrainIndex(Cell, N)].Data;
+	const uint Biome = uint(C.w + 0.5);
+	if (Biome != MCP_BIOME_HIGHLAND && Biome != MCP_BIOME_CRYSTAL)
+	{
+		return;
+	}
+	for (int Dy = -1; Dy <= 1; ++Dy)
+	{
+		for (int Dx = -1; Dx <= 1; ++Dx)
+		{
+			if (Dx == 0 && Dy == 0)
+			{
+				continue;
+			}
+			const int2 Other = Cell + int2(Dx, Dy) * int(MCP_STRUCTURE_STRIDE);
+			if (TerrainCurrent[MCPTerrainIndex(Other, N)].Data.x > C.x)
+			{
+				return; // not a summit
+			}
+		}
+	}
+	uint Rng = MCPHash3(Coarse.x, Coarse.y, T.Counts.w ^ 0x51u);
+	if (MCPRandom(Rng) > 0.85)
+	{
+		return;
+	}
+	uint Slot;
+	InterlockedAdd(StructureArgs[1], 1u, Slot);
+	if (Slot >= T.Grid.w)
+	{
+		return; // over budget: the renderer and readback clamp the count to Grid.w
+	}
+	const float R = T.MetaB.z;
+	const float CellSize = 2.0 * R / float(N);
+	const float2 XY = MCPTerrainCellXY(uint2(Cell), N, R);
+	FStructureGPU S;
+	S.PosHeight = float4(XY, C.x, T.Essence.w * (0.25 + 0.5 * MCPRandom(Rng)) * (1.0 + 0.5 * T.MetaB.y));
+	S.Look = float4(CellSize * (0.8 + 0.9 * MCPRandom(Rng)), Biome == MCP_BIOME_CRYSTAL ? 0.52 + 0.08 * MCPRandom(Rng) : 0.08, float(Biome), MCPRandom(Rng));
+	Structures[Slot] = S;
+}

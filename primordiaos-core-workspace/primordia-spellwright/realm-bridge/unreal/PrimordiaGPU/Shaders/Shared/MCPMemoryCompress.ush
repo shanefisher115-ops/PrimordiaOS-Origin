@@ -1,0 +1,36 @@
+// MCP kernel body: world-memory compression. One thread per actor.
+// A salient episode (from cognition) is quantized from 16 fp32 values to 16 int8 values plus
+// one fp32 scale (64 B -> 32 B with metadata) and written into the actor's memory ring.
+//
+// Globals the including entry file must declare:
+//   StructuredBuffer<FRealmTickGPU> TickBuffer, StructuredBuffer<FEpisodeGPU> EpisodesIn,
+//   RWStructuredBuffer<FActorGPU> ActorsOut, RWStructuredBuffer<FMemoryGPU> Memory,
+//   RWStructuredBuffer<FActorCostGPU> ActorCost
+
+void MCPMemoryCompress(uint Index)
+{
+	const FRealmTickGPU T = TickBuffer[0];
+	if (Index >= T.Counts.x)
+	{
+		return;
+	}
+	const FEpisodeGPU E = EpisodesIn[Index];
+	if (E.Meta.x <= 0.0)
+	{
+		ActorCost[Index].Work.w = 0u;
+		return;
+	}
+	const float4 MaxAbs = max(max(abs(E.V0), abs(E.V1)), max(abs(E.V2), abs(E.V3)));
+	const float Scale = max(1e-6, max(max(MaxAbs.x, MaxAbs.y), max(MaxAbs.z, MaxAbs.w)));
+	const float ToInt8 = 127.0 / Scale;
+
+	FMemoryGPU M;
+	M.Packed = uint4(MCPPackInt8x4(E.V0 * ToInt8), MCPPackInt8x4(E.V1 * ToInt8), MCPPackInt8x4(E.V2 * ToInt8), MCPPackInt8x4(E.V3 * ToInt8));
+	M.Meta = float4(Scale, E.Meta.y, E.Meta.x, E.Meta.w);
+
+	const uint Slots = T.Grid.z;
+	const uint Written = ActorsOut[Index].State.w;
+	Memory[Index * Slots + Written % Slots] = M;
+	ActorsOut[Index].State.w = Written + 1u;
+	ActorCost[Index].Work.w = 1u;
+}

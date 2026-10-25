@@ -1,0 +1,230 @@
+// MCP kernel body: actor cognition. One thread per actor, every tick:
+//   1. perceive: terrain height, sigil potential and its gradient, last tick's recalled memory
+//   2. update drives (energy, curiosity, fear, devotion)
+//   3. walk the actor's behavior tree (flattened: see MCPBehaviorTree.h) to pick an action,
+//      with commitment hysteresis so actors do not flicker between actions
+//   4. steer, integrate, and stand on the terrain
+//   5. emit an episode (the fp32 embedding the memory kernels compress and query with)
+//
+// Globals the including entry file must declare:
+//   StructuredBuffer<FRealmTickGPU> TickBuffer, StructuredBuffer<FTerrainCellGPU> TerrainCurrent,
+//   StructuredBuffer<FFieldVoxelGPU> SigilFieldCurrent, StructuredBuffer<FSigilGPU> Sigils,
+//   StructuredBuffer<FActorGPU> ActorsIn, RWStructuredBuffer<FActorGPU> ActorsOut,
+//   StructuredBuffer<FBTNodeGPU> BTNodes, StructuredBuffer<FRecallGPU> RecallIn,
+//   RWStructuredBuffer<FActorCostGPU> ActorCost, RWStructuredBuffer<FEpisodeGPU> EpisodesOut
+
+float MCPTerrainHeightAt(float2 XY, FRealmTickGPU T)
+{
+	const uint N = T.Grid.x;
+	const float2 G = MCPTerrainGrid(XY, N, T.MetaB.z) - 0.5;
+	const int2 C = int2(floor(G));
+	const float2 F = G - float2(C);
+	const float A = TerrainCurrent[MCPTerrainIndex(C, N)].Data.x;
+	const float B = TerrainCurrent[MCPTerrainIndex(C + int2(1, 0), N)].Data.x;
+	const float D = TerrainCurrent[MCPTerrainIndex(C + int2(0, 1), N)].Data.x;
+	const float E = TerrainCurrent[MCPTerrainIndex(C + int2(1, 1), N)].Data.x;
+	return lerp(lerp(A, B, F.x), lerp(D, E, F.x), F.y);
+}
+
+float MCPPotentialAt(float3 P, FRealmTickGPU T)
+{
+	const uint N = T.Grid.y;
+	return SigilFieldCurrent[MCPFieldIndex(MCPFieldVoxelAt(P, T.Field, N), N)].Value.w;
+}
+
+/** Horizontal gradient of the sigil potential (central differences, one voxel apart). */
+float2 MCPPotentialGradient(float3 P, FRealmTickGPU T)
+{
+	const float H = T.Field.w;
+	const float Dx = MCPPotentialAt(P + float3(H, 0, 0), T) - MCPPotentialAt(P - float3(H, 0, 0), T);
+	const float Dy = MCPPotentialAt(P + float3(0, H, 0), T) - MCPPotentialAt(P - float3(0, H, 0), T);
+	return float2(Dx, Dy) / (2.0 * H);
+}
+
+/** Walks a flattened behavior tree from Root. Returns the committed action. */
+uint MCPEvaluateTree(uint Root, float Inputs[MCP_IN_COUNT], uint NodeCount, out uint Visited)
+{
+	uint Node = Root;
+	uint Action = MCP_ACTION_IDLE;
+	Visited = 0;
+	for (uint Step = 0; Step < MCP_BT_MAX_STEPS; ++Step)
+	{
+		if (Node == MCP_BT_END || Node >= NodeCount)
+		{
+			break;
+		}
+		const FBTNodeGPU B = BTNodes[Node];
+		++Visited;
+		if (B.Op.x == MCP_BT_ACTION)
+		{
+			Action = min(uint(B.Arg.z + 0.5), MCP_ACTION_COUNT - 1);
+			break;
+		}
+		const float Value = Inputs[min(B.Op.y, MCP_IN_COUNT - 1)];
+		const bool bPass = B.Arg.y < 0.5 ? (Value > B.Arg.x) : (Value < B.Arg.x);
+		Node = bPass ? B.Op.z : B.Op.w;
+	}
+	return Action;
+}
+
+void MCPActorCognition(uint Index)
+{
+	const FRealmTickGPU T = TickBuffer[0];
+	if (Index >= T.Counts.x)
+	{
+		return;
+	}
+	FActorGPU A = ActorsIn[Index];
+	const FRecallGPU Recall = RecallIn[Index];
+	const float Dt = T.Time.y;
+	const float R = T.MetaB.z;
+	const float Sea = T.Misc.x;
+	const float MaxH = T.Essence.w;
+	const float Entropy = T.MetaA.x;
+	const uint SigilCount = min(T.Counts.y, MCP_MAX_SIGILS);
+	uint Rng = A.State.z ^ MCPHash(T.Counts.z);
+
+	// 1. Perceive.
+	const float Potential = MCPPotentialAt(A.PosRadius.xyz, T);
+	const float Attraction = max(0.0, Potential);
+	const float Repulsion = max(0.0, -Potential);
+	const float Altitude = saturate((A.PosRadius.z - Sea) / max(0.001, MaxH - Sea));
+	const float RecalledFear = Recall.Value.x > 0.92 ? Recall.Value.y : 0.0;
+
+	// 2. Drives. Fear rises fast and fades slowly; a remembered fright counts as a fright.
+	const float Speed = length(A.Velocity.xy);
+	const float SpeedShare = Speed / max(0.01, A.Velocity.w);
+	float4 Drives = A.Drives;
+	Drives.x = saturate(Drives.x - Dt * (0.01 + 0.03 * SpeedShare) + (A.State.x == MCP_ACTION_REST ? Dt * 0.12 : 0.0));
+	Drives.y = saturate(Drives.y + Dt * (0.025 + 0.03 * Entropy) - (A.State.x == MCP_ACTION_WANDER ? Dt * 0.06 : 0.0));
+	const float FearGoal = saturate(Repulsion * 1.6 + RecalledFear * 0.8 + Entropy * 0.1);
+	Drives.z = lerp(Drives.z, FearGoal, 1.0 - exp(-Dt * (FearGoal > Drives.z ? 3.0 : 0.6)));
+	Drives.w = saturate(Drives.w + Dt * (Attraction * 0.12 - 0.015) - (A.State.x == MCP_ACTION_COMMUNE ? Dt * 0.05 : 0.0));
+	const float FearRise = Drives.z - A.Drives.z;
+
+	// 3. Decide.
+	float Inputs[MCP_IN_COUNT];
+	Inputs[MCP_IN_ENERGY] = Drives.x;
+	Inputs[MCP_IN_CURIOSITY] = Drives.y;
+	Inputs[MCP_IN_FEAR] = Drives.z;
+	Inputs[MCP_IN_DEVOTION] = Drives.w;
+	Inputs[MCP_IN_ATTRACTION] = Attraction;
+	Inputs[MCP_IN_REPULSION] = Repulsion;
+	Inputs[MCP_IN_RECALL] = Recall.Value.x;
+	Inputs[MCP_IN_ENTROPY] = Entropy;
+	Inputs[MCP_IN_COHERENCE] = T.MetaA.z;
+	Inputs[MCP_IN_ALTITUDE] = Altitude;
+	Inputs[MCP_IN_RANDOM] = MCPRandom(Rng);
+	uint Visited;
+	const uint Chosen = MCPEvaluateTree(A.State.y, Inputs, T.Flags.y, Visited);
+	// Commitment: an actor holds its action for Time.w seconds before switching, except
+	// that fear always interrupts.
+	const uint Previous = A.State.x;
+	const bool bSwitch = Chosen != Previous && (A.Target.w >= T.Time.w || Chosen == MCP_ACTION_FLEE);
+	const uint Action = bSwitch ? Chosen : Previous;
+	A.Target.w = bSwitch ? 0.0 : A.Target.w + Dt;
+
+	// 4. Steer.
+	const float MaxSpeed = A.Velocity.w;
+	float2 Desired = float2(0.0, 0.0);
+	uint SigilsScanned = 0;
+	if (Action == MCP_ACTION_WANDER)
+	{
+		// New destination on arrival, on entering the action, or on a whim (about every 8 s).
+		if (bSwitch || distance(A.PosRadius.xy, A.Target.xy) < 2.0 || MCPRandom(Rng) < Dt * 0.125)
+		{
+			const float Angle = 6.2831853 * MCPRandom(Rng);
+			const float Reach = sqrt(MCPRandom(Rng)) * 0.85 * R;
+			A.Target.xyz = float3(cos(Angle) * Reach, sin(Angle) * Reach, 0.0);
+		}
+		Desired = normalize(A.Target.xy - A.PosRadius.xy + 1e-4) * MaxSpeed * 0.6;
+	}
+	else if (Action == MCP_ACTION_SEEK_SIGIL || Action == MCP_ACTION_COMMUNE || Action == MCP_ACTION_FLEE)
+	{
+		// Nearest glyph of the kind this action cares about.
+		float BestDist = 1e30;
+		float3 Best = A.PosRadius.xyz;
+		float BestRadius = 1.0;
+		for (uint S = 0; S < SigilCount; ++S)
+		{
+			const FSigilGPU G = Sigils[S];
+			const uint Kind = uint(G.Shape.w + 0.5);
+			const bool bWanted = Action == MCP_ACTION_FLEE ? Kind == MCP_GLYPH_WARD
+				: Action == MCP_ACTION_COMMUNE ? (Kind == MCP_GLYPH_SOUL || Kind == MCP_GLYPH_GATE)
+				: Kind != MCP_GLYPH_WARD;
+			++SigilsScanned;
+			const float Dist = distance(G.PosScale.xy, A.PosRadius.xy);
+			if (bWanted && Dist < BestDist)
+			{
+				BestDist = Dist;
+				Best = G.PosScale.xyz;
+				BestRadius = max(0.5, G.PosScale.w * 0.5);
+			}
+		}
+		const float2 ToGlyph = Best.xy - A.PosRadius.xy;
+		const float2 Dir = BestDist < 1e29 ? ToGlyph / max(BestDist, 1e-3) : float2(0.0, 0.0);
+		if (Action == MCP_ACTION_SEEK_SIGIL)
+		{
+			const float Arrive = saturate((BestDist - BestRadius * 1.2) / max(1.0, BestRadius));
+			Desired = Dir * MaxSpeed * 0.8 * Arrive;
+		}
+		else if (Action == MCP_ACTION_COMMUNE)
+		{
+			// Orbit the glyph at 1.6 radii.
+			const float2 Tangent = float2(-Dir.y, Dir.x);
+			Desired = Tangent * MaxSpeed * 0.4 - Dir * (BestRadius * 1.6 - BestDist) * 0.5;
+		}
+		else
+		{
+			// Flee: climb the potential (away from wards), falling back to straight away.
+			const float2 Grad = MCPPotentialGradient(A.PosRadius.xyz, T);
+			const float2 Away = dot(Grad, Grad) > 1e-6 ? normalize(Grad) : -Dir;
+			Desired = Away * MaxSpeed * 1.4;
+		}
+	}
+	// REST and IDLE brake to a stop.
+
+	float2 Velocity = A.Velocity.xy + (Desired - A.Velocity.xy) * saturate(Dt * 3.0);
+	const float NewSpeed = length(Velocity);
+	if (NewSpeed > MaxSpeed * 1.5)
+	{
+		Velocity *= MaxSpeed * 1.5 / NewSpeed;
+	}
+	float2 XY = A.PosRadius.xy + Velocity * Dt;
+	const float Edge = 0.95 * R;
+	const float FromCenter = length(XY);
+	if (FromCenter > Edge)
+	{
+		const float2 Normal = XY / FromCenter;
+		XY = Normal * Edge;
+		Velocity -= Normal * max(0.0, dot(Velocity, Normal)) * 2.0; // bounce off the rim
+	}
+	const float Ground = MCPTerrainHeightAt(XY, T);
+	A.PosRadius.xyz = float3(XY, max(Ground, Sea) + 0.9);
+	A.Velocity.xy = Velocity;
+	A.Velocity.z = 0.0;
+	A.Drives = Drives;
+	A.State.x = Action;
+	A.State.z = Rng;
+	ActorsOut[Index] = A;
+
+	// 5. Episode. Salient moments are stored: a change of mind, a sudden fright, and a
+	//    staggered periodic sample so calm stretches are remembered too.
+	FEpisodeGPU E;
+	E.V0 = Drives;
+	E.V1 = float4(XY / R, Altitude, Attraction);
+	E.V2 = float4(Repulsion, Action == 0u ? 1.0 : 0.0, Action == 1u ? 1.0 : 0.0, Action == 2u ? 1.0 : 0.0);
+	E.V3 = float4(Action == 3u ? 1.0 : 0.0, Action == 4u ? 1.0 : 0.0, Action == 5u ? 1.0 : 0.0, Entropy);
+	float Salience = (bSwitch ? 1.0 : 0.0) + saturate(FearRise * 10.0);
+	const uint Interval = max(1u, uint(T.Misc.y));
+	if ((T.Counts.z + Index) % Interval == 0u)
+	{
+		Salience = max(Salience, 0.25);
+	}
+	E.Meta = float4(Salience, T.Time.x, float(Index), float(Action));
+	EpisodesOut[Index] = E;
+
+	FActorCostGPU Cost;
+	Cost.Work = uint4(Visited, SigilsScanned, 0u, 0u);
+	ActorCost[Index] = Cost;
+}

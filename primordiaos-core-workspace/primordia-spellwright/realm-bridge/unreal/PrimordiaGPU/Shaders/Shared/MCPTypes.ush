@@ -1,0 +1,191 @@
+// MCP GPU data contract: every buffer element the MCP kernels, the standalone Vulkan
+// renderer and the Unreal modules exchange. This one file is compiled three ways:
+//   - as HLSL by DXC -> SPIR-V for the standalone Vulkan engine (realm-bridge/gpu),
+//   - as HLSL by Unreal's shader compiler (/Plugin/PrimordiaGPU/Shared/MCPTypes.ush),
+//   - as C++ by both hosts, so CPU uploads and GPU reads can never disagree.
+// Rules that keep the three in sync: only float4 / uint4 members (16-byte aligned, no
+// implicit padding under std430 or D3D structured-buffer packing), no initializers, and
+// every struct's size is asserted on the C++ side.
+#pragma once
+
+#ifdef __cplusplus
+#include <cstdint>
+namespace PrimordiaMCP
+{
+struct float4 { float x, y, z, w; };
+struct uint4 { uint32_t x, y, z, w; };
+#define MCP_CONST(Name, Value) static constexpr uint32_t Name = Value;
+#define MCP_CONSTF(Name, Value) static constexpr float Name = Value;
+#else
+#define MCP_CONST(Name, Value) static const uint Name = Value;
+#define MCP_CONSTF(Name, Value) static const float Name = Value;
+#endif
+
+// ---------------------------------------------------------------------------
+// Limits and workgroup shapes (kernels and hosts must agree on these)
+// ---------------------------------------------------------------------------
+MCP_CONST(MCP_GROUP_1D, 64)          // actors, episodes, structures
+MCP_CONST(MCP_GROUP_2D, 8)           // terrain kernels: 8x8
+MCP_CONST(MCP_GROUP_3D, 4)           // sigil field: 4x4x4 = 64 voxels per group
+MCP_CONST(MCP_MAX_SIGILS, 64)        // per-group sigil cost counters live in shared memory
+MCP_CONST(MCP_MEMORY_SLOTS, 64)      // episodic memories per actor (= retrieval group size)
+MCP_CONST(MCP_EMBED_DIM, 16)         // episode embedding width (4 x float4)
+MCP_CONST(MCP_BT_MAX_STEPS, 32)      // behavior-tree walk bound per actor per tick
+MCP_CONST(MCP_BT_END, 0xFFFFFFFFu)   // "no next node": the walk stops, the actor idles
+MCP_CONST(MCP_STRUCTURE_STRIDE, 4)   // spire candidates are tested on every 4th terrain cell
+MCP_CONST(MCP_SPIRE_VERTICES, 48)    // 8-sided spire: 8 side + 8 cap triangles
+
+// Actions an actor can commit to (the cognition kernel's output).
+MCP_CONST(MCP_ACTION_IDLE, 0)
+MCP_CONST(MCP_ACTION_WANDER, 1)
+MCP_CONST(MCP_ACTION_SEEK_SIGIL, 2)
+MCP_CONST(MCP_ACTION_FLEE, 3)
+MCP_CONST(MCP_ACTION_REST, 4)
+MCP_CONST(MCP_ACTION_COMMUNE, 5)
+MCP_CONST(MCP_ACTION_COUNT, 6)
+
+// Behavior-tree node types. Selectors and sequences are compiled away into the
+// success/failure links of these two node types (see MCPBehaviorTree.h).
+MCP_CONST(MCP_BT_CONDITION, 1)
+MCP_CONST(MCP_BT_ACTION, 2)
+MCP_CONST(MCP_BT_CMP_GREATER, 0)
+MCP_CONST(MCP_BT_CMP_LESS, 1)
+
+// Blackboard inputs a condition can read (computed per actor each tick).
+MCP_CONST(MCP_IN_ENERGY, 0)
+MCP_CONST(MCP_IN_CURIOSITY, 1)
+MCP_CONST(MCP_IN_FEAR, 2)
+MCP_CONST(MCP_IN_DEVOTION, 3)
+MCP_CONST(MCP_IN_ATTRACTION, 4)      // positive sigil potential at the actor
+MCP_CONST(MCP_IN_REPULSION, 5)       // negative (ward) potential at the actor
+MCP_CONST(MCP_IN_RECALL, 6)          // similarity of the best recalled memory
+MCP_CONST(MCP_IN_ENTROPY, 7)
+MCP_CONST(MCP_IN_COHERENCE, 8)
+MCP_CONST(MCP_IN_ALTITUDE, 9)        // height above sea level / max terrain height
+MCP_CONST(MCP_IN_RANDOM, 10)         // fresh uniform [0,1) per tick
+MCP_CONST(MCP_IN_COUNT, 11)
+
+// PRS-1 glyph kinds.
+MCP_CONST(MCP_GLYPH_SOUL, 0)
+MCP_CONST(MCP_GLYPH_SIGIL, 1)
+MCP_CONST(MCP_GLYPH_WARD, 2)
+MCP_CONST(MCP_GLYPH_GATE, 3)
+
+// Terrain biomes (TerrainCell.Data.w).
+MCP_CONST(MCP_BIOME_ABYSS, 0)
+MCP_CONST(MCP_BIOME_SHORE, 1)
+MCP_CONST(MCP_BIOME_MEADOW, 2)
+MCP_CONST(MCP_BIOME_FOREST, 3)
+MCP_CONST(MCP_BIOME_HIGHLAND, 4)
+MCP_CONST(MCP_BIOME_CRYSTAL, 5)      // lucid realms grow crystal on the heights
+MCP_CONST(MCP_BIOME_ASHLAND, 6)      // inverted realms burn to ash
+MCP_CONST(MCP_BIOME_COUNT, 7)
+
+// ---------------------------------------------------------------------------
+// Buffer elements
+// ---------------------------------------------------------------------------
+
+/** One realm tick: everything every kernel needs. Bound as a 1-element structured buffer
+ *  (TickBuffer[0]) on both hosts, so no constant-buffer packing rules are involved. */
+struct FRealmTickGPU
+{
+	uint4 Counts;    // x actorCount, y sigilCount, z tick index (from 1), w realm seed
+	uint4 Grid;      // x terrain N (cells per side), y field N (voxels per side), z memory slots, w max structures
+	float4 Time;     // x realm time s, y dt s (already scaled by time dilation), z time dilation, w action commit s
+	float4 MetaA;    // PRS-1 metaphysics: entropy, luminosity, coherence, resonance
+	float4 MetaB;    // inversion, lucidity, ground radius m, terrace count
+	float4 Essence;  // rgb essence, w max terrain height m
+	float4 Field;    // xyz field box min (m), w voxel size (m)
+	float4 Misc;     // x sea level m, y memory interval (ticks), z recall min age s, w ground roughness
+	uint4 Flags;     // x MCP_FLAG_* bits, y behavior-tree node count, z/w zero (reserved for PRS-1 1.x)
+};
+
+MCP_CONST(MCP_FLAG_GENESIS, 1)       // first tick of a realm: terrain snaps to its target shape
+
+/** Height-field cell. Data: x height m, y moisture, z temperature, w biome id. */
+struct FTerrainCellGPU
+{
+	float4 Data;
+};
+
+/** A spire grown by the topology pass; also the instance data of its indirect draw. */
+struct FStructureGPU
+{
+	float4 PosHeight; // xyz base (m), w height (m)
+	float4 Look;      // x base radius m, y hue, z biome, w seed (as float bits are not needed)
+};
+
+/** A PRS-1 glyph as the sigil evaluator sees it. */
+struct FSigilGPU
+{
+	float4 PosScale;  // xyz position m, w diameter m
+	float4 Shape;     // x symmetry (1-64), y complexity, z hue, w kind (MCP_GLYPH_*)
+	float4 Live;      // x intensity, y phase from the intent hash, z 1 if bound to a live entity, w spin rate
+};
+
+/** Sigil field voxel: rgb aura (premultiplied), w signed potential (+ attracts, - repels). */
+struct FFieldVoxelGPU
+{
+	float4 Value;
+};
+
+/** An actor the cognition loop drives. */
+struct FActorGPU
+{
+	float4 PosRadius; // xyz position m, w perception radius m
+	float4 Velocity;  // xyz m/s, w max speed m/s
+	float4 Drives;    // energy, curiosity, fear, devotion (all 0..1)
+	uint4 State;      // x action (MCP_ACTION_*), y behavior-tree root node, z rng state, w memories written
+	float4 Target;    // xyz wander/orbit target m, w seconds in the current action
+};
+
+/** Flattened behavior-tree node. Op: x type, y input (MCP_IN_*), z next on success, w next on failure. */
+struct FBTNodeGPU
+{
+	uint4 Op;
+	float4 Arg;       // x threshold, y compare (MCP_BT_CMP_*), z action (for MCP_BT_ACTION), w unused
+};
+
+/** Per-actor work counters; Onyx turns them into per-actor GPU cost. */
+struct FActorCostGPU
+{
+	uint4 Work;       // x tree nodes visited, y sigils scanned, z memories compared, w episodes written
+};
+
+/** This tick's episode for one actor: the fp32 embedding the memory kernels compress and query with. */
+struct FEpisodeGPU
+{
+	float4 V0;        // energy, curiosity, fear, devotion
+	float4 V1;        // x, y (normalized to the ground radius), altitude, attraction
+	float4 V2;        // repulsion, one-hot action 0..2
+	float4 V3;        // one-hot action 3..5, entropy
+	float4 Meta;      // x salience (> 0 = store this tick), y realm time, z actor index, w action
+};
+
+/** Compressed episodic memory: 16 int8 components + a scale (64 B of fp32 -> 32 B). */
+struct FMemoryGPU
+{
+	uint4 Packed;     // 16 x int8, 4 per uint, component i in byte (i % 4) of word (i / 4)
+	float4 Meta;      // x scale, y realm time stored, z salience, w action
+};
+
+/** Best memory recalled for an actor this tick (read by next tick's cognition). */
+struct FRecallGPU
+{
+	float4 Value;     // x cosine similarity (0 = nothing recalled), y recalled fear, z age s, w slot
+};
+
+#ifdef __cplusplus
+static_assert(sizeof(FRealmTickGPU) == 144, "FRealmTickGPU layout");
+static_assert(sizeof(FTerrainCellGPU) == 16, "FTerrainCellGPU layout");
+static_assert(sizeof(FStructureGPU) == 32, "FStructureGPU layout");
+static_assert(sizeof(FSigilGPU) == 48, "FSigilGPU layout");
+static_assert(sizeof(FFieldVoxelGPU) == 16, "FFieldVoxelGPU layout");
+static_assert(sizeof(FActorGPU) == 80, "FActorGPU layout");
+static_assert(sizeof(FBTNodeGPU) == 32, "FBTNodeGPU layout");
+static_assert(sizeof(FActorCostGPU) == 16, "FActorCostGPU layout");
+static_assert(sizeof(FEpisodeGPU) == 80, "FEpisodeGPU layout");
+static_assert(sizeof(FMemoryGPU) == 32, "FMemoryGPU layout");
+static_assert(sizeof(FRecallGPU) == 16, "FRecallGPU layout");
+} // namespace PrimordiaMCP
+#endif

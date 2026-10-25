@@ -1,0 +1,26 @@
+// Unreal entry point for MCPCognition (kernel body: ../Shared/MCPCognition.ush, shared with the standalone
+// Vulkan engine). The globals below are bound by FMCPCognitionCS::FParameters in
+// Source/MCPComputeBridge/Private/MCPShaders.h; their names are the body's contract.
+// numthreads repeats the MCP_GROUP_* constants as literals; MCPShaders.cpp static_asserts them.
+#include "/Engine/Public/Platform.ush"
+#include "/Plugin/PrimordiaGPU/Shared/MCPTypes.ush"
+#include "/Plugin/PrimordiaGPU/Shared/MCPCommon.ush"
+
+StructuredBuffer<FRealmTickGPU> TickBuffer;
+StructuredBuffer<FTerrainCellGPU> TerrainCurrent;
+StructuredBuffer<FFieldVoxelGPU> SigilFieldCurrent;
+StructuredBuffer<FSigilGPU> Sigils;
+StructuredBuffer<FActorGPU> ActorsIn;
+RWStructuredBuffer<FActorGPU> ActorsOut;
+StructuredBuffer<FBTNodeGPU> BTNodes;
+StructuredBuffer<FRecallGPU> RecallIn;
+RWStructuredBuffer<FActorCostGPU> ActorCost;
+RWStructuredBuffer<FEpisodeGPU> EpisodesOut;
+
+#include "/Plugin/PrimordiaGPU/Shared/MCPCognition.ush"
+
+[numthreads(64, 1, 1)]
+void MainCS(uint3 Id : SV_DispatchThreadID)
+{
+	MCPActorCognition(Id.x);
+}

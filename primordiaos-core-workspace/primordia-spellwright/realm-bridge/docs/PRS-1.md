@@ -73,8 +73,9 @@ Producers SHOULD round floats to 4 decimals (0.1 mm), which keeps a full 60 Hz s
 | `{"type":"request_manifest"}` | Resends the full state: manifest plus keyframes of every stream. |
 | `{"type":"ping","nonce":7}` | Server replies with a `pong` envelope that echoes the nonce. |
 | `{"type":"command","name":…,"args":{…}}` | Server replies with an `ack` envelope `{command, ok, error?}`. |
+| `{"type":"telemetry","source":"unreal",…}` | An Onyx GPU telemetry frame (payload as `gpu_telemetry` below). Feeds the bridge's GPU tuner; rebroadcast as `gpu_telemetry`. Only an invalid frame is answered (`ack` with `ok: false`). See [GPU_PIPELINE.md](GPU_PIPELINE.md). |
 
-Commands: `evolve_realm` · `reseed {seed}` · `perturb {key, value}` (any metaphysical scalar) · `load_manifest {manifest}` · `generate_realm {description, model?, seed?}` (LLM-designed realm; acks `started`, then broadcasts the manifest, then acks `done` or `failed` to the requester; see [OLLAMA.md](OLLAMA.md)) · `cancel_generate` · `converse {input, model?}` / `speak {text}` / `cancel_speech` (spoken replies as `voice` packets; see [VOICE.md](VOICE.md)).
+Commands: `evolve_realm` · `reseed {seed}` · `perturb {key, value}` (any metaphysical scalar) · `load_manifest {manifest}` · `generate_realm {description, model?, seed?}` (LLM-designed realm; acks `started`, then broadcasts the manifest, then acks `done` or `failed` to the requester; see [OLLAMA.md](OLLAMA.md)) · `cancel_generate` · `converse {input, model?}` / `speak {text}` / `cancel_speech` (spoken replies as `voice` packets; see [VOICE.md](VOICE.md)) · `set_quality {scale}` (pins the GPU quality, `scale: null` hands it back to the tuner) · `set_gpu_budget {ms}` (the Vulkan sidecar's frame budget; see [GPU_PIPELINE.md](GPU_PIPELINE.md)).
 
 ### 2.4 Stream catalogue
 
@@ -89,6 +90,7 @@ Commands: `evolve_realm` · `reseed {seed}` · `perturb {key, value}` (any metap
 | `shadow_inversion` | Shadowforge | 30 Hz | `shadow` |
 | `realm_manifest` | Worldforge | on revision change | `<realm_id>` |
 | `voice` | Voice (Kokoro TTS) | while speaking, ~0.5 s chunks | `voice:<speaker>` (default `voice:soul`) |
+| `gpu_telemetry` | Onyx (relayed by the bridge) | 4 Hz per source | `onyx:<source>` (`onyx:unreal`, `onyx:vulkan-sidecar`) |
 
 The server's master loop runs at 30–60 Hz. Every module **steps** every tick, and each stream **samples** at `min(stream rate, master rate)`. Continuum and Omniscience emit no packets: their output reaches the renderer through `t` and the manifest's `metaphysics`.
 
@@ -116,7 +118,9 @@ Consumers SHOULD dead-reckon `phase` locally from `bpm` and pull toward each rec
 
 **`shadow_inversion`**: `inversion`, `depth`, `threshold`, `pulse` (unit; the reference sends `1 − heart pulse`), `extent`, `position`, `mirror_of` (entity id).
 
-**`realm_manifest`**: a complete PRS-1 manifest (§3).
+**`realm_manifest`**: a complete PRS-1 manifest (§3). When the bridge's GPU tuner has lowered the realm quality below 1, every layer `density` is the authored density times that quality and the manifest carries `gpu_quality` (informational; consumers that ignore it still render correctly). Evolution always continues from the authored manifest.
+
+**`gpu_telemetry`**: `source`, `tick`, `gpu {frame_ms, budget_ms, realm_tick_ms?, render_ms?, headroom?, memory_pressure?, queues?, scopes?}`, plus optional `device`, `realm_id`, `fps`, `cpu_ms`, `quality`, `pipelines {<id>: {ms, budget_ms, saturation, invocations, dispatches}}`, `actors {count, gpu_us_total, gpu_us_mean, hottest[], actions{}}`, `sigils [{index, gpu_us, voxels}]`, `structures`, `tuner {quality, load, pinned}` (added by the bridge) and `mcp` (the sidecar's latest MCP results summary). Latest-wins; MAY be dropped under backpressure.
 
 ---
 
