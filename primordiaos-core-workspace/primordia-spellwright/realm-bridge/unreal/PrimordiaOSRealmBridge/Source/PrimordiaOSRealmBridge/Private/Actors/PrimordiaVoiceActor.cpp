@@ -23,6 +23,15 @@ void APrimordiaVoiceActor::BeginPlay()
 
 void APrimordiaVoiceActor::ApplyAttenuation()
 {
+	// A narrator (the realm's world-mind) is heard at full volume wherever the camera is.
+	Speaker->bAllowSpatialization = bSpatial;
+	if (!bSpatial)
+	{
+		Speaker->bOverrideAttenuation = true;
+		Speaker->AttenuationOverrides.bAttenuate = false;
+		Speaker->AttenuationOverrides.bSpatialize = false;
+		return;
+	}
 	if (Attenuation)
 	{
 		Speaker->AttenuationSettings = Attenuation;
@@ -66,7 +75,13 @@ void APrimordiaVoiceActor::ApplyPayload(const TSharedPtr<FJsonObject>& P)
 	SetTargetLocation(Vec(P, TEXT("position"), FVector::ZeroVector, UnitsPerMeter()), !bHasReceivedPacket);
 
 	const int32 Utterance = Int(P, TEXT("utterance"), 0);
+	const bool bWasSpatial = bSpatial;
+	bSpatial = Bool(P, TEXT("spatial"), true);
 	EnsureWave(Int(P, TEXT("sample_rate"), 24000));
+	if (bSpatial != bWasSpatial)
+	{
+		ApplyAttenuation();
+	}
 	if (Utterance != CurrentUtterance)
 	{
 		if (bInterruptOnNewUtterance)

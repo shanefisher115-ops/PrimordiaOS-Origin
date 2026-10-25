@@ -56,11 +56,11 @@ export function normalizeActions(parsed) {
 }
 
 /**
- * Reads the "say" string out of JSON that is still being generated.
+ * Reads the "say" string (or another top-level string field) out of JSON that is still being generated.
  * @returns {{ text: string, closed: boolean } | null}
  */
-export function extractSay(partialJson) {
-  const m = /"say"\s*:\s*"/.exec(partialJson);
+export function extractSay(partialJson, key = 'say') {
+  const m = new RegExp(`"${key}"\\s*:\\s*"`).exec(partialJson);
   if (!m) return null;
   let text = '';
   for (let i = m.index + m[0].length; i < partialJson.length; i++) {

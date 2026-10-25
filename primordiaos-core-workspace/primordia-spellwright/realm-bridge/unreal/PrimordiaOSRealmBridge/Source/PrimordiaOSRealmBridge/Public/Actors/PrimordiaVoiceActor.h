@@ -55,6 +55,8 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "PrimordiaOS|Voice") FString CurrentSentence;
 	UPROPERTY(BlueprintReadOnly, Category = "PrimordiaOS|Voice") int32 CurrentUtterance = 0;
+	/** False while the speaker is a narrator heard everywhere (voice packets with "spatial": false). */
+	UPROPERTY(BlueprintReadOnly, Category = "PrimordiaOS|Voice") bool bSpatial = true;
 
 protected:
 	virtual void BeginPlay() override;

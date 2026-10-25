@@ -5,10 +5,13 @@
 //                      [--modules ./my-modules] [--evolve 15] [--validate]
 //                      [--ollama http://127.0.0.1:11434] [--realm-model llama3.2:3b]
 //                      [--voice-model llama3.2:3b] [--voice af_heart] [--voice-dtype fp32] [--voice-preload]
+//                      [--sovereign] [--sovereign-every 90] [--sovereign-model llama3.2:3b] [--sovereign-voice bf_emma]
+//                      [--sovereign-play-local]
 //
 // Every option also reads PRIMORDIA_<NAME> from the environment.
 import { WebSocketServer } from 'ws';
 import { fileURLToPath } from 'node:url';
+import { spawn } from 'node:child_process';
 import { createMetaState, snapshotMetaphysics } from './state.js';
 import { loadModules } from './modules/index.js';
 import { validatePacket } from './schemas.js';
@@ -20,13 +23,16 @@ import { direct, describeRealm } from './voice/director.js';
 import { createOnyxHub } from './gpu/onyx.js';
 import { createTuner } from './gpu/tuner.js';
 import { startGpuSidecar } from './gpu/sidecar.js';
+import { applyCycle, createChronicleStore, cyclePrompt, dreamCycle, ecologyOf } from './sovereign/sovereign.js';
 
 export const VERSION = '1.0.0';
 const MAX_BUFFERED_BYTES = 1 << 20; // above this a client is lagging: drop continuous frames
 // Audio chunks are never dropped or rate-limited: a gap is audible.
 const ALWAYS_DELIVER = new Set(['realm_manifest', 'hello', 'ack', 'pong', 'voice']);
 // GPU telemetry is for dashboards and tools, not renderers: delivered only on subscription.
-const OPT_IN = new Set(['gpu_telemetry']);
+// The Sovereign's cycle records are for tools and UIs that ask (renderers get the voice and the realm).
+const OPT_IN = new Set(['gpu_telemetry', 'sovereign_cycle']);
+const DEFAULT_SOVEREIGN_DIR = fileURLToPath(new URL('../.cache/sovereign/', import.meta.url));
 
 export async function createBridge(options = {}) {
   const {
@@ -49,6 +55,14 @@ export async function createBridge(options = {}) {
     gpuTuner = {},               // tuner thresholds (src/gpu/tuner.js)
     gpuQuality = null,           // pin the realm quality (0.05-1) instead of letting the tuner move it
     gpuTelemetryHz = 4,          // gpu_telemetry broadcast rate per source
+    sovereign = false,           // run the world-mind's cycles (src/sovereign/sovereign.js)
+    sovereignEverySeconds = 90,  // pause between the end of one cycle and the start of the next
+    sovereignFirstSeconds = 15,  // first cycle after startup (gives renderers time to connect)
+    sovereignModel = voiceModel,
+    sovereignVoice = 'bf_emma',  // Kokoro voice of the world-mind
+    sovereignHoldSeconds = 60,   // how long a metaphysic the Sovereign pushes holds before fading back
+    sovereignDir = DEFAULT_SOVEREIGN_DIR, // chronicle.json, cycles.jsonl, cycle-NNNN.wav; null = memory only
+    sovereignPlayLocal = false,  // also play each cycle's WAV on this PC (Windows), after it is synthesized
     log = console.log,
   } = options;
   let design = null; // { controller } while a generate_realm is in flight
@@ -120,7 +134,7 @@ export async function createBridge(options = {}) {
       for (const c of clients) deliver(c, encoded);
     },
   });
-  if (voicePreload) {
+  if (voicePreload || sovereign) {
     const t = performance.now();
     getTts().then(
       () => log(`[voice] Kokoro ${voiceDtype} ready in ${((performance.now() - t) / 1000).toFixed(1)}s`),
@@ -231,7 +245,11 @@ export async function createBridge(options = {}) {
     }
   }
 
-  const reply = (client, type, payload) => deliver(client, encode({ type, id: 'bridge', payload }));
+  const reply = (client, type, payload) => client && deliver(client, encode({ type, id: 'bridge', payload }));
+  const broadcast = (packet) => {
+    const encoded = encode(packet);
+    for (const c of clients) deliver(c, encoded);
+  };
 
   function handleCommand(client, msg) {
     const worldforge = modules.find((m) => m.key === 'worldforge');
@@ -291,6 +309,15 @@ export async function createBridge(options = {}) {
       case 'cancel_speech':
         speaking?.controller.abort();
         break;
+      case 'sovereign': {
+        // {name:"sovereign", args:{op:"start"|"stop"|"cycle"|"status"}}
+        const op = args.op ?? 'status';
+        if (op === 'start') sov.start(Number(args.first_seconds ?? 1));
+        else if (op === 'stop') sov.stop();
+        else if (op === 'cycle') sov.cycleNow();
+        else if (op !== 'status') throw new Error(`unknown sovereign op ${op}`);
+        return sov.status();
+      }
       case 'set_quality': {
         // {name:"set_quality", args:{scale:0.6}} pins the GPU quality; {scale:null} unpins it.
         const scale = args.scale === null || args.scale === undefined ? null : Number(args.scale);
@@ -340,13 +367,14 @@ export async function createBridge(options = {}) {
   }
 
   // speak/converse share one pipeline: ack started -> voice packets -> ack done/failed.
+  // Returns a promise of the done payload (rejects on failure) for in-process callers.
   function startSpeech(client, command, args, body) {
     if (speaking) throw new Error('already speaking');
     const controller = new AbortController();
     speaking = { controller };
-    const utter = speaker.begin({ speaker: args.speaker || 'soul', position: soulPosition(), voice: args.voice });
+    const utter = speaker.begin({ speaker: args.speaker || 'soul', position: soulPosition(), voice: args.voice, spatial: args.spatial !== false, onPcm: args.onPcm });
     const t0 = performance.now();
-    (async () => {
+    const run = (async () => {
       let result;
       let bodyError = null;
       try {
@@ -357,7 +385,8 @@ export async function createBridge(options = {}) {
       const audio = await utter.end(); // always close the utterance; throws if synthesis failed
       if (bodyError) throw bodyError;
       return { ...result, ...audio, seconds: Math.round((performance.now() - t0) / 100) / 10 };
-    })()
+    })();
+    run
       .then((done) => {
         log(`[voice] ${command} done in ${done.seconds}s (first audio ${done.firstAudioSeconds}s, ${done.audioSeconds}s of speech)`);
         reply(client, 'ack', { command, ok: true, status: 'done', ...done });
@@ -369,7 +398,138 @@ export async function createBridge(options = {}) {
       .finally(() => {
         speaking = null;
       });
+    return run;
   }
+
+  // ---- Primordia Sovereign: the world-mind's cycles (docs/SOVEREIGN.md) -------------------
+  const sov = (() => {
+    const store = sovereignDir ? createChronicleStore(sovereignDir) : null;
+    const chronicle = store ? store.load() : { cycle: 0, species: [], events: [], lore: [] };
+    let enabled = false;
+    let once = false; // run one cycle even while resting (the "cycle" command)
+    let timer = null;
+    let running = false;
+    let last = null; // summary of the last cycle
+
+    const schedule = (seconds) => {
+      clearTimeout(timer);
+      timer = enabled || once ? setTimeout(cycle, Math.max(0, seconds) * 1000) : null;
+    };
+
+    function playLocal(wav) {
+      if (!sovereignPlayLocal || !wav || process.platform !== 'win32') return;
+      const quoted = wav.replace(/'/g, "''");
+      const ps = spawn('powershell', ['-NoProfile', '-Command', `(New-Object Media.SoundPlayer '${quoted}').PlaySync()`], { stdio: 'ignore', windowsHide: true });
+      ps.on('error', (err) => log(`[sovereign] local playback failed: ${err.message}`));
+    }
+
+    async function cycle() {
+      timer = null;
+      if (running) return;
+      if (speaking || design) {
+        schedule(10); // the realm is busy talking or designing: try again shortly
+        return;
+      }
+      once = false;
+      running = true;
+      const number = chronicle.cycle + 1;
+      const pcm = [];
+      let sampleRate = 24000;
+      let result = null;
+      try {
+        log(`[sovereign] cycle ${number} begins (${sovereignModel})`);
+        const done = await startSpeech(null, 'sovereign_cycle', {
+          speaker: 'sovereign',
+          voice: sovereignVoice,
+          spatial: false,
+          onPcm: (chunk, rate) => { pcm.push(chunk); sampleRate = rate; },
+        }, async (utter, signal) => {
+          const { cycle: c, stats } = await dreamCycle({
+            prompt: cyclePrompt(chronicle, number, describeRealm(ctx.manifest, ctx.state)),
+            url: ollamaUrl,
+            model: sovereignModel,
+            signal,
+            onSentence: (s) => utter.say(s),
+          });
+          // The world changes as soon as the cycle is written, while the voice may still be speaking.
+          const changes = [];
+          for (const m of c.metaphysics) {
+            try {
+              handleCommand(null, { name: 'perturb', args: { key: m.key, value: m.value, hold: sovereignHoldSeconds } });
+              changes.push(`${m.key} = ${m.value}`);
+            } catch (err) {
+              changes.push(`${m.key} failed: ${err.message}`);
+            }
+          }
+          if (c.evolve) {
+            handleCommand(null, { name: 'evolve_realm' });
+            changes.push('realm evolving');
+          }
+          const evolution = applyCycle(chronicle, c, { number, realm: ctx.manifest?.realm_name ?? '' });
+          result = {
+            cycle: number,
+            realm: ctx.manifest?.realm_name ?? '',
+            title: c.title,
+            narration: c.narration,
+            metaphysics: c.metaphysics,
+            evolve: c.evolve,
+            changes,
+            evolution,
+            species: chronicle.species,
+            ecology: ecologyOf(chronicle, ctx.state),
+            realm_events: c.event ? [c.event] : [],
+            lore: c.lore ? [c.lore] : [],
+            fab_assets: c.fab_assets,
+            model: stats.model || sovereignModel,
+            llm_seconds: Math.round(stats.seconds * 10) / 10,
+            tokens: stats.genTokens,
+          };
+          broadcast({ type: 'sovereign_cycle', id: 'sovereign', payload: result });
+          return { title: c.title, llm_seconds: result.llm_seconds };
+        });
+        const audio = { pcm: Buffer.concat(pcm), sampleRate };
+        const wav = store?.save(chronicle, { ...result, audio_seconds: done.audioSeconds, at: new Date().toISOString() }, audio) ?? null;
+        last = { cycle: number, title: result.title, seconds: done.seconds, audio_seconds: done.audioSeconds, wav };
+        log(`[sovereign] cycle ${number} "${result.title}": ${result.narration}`);
+        if (result.lore[0]) log(`[sovereign]   lore "${result.lore[0].title}": ${result.lore[0].text}`);
+        log(`[sovereign]   ${result.changes.join(', ') || 'no metaphysics pushed'}; ${chronicle.species.length} species, ${result.ecology.total_population} beings${wav ? `; ${wav}` : ''}`);
+        playLocal(wav);
+      } catch (err) {
+        log(`[sovereign] cycle ${number} failed: ${err.message}`);
+        last = { cycle: number, error: err.message };
+      } finally {
+        running = false;
+        if (enabled) schedule(sovereignEverySeconds);
+      }
+    }
+
+    return {
+      start(firstSeconds = sovereignFirstSeconds) {
+        enabled = true;
+        if (!running) schedule(firstSeconds);
+        log(`[sovereign] awake: first cycle in ${firstSeconds}s, then ${sovereignEverySeconds}s after each one ends (voice ${sovereignVoice}, ${sovereignModel})`);
+      },
+      stop() {
+        enabled = false;
+        once = false;
+        clearTimeout(timer);
+        timer = null;
+        log('[sovereign] resting');
+      },
+      cycleNow() {
+        if (running) return;
+        once = true;
+        schedule(0);
+      },
+      status: () => ({ enabled, running, cycle: chronicle.cycle, species: chronicle.species.length, voice: sovereignVoice, model: sovereignModel, last }),
+      close() {
+        enabled = false;
+        once = false;
+        clearTimeout(timer);
+      },
+    };
+  })();
+
 
   // The LLM designs a compact intent; Worldforge expands it (realm/design.js).
   // The new manifest reaches every client through the realm_manifest stream;
@@ -519,6 +679,7 @@ export async function createBridge(options = {}) {
   });
   log(`[bridge] listening on ws://${host}:${wss.address().port}  realm=${ctx.manifest.realm_name} (${ctx.realmId})`);
   timer = setTimeout(tick, period);
+  if (sovereign) sov.start();
 
   return {
     wss,
@@ -531,6 +692,7 @@ export async function createBridge(options = {}) {
     async close() {
       running = false;
       clearTimeout(timer);
+      sov.close();
       await sidecar?.close();
       design?.controller.abort();
       speaking?.controller.abort();
@@ -561,6 +723,12 @@ function parseArgs(argv) {
     voiceDtype: get('--voice-dtype', 'PRIMORDIA_VOICE_DTYPE', 'fp32'),
     voiceName: get('--voice', 'PRIMORDIA_VOICE', 'af_heart'),
     voicePreload: argv.includes('--voice-preload') || env.PRIMORDIA_VOICE_PRELOAD === '1',
+    // Primordia Sovereign, the world-mind (docs/SOVEREIGN.md).
+    sovereign: argv.includes('--sovereign') || env.PRIMORDIA_SOVEREIGN === '1',
+    sovereignEverySeconds: Number(get('--sovereign-every', 'PRIMORDIA_SOVEREIGN_EVERY', 90)),
+    sovereignModel: get('--sovereign-model', 'PRIMORDIA_SOVEREIGN_MODEL', get('--voice-model', 'PRIMORDIA_VOICE_MODEL', 'llama3.2:3b')),
+    sovereignVoice: get('--sovereign-voice', 'PRIMORDIA_SOVEREIGN_VOICE', 'bf_emma'),
+    sovereignPlayLocal: argv.includes('--sovereign-play-local') || env.PRIMORDIA_SOVEREIGN_PLAY_LOCAL === '1',
     // The standalone Vulkan engine (realm-bridge/gpu): path to primordia_realmd.exe.
     gpuSidecar: get('--gpu-sidecar', 'PRIMORDIA_GPU_SIDECAR', null),
     // Pin the GPU quality (e.g. 1 for look-dev renders); omit to let the tuner follow Onyx.

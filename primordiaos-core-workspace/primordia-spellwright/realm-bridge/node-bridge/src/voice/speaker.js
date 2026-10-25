@@ -17,7 +17,11 @@ export function createSpeaker({ getTts, emit, log = () => {} }) {
      * still be arriving from the LLM), then end(). Synthesis is sequential, so
      * audio always plays in order.
      */
-    begin({ speaker = 'soul', position = [0, 0, 14], voice } = {}) {
+    /**
+     * spatial:false marks a narrator heard everywhere (Unreal skips attenuation).
+     * onPcm(pcm, sampleRate) sees every synthesized sentence (the Sovereign keeps a WAV).
+     */
+    begin({ speaker = 'soul', position = [0, 0, 14], voice, spatial = true, onPcm } = {}) {
       const utterance = nextUtterance++;
       const started = performance.now();
       let chunk = 0;
@@ -28,7 +32,7 @@ export function createSpeaker({ getTts, emit, log = () => {} }) {
       let error = null;
       const id = `voice:${speaker}`;
 
-      const send = (payload) => emit({ type: 'voice', id, payload: { utterance, chunk: chunk++, position, ...payload } });
+      const send = (payload) => emit({ type: 'voice', id, payload: { utterance, chunk: chunk++, position, ...(spatial ? {} : { spatial: false }), ...payload } });
 
       return {
         utterance,
@@ -45,6 +49,7 @@ export function createSpeaker({ getTts, emit, log = () => {} }) {
               audioSeconds += samples.length / sampleRate;
               const pcm = floatToPcm16(samples);
               firstAudioMs ??= performance.now() - started;
+              onPcm?.(pcm, sampleRate);
               for (let off = 0; off < pcm.length; off += CHUNK_BYTES) {
                 send({
                   text: off === 0 ? text : '',

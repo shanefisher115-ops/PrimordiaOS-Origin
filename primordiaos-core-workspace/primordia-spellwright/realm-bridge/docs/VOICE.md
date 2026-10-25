@@ -86,7 +86,12 @@ A perturbation now **holds for 20 s and then fades back over 10 s**. Previously 
 - `text` is set on the first chunk of each sentence, for subtitles.
 - A last chunk with empty `pcm` and `final:true` ends the utterance.
 - `position` is realm-local: the soul glyph.
+- `spatial` (optional, default `true`): `false` marks a narrator heard at full volume everywhere. The [Sovereign](SOVEREIGN.md) speaks this way.
 - Voice packets are never dropped, coalesced or rate-limited.
+
+## The Sovereign
+
+The [Primordia Sovereign](SOVEREIGN.md) uses this pipeline for its cycles: Ollama writes the cycle, its narration streams sentence by sentence into Kokoro, and the audio reaches Unreal as `voice:sovereign` with `spatial: false`.
 
 ## Unreal
 

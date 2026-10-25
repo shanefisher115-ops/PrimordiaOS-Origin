@@ -20,6 +20,7 @@ export const PACKET_TYPES = [
   'pong',
   'voice',
   'gpu_telemetry',
+  'sovereign_cycle',
 ];
 
 export const envelopeSchema = {
@@ -79,6 +80,27 @@ const gpuTelemetry = {
 
 export const payloadSchemas = {
   gpu_telemetry: gpuTelemetry,
+
+  // One cycle of the Primordia Sovereign, the realm's world-mind (docs/SOVEREIGN.md). Opt-in.
+  sovereign_cycle: {
+    type: 'object',
+    required: ['cycle', 'title', 'narration', 'species', 'ecology', 'realm_events', 'lore', 'fab_assets'],
+    properties: {
+      cycle: { type: 'integer', minimum: 1 },
+      realm: { type: 'string' },
+      title: { type: 'string' },
+      narration: { type: 'string' },
+      metaphysics: { type: 'array', items: { type: 'object', required: ['key', 'value'] } },
+      evolve: { type: 'boolean' },
+      changes: { type: 'array', items: { type: 'string' } },
+      evolution: { type: 'array', items: { type: 'object', required: ['name', 'population', 'change', 'status'] } },
+      species: { type: 'array', items: { type: 'object', required: ['name', 'archetype', 'population'] } },
+      ecology: { type: 'object', required: ['total_population', 'diversity', 'stability'] },
+      realm_events: { type: 'array', items: { type: 'object', required: ['name', 'kind', 'description'] } },
+      lore: { type: 'array', items: { type: 'object', required: ['title', 'text'] } },
+      fab_assets: { type: 'array', items: { type: 'string' } },
+    },
+  },
 
   hello: {
     type: 'object',
@@ -229,6 +251,7 @@ export const payloadSchemas = {
       pcm: { type: 'string' }, // base64
       final: { type: 'boolean' },
       position: vec3,
+      spatial: { type: 'boolean' }, // false: a narrator heard everywhere (default true)
     },
   },
 

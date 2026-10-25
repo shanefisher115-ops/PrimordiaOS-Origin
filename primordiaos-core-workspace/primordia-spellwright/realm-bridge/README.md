@@ -20,6 +20,7 @@ This visualizes the PrimordiaOS metaphysical substrate (Heart, Omniscience, Soul
 | **PRS-1**, the Primordia Realm Standard | [`docs/PRS-1.md`](docs/PRS-1.md) |
 | Materials + Niagara build recipes | [`docs/MATERIALS_AND_NIAGARA.md`](docs/MATERIALS_AND_NIAGARA.md) |
 | **The voice of PrimordiaOS**: LLM says + acts, Kokoro-82M speaks, audio plays spatialized in Unreal | [`docs/VOICE.md`](docs/VOICE.md) (bridge: `src/voice/`; Unreal: `APrimordiaVoiceActor`) |
+| **Primordia Sovereign**: an autonomous world-mind that runs the realm in cycles (species, events, lore, metaphysics) and narrates each one aloud through Kokoro | [`docs/SOVEREIGN.md`](docs/SOVEREIGN.md) (bridge: `src/sovereign/`, `--sovereign`) |
 | **Ollama + PrimordiaOS**: realms designed by a local LLM in the bridge (`generate_realm`, 5.6× faster than full-manifest generation), plus in-Unreal chat | [`docs/OLLAMA.md`](docs/OLLAMA.md) (bridge: `src/realm/design.js`; Unreal: `Source/PrimordiaOllama/`) |
 | **GPU realm pipeline: Onyx + Vulkan + MCP**: MCP compute kernels (topology mutation, sigil fields, actor cognition, world memory) shared by a standalone Vulkan engine and Unreal; Onyx GPU telemetry; a GPU tuner in the bridge that closes the loop | [`docs/GPU_PIPELINE.md`](docs/GPU_PIPELINE.md) (engine: [`gpu/`](gpu/); Unreal: [`unreal/PrimordiaGPU/`](unreal/PrimordiaGPU/); bridge: `src/gpu/`) |
 | Example PRS-1 manifest | [`examples/genesis-5eed1e55.prs1.json`](examples/genesis-5eed1e55.prs1.json) |
