@@ -1,0 +1,36 @@
+# Copies of home-folder config, and credentials
+**/_quarantine_dotfiles/
+**/.cloudflared/
+**/.vercel/
+.env
+.env.*
+!.env.example
+*_private.pem
+**/plugin-os/config/google_*.json
+**/ENABLE_TOKEN.txt
+
+# Saved web pages
+PrimordiaOS/PrimordiaOS/voices/Voices _ ElevenLabs*
+PrimordiaOS/PrimordiaOS/Workers & Pages _ Cashplughub@gmail/
+PrimordiaOS/PrimordiaOS/Harvest/*Cloudflare_files*
+
+# Caches and build output
+node_modules/
+.vs/
+.cache/
+__pycache__/
+dist-electron/
+.antigravity-ide/
+primordiaos-core-workspace/PrimordiaUnreal/Binaries/
+primordiaos-core-workspace/PrimordiaUnreal/Intermediate/
+primordiaos-core-workspace/PrimordiaUnreal/Saved/
+
+# Archives, installed apps, models
+PrimordiaOS/archive/
+PrimordiaOS/PrimordiaOS/Obsidian/
+PrimordiaOS/PrimordiaOS/Git/
+PrimordiaOS/PrimordiaOS/cloudflared.exe
+PrimordiaOS/ai/models/
+*.onnx
+*.gguf
+*.safetensors
