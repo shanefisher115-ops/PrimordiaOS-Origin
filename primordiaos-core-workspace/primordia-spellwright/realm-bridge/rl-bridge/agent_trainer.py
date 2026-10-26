@@ -44,7 +44,6 @@ PROTOCOL = "primordia-eco/1"
 ROOTS = ("LumenSeed", "Gravemind", "EchoSwarm")
 GENES = ("size", "speed", "armor", "aggression", "sense", "metabolism")
 RAYS = 8                                    # observation always holds 8 rays (padded/truncated)
-OBS_SIZE = 3 + 4 + 3 + 3 + 5 + len(ROOTS) + len(GENES) + 15 + 3 + RAYS   # = 53
 MOVE_SIZE = 3                               # dx, dy (cm), dyaw (deg); then one reproduce bit
 
 
@@ -203,39 +202,71 @@ def _vec_sensor(v, radius):
 
 
 def observe(a):
-    """PLUG IN: one agent's observation (OBS_SIZE floats, roughly unit scale)."""
-    x, y, z = a["position"]
-    roll, pitch, yaw = (math.radians(v) for v in a["rotation"])
-    vx, vy, vz = a.get("velocity", (0, 0, 0))
+    """PLUG IN: one agent's observation (OBS_SIZE floats, roughly unit scale).
+
+    Everything is relative to the agent: no absolute position or heading, so what is learned in
+    one place (or realm) applies everywhere. Directions are offsets in world axes, the same axes
+    the movement action uses, so "food is at +x" maps straight onto "move +x". The rays are
+    world-aligned for the same reason."""
+    vx, vy, _ = a.get("velocity", (0, 0, 0))
     s = a.get("sensors") or {}
     radius = s.get("radius", 2500.0)
     g = a.get("genome") or {}
     root = a.get("root") or root_species(a["species"])
     rays = list(s.get("rays") or [])[:RAYS]
     rays += [1.0] * (RAYS - len(rays))
-    obs = [x / 5000.0, y / 5000.0, z / 5000.0,
-           math.sin(yaw), math.cos(yaw), math.sin(pitch), math.sin(roll),
-           *a["scale"],
-           vx / 500.0, vy / 500.0, vz / 500.0,
-           math.log1p(max(a.get("xp", 0.0), 0.0)) / 10.0,              # XP is observed (log scale)
-           a.get("level", 1) / 10.0,
+    obs = [vx / 500.0, vy / 500.0,
            a.get("health", 1.0) / max(a.get("max_health", 1.0), 1e-6),
            a.get("energy", 1.0) / max(a.get("max_energy", 1.0), 1e-6),
            a.get("age", 0.0) / max(a.get("max_age", 1.0), 1e-6),
+           a.get("level", 1) / 10.0,
+           math.log1p(max(a.get("xp", 0.0), 0.0)) / 10.0,
+           1.0 if a.get("can_reproduce") else 0.0,
            *[1.0 if root == r else 0.0 for r in ROOTS],
            *[float(g.get(k, 1.0)) for k in GENES],
-           *_vec_sensor(s.get("resource"), radius),
-           *_vec_sensor(s.get("enemy"), radius),
+           *_vec_sensor(s.get("resource"), radius), float(s.get("resource_amount", 0.0)),   # nearest food
+           *_vec_sensor(s.get("threat"), radius),                                          # nearest predator
+           *_vec_sensor(s.get("enemy"), radius),                                           # nearest other species (prey)
            *_vec_sensor(s.get("ally"), radius),
            min(s.get("allies", 0), 20) / 10.0, min(s.get("threats", 0), 20) / 10.0,
+           min(s.get("allies", 0) + s.get("others", 0), 40) / 20.0,                         # local density
            1.0 if s.get("owned_territory") else 0.0,
            *rays]
     return obs
 
 
+OBS_SIZE = len(observe({"species": "LumenSeed"}))      # 50
+
+
 # ==============================================================================================
 # Brains: actor-critic + PPO rollout buffer
 # ==============================================================================================
+
+class RunningMeanStd:
+    """Running mean and variance (parallel Welford), for observation and return normalisation."""
+
+    def __init__(self, size, device):
+        self.mean = torch.zeros(size, device=device)
+        self.var = torch.ones(size, device=device)
+        self.count = 1e-4
+
+    def update(self, x):
+        x = x.reshape(-1, self.mean.shape[0])
+        b_mean, b_var, b_n = x.mean(0), x.var(0, unbiased=False), x.shape[0]
+        delta, total = b_mean - self.mean, self.count + b_n
+        self.mean = self.mean + delta * b_n / total
+        self.var = (self.var * self.count + b_var * b_n + delta.pow(2) * self.count * b_n / total) / total
+        self.count = total
+
+    def normalize(self, x, clip=10.0):
+        return ((x - self.mean) / (self.var + 1e-8).sqrt()).clamp(-clip, clip)
+
+    def state(self):
+        return {"mean": self.mean.cpu(), "var": self.var.cpu(), "count": self.count}
+
+    def load(self, st):
+        self.mean, self.var, self.count = st["mean"].to(self.mean.device), st["var"].to(self.mean.device), st["count"]
+
 
 class ActorCritic(nn.Module):
     """Shared trunk; Gaussian movement head, Bernoulli reproduce head, value head."""
@@ -246,13 +277,15 @@ class ActorCritic(nn.Module):
         self.move = nn.Linear(hidden, MOVE_SIZE)
         self.breed = nn.Linear(hidden, 1)
         self.value = nn.Linear(hidden, 1)
-        self.log_std = nn.Parameter(torch.full((MOVE_SIZE,), -0.5))
+        # Initial std ~0.5 and a 100x-smaller output layer keep the mean near 0 at the start
+        # (Andrychowicz et al. 2020); log-std is clamped so noise can't grow without bound.
+        self.log_std = nn.Parameter(torch.full((MOVE_SIZE,), -0.7))
         nn.init.orthogonal_(self.move.weight, 0.01)
         nn.init.constant_(self.breed.bias, -2.0)          # start shy of reproducing
 
     def forward(self, obs):
         h = self.trunk(obs)
-        move = torch.distributions.Normal(self.move(h), self.log_std.exp())
+        move = torch.distributions.Normal(self.move(h), self.log_std.clamp(-2.5, 0.5).exp())
         breed = torch.distributions.Bernoulli(logits=self.breed(h).squeeze(-1))
         return move, breed, self.value(h).squeeze(-1)
 
@@ -333,7 +366,12 @@ def ppo_update(brain, args, device):
             s2 = ratio.clamp(1 - args.clip, 1 + args.clip) * advs[idx]
             policy_loss = -torch.min(s1, s2).mean()
             value_loss = (returns[idx] - value).pow(2).mean()
-            loss = policy_loss + args.vf_coef * value_loss - args.ent_coef * ent.mean()
+            # The entropy bonus defaults to 0: on a tanh-squashed Gaussian it pays for noise the
+            # squash throws away and lets the mean drift into saturation (the fixed directional
+            # drift seen in training). A small penalty on the pre-squash mean keeps it in range.
+            mu_penalty = brain.net.move(brain.net.trunk(obs[idx])).pow(2).mean()
+            loss = (policy_loss + args.vf_coef * value_loss - args.ent_coef * ent.mean()
+                    + args.mu_penalty * mu_penalty)
             brain.opt.zero_grad()
             loss.backward()
             nn.utils.clip_grad_norm_(brain.net.parameters(), 0.5)
@@ -342,35 +380,86 @@ def ppo_update(brain, args, device):
                 stats["policy"] += policy_loss.item(); stats["value"] += value_loss.item()
                 stats["entropy"] += ent.mean().item(); stats["kl"] += (old_logp[idx] - logp).mean().item()
             updates += 1
-    return {k: round(v / max(updates, 1), 4) for k, v in stats.items()} | {"samples": n}
+    with torch.no_grad():
+        _, _, v_all = brain.net(obs)
+        ev = 1.0 - float((returns - v_all).var() / (returns.var() + 1e-8))   # critic quality
+    return {k: round(v / max(updates, 1), 4) for k, v in stats.items()} | {"samples": n, "explained_var": round(ev, 3)}
 
 
 # ==============================================================================================
-# Rewards (XP-centred, with species shaping)
+# Rewards: food, offspring, efficiency, survival
 # ==============================================================================================
+#
+# Earlier versions rewarded XP, and most XP comes from simply existing (survival XP per second),
+# which is a weak signal: the A/B showed a trained policy no better than random. Now the reward
+# pays only for what an agent does:
+#   food        energy eaten (from a node, or from prey), as a fraction of its energy store
+#   approach    food-distance shaping (below)
+#   birth       per offspring
+#   damage      health lost
+#   death       dying (starvation, wounds, old age)
+# There is deliberately no reward for saving energy. An "efficiency" term (paying for the rest of
+# the energy change: upkeep, movement, energy given to offspring) paid off immediately while food
+# came later, and PPO found the cheapest way to save energy: push into the arena wall, where the
+# agent doesn't move and paid nothing, instead of foraging (food alignment -0.32, 59% less food
+# than an untrained policy). Energy still matters through starvation and through what it buys:
+# offspring.
+# XP is still tracked, observed and used in fitness and metrics; it just doesn't drive learning.
 
-REWARD = {"xp": 0.05, "survival": 0.002, "damage": 1.0, "energy": 0.2, "level": 1.0, "death": -2.0,
-          "birth": 0.5}
+REWARD = {"food": 1.0, "birth": 1.0, "damage": 0.5, "death": -1.0, "approach": 1.0}
+
+# Food is only paid on arrival, often 5-10 s away, which is too sparse to learn from. Potential-
+# based shaping (Ng, Harada & Russell 1999) adds  gamma * phi(s') - phi(s)  per decision, with the
+# learner's own gamma, which provably leaves the best policy unchanged. Lessons from two failed
+# versions (see reports/PPO foraging failure fixes.md):
+#   * phi = -distance (<= 0, zero at the food), not closeness (>= 0): with a positive phi the
+#     (1 - gamma) * phi term charged agents for staying near food, and alignment went to -0.46.
+#   * phi is measured to the food TARGET chosen at decision time, for both ends of a transition,
+#     so a node emptied by the agent itself or by a neighbour doesn't make phi jump.
+#   * gamma is kept (dropping it pays for loitering and docks every meal).
+#   * phi = 0 at death (true termination); rollout cuts bootstrap from the value instead.
+# Foragers' food is the nearest resource node; a predator's is the nearest agent of another species.
+
+
+def food_vector(a):
+    s = a.get("sensors") or {}
+    diet_key = "enemy" if a.get("root", root_species(a["species"])) == "Gravemind" else "resource"
+    return s.get(diet_key), s.get("radius", 2500.0)
+
+
+def food_target(a):
+    """World position of the agent's food at decision time, or None if none is in range."""
+    v, _ = food_vector(a)
+    if not v:
+        return None
+    p = a["position"]
+    return (p[0] + v[0], p[1] + v[1])
+
+
+def food_potential(a, target):
+    """phi = -(distance to target / sensing radius), in [-1, 0] times REWARD['approach']."""
+    radius = (a.get("sensors") or {}).get("radius", 2500.0)
+    if target is None:
+        return -REWARD["approach"]
+    d = math.hypot(a["position"][0] - target[0], a["position"][1] - target[1])
+    return -REWARD["approach"] * min(d / max(radius, 1.0), 1.0)
 
 SHAPING = {
-    # PLUG IN: per-species extras on top of XP (XP itself already carries species metrics,
-    # because Unreal awards it per species: gathering, kills, territory, cohesion).
-    "LumenSeed": lambda before, after, ev: 0.3 * max(0.0, after["energy"] - before["energy"]) / after["max_energy"],
-    "Gravemind": lambda before, after, ev: 1.0 * (after.get("kills", 0) - before.get("kills", 0)),
-    "EchoSwarm": lambda before, after, ev: 0.002 * min((after.get("sensors") or {}).get("allies", 0), 8),
+    # PLUG IN: per-species extras, e.g.
+    # "EchoSwarm": lambda before, after, ev: 0.001 * min((after.get("sensors") or {}).get("allies", 0), 8),
 }
 
 
 def reward_for(before, after, events):
-    """PLUG IN: reward for one step of one agent. `after` is None if it died."""
+    """PLUG IN: reward for one snapshot of one agent (shaping is added per decision, in
+    Trainer._close). `after` is None if it died."""
     if after is None:
         return REWARD["death"]
-    r = REWARD["xp"] * (after["xp"] - before["xp"])
-    r += REWARD["survival"]
-    r += REWARD["damage"] * min(0.0, after["health"] - before["health"]) / max(after["max_health"], 1.0)
-    r += REWARD["energy"] * (after["energy"] - before["energy"]) / max(after["max_energy"], 1.0)
-    r += REWARD["level"] * (after["level"] - before["level"])
+    store = max(after["max_energy"], 1.0)
+    food = max(0.0, after.get("food", 0.0) - before.get("food", 0.0))
+    r = REWARD["food"] * food / store
     r += REWARD["birth"] * events.get("births", 0)
+    r -= REWARD["damage"] * max(0.0, before["health"] - after["health"]) / max(after["max_health"], 1.0)
     shaping = SHAPING.get(root_species(after["species"]))
     if shaping:
         r += shaping(before, after, events)
@@ -381,7 +470,7 @@ def fitness_of(mem):
     """PLUG IN: evolutionary fitness of an agent over a generation. XP gain dominates; survival,
     offspring and species metrics break ties."""
     root = root_species(mem["species"])
-    f = mem["xp_gain"] + 0.02 * mem["alive_s"] + 5.0 * mem["births"]
+    f = mem["xp_gain"] + mem.get("food_gain", 0.0) + 0.02 * mem["alive_s"] + 5.0 * mem["births"]
     if root == "Gravemind":
         f += 10.0 * mem["kills_gain"]
     elif root == "EchoSwarm":
@@ -467,7 +556,7 @@ class Evolution:
             cull_n = max(0, min(n - a.min_pop, int(n * a.cull) + max(0, n - target)))
             breed_n = max(0, min(n, int(n * a.breed) + max(0, target - n)))
             culled = members[:cull_n]
-            breeders = [m for m in reversed(members[cull_n:]) if m["energy_frac"] >= m["breed_energy"]][:breed_n]
+            breeders = [m for m in reversed(members[cull_n:]) if m.get("can_reproduce")][:breed_n]
             for m in culled:
                 commands.append((m["realm"], {"id": m["id"], "commands": [{"type": "die", "cause": "culled"}]}))
             for m in breeders:
@@ -622,6 +711,9 @@ class Metrics:
 
     All rates are per agent-second of life, so they don't depend on population size:
       xp_per_agent_s       XP earned per second alive (XP is the game's own success measure)
+      food_per_agent_s     energy eaten per second alive (the reward's main term)
+      food_alignment       mean cosine between each move and the direction to that agent's food
+                           (+1 = straight at it, 0 = unrelated, as random is)
       starved_per_agent_h  starvation deaths per agent-hour (lower = better foraging)
       births_per_agent_h   own-energy births per agent-hour (immigration counted separately)
       mean_death_age_s     mean age at death (all causes)
@@ -633,13 +725,30 @@ class Metrics:
         self._reset()
 
     def _reset(self):
-        self.w = {"agent_s": 0.0, "xp": 0.0, "steps": 0, "pop_sum": 0, "reward_sum": 0.0, "reward_n": 0,
+        self.w = {"agent_s": 0.0, "xp": 0.0, "food": 0.0, "steps": 0, "pop_sum": 0, "pop_sq": 0,
+                  "pop_min": None, "pop_max": 0, "reward_sum": 0.0, "reward_n": 0, "align_sum": 0.0, "align_n": 0,
+                  "sat_sum": 0.0, "mu_sum": 0.0, "std_sum": 0.0, "pol_n": 0, "ev_sum": 0.0, "ev_n": 0,
                   "deaths": defaultdict(int), "births": defaultdict(int), "death_age_sum": 0.0, "death_n": 0,
                   "started": time.time()}
 
-    def alive(self, seconds, xp_gain):
+    def alive(self, seconds, xp_gain, food_gain=0.0):
         self.w["agent_s"] += seconds
         self.w["xp"] += max(0.0, xp_gain)
+        self.w["food"] += max(0.0, food_gain)
+
+    def alignment(self, cos):
+        self.w["align_sum"] += cos
+        self.w["align_n"] += 1
+
+    def policy_stats(self, saturated, mean_abs, std):
+        self.w["sat_sum"] += saturated
+        self.w["mu_sum"] += mean_abs
+        self.w["std_sum"] += std
+        self.w["pol_n"] += 1
+
+    def critic(self, explained_var):
+        self.w["ev_sum"] += explained_var
+        self.w["ev_n"] += 1
 
     def reward(self, r):
         self.w["reward_sum"] += r
@@ -648,6 +757,9 @@ class Metrics:
     def step(self, population):
         self.w["steps"] += 1
         self.w["pop_sum"] += population
+        self.w["pop_sq"] += population * population
+        self.w["pop_min"] = population if self.w["pop_min"] is None else min(self.w["pop_min"], population)
+        self.w["pop_max"] = max(self.w["pop_max"], population)
 
     def event(self, ev):
         if ev.get("type") == "birth":
@@ -665,6 +777,14 @@ class Metrics:
         row = {"update": update, "policy": self.policy, "steps": w["steps"],
                "agent_s": round(w["agent_s"], 1),
                "mean_population": round(w["pop_sum"] / max(1, w["steps"]), 2),
+               "pop_min": w["pop_min"], "pop_max": w["pop_max"],
+               "pop_sq_mean": w["pop_sq"] / max(1, w["steps"]),
+               "food_per_agent_s": round(w["food"] / max(w["agent_s"], 1e-9), 4),
+               "food_alignment": round(w["align_sum"] / max(1, w["align_n"]), 4),
+               "saturated": round(w["sat_sum"] / max(1, w["pol_n"]), 4),
+               "mean_abs_mu": round(w["mu_sum"] / max(1, w["pol_n"]), 4),
+               "action_std": round(w["std_sum"] / max(1, w["pol_n"]), 4),
+               "explained_var": round(w["ev_sum"] / max(1, w["ev_n"]), 4) if w["ev_n"] else None,
                "xp_per_agent_s": round(w["xp"] / max(w["agent_s"], 1e-9), 4),
                "starved_per_agent_h": round(w["deaths"].get("starved", 0) / hours, 3),
                "births_per_agent_h": round(own_births / hours, 3),
@@ -694,6 +814,10 @@ class Trainer:
         self.brain_counter = 0
         self.memory = {}                 # "realm|id" -> per-agent memory (see _remember)
         self.pending = {}                # "realm|id" -> (brain id, snapshot actor) for last step
+        self.open = {}                   # "realm|id" -> the decision being held (see act/_close)
+        self.obs_rms = RunningMeanStd(OBS_SIZE, self.device)   # observation normalisation
+        self.ret_rms = RunningMeanStd(1, self.device)          # return scale (reward normalisation)
+        self.ret = {}                    # "realm|id" -> running discounted return
         self.step = 0
         self.update_count = 0
         self.generation = 0
@@ -750,7 +874,8 @@ class Trainer:
         torch.save({"brains": [b.state() for b in self.brains.values()], "brain_counter": self.brain_counter,
                     "memory": {k: v for k, v in self.memory.items() if v["alive"]},
                     "step": self.step, "updates": self.update_count, "generation": self.generation,
-                    "elites": self.evolution.elites, "species_counter": dict(self.evolution.species_counter)}, tmp)
+                    "elites": self.evolution.elites, "species_counter": dict(self.evolution.species_counter),
+                    "obs_rms": self.obs_rms.state(), "ret_rms": self.ret_rms.state()}, tmp)
         os.replace(tmp, self.ckpt_path)
         self.log.flush()
         print(f"[trainer] saved {self.ckpt_path} ({len(self.brains)} brains, generation {self.generation})")
@@ -774,6 +899,9 @@ class Trainer:
             b.fitness_history, b.mutations = st.get("fitness_history", []), st.get("mutations", [])
             self.brains[b.id] = b
         self.brain_counter = data.get("brain_counter", len(self.brains))
+        if "obs_rms" in data:
+            self.obs_rms.load(data["obs_rms"])
+            self.ret_rms.load(data["ret_rms"])
         if self.args.load:
             print(f"[trainer] loaded {len(self.brains)} brains from {path} (policy {self.args.policy})")
             return
@@ -810,6 +938,7 @@ class Trainer:
         m["alive"], m["seen"] = True, True
         m["prev_xp"], m["prev_health"], m["level"] = a["xp"], a["health"], a["level"]
         m["energy_frac"] = a["energy"] / max(a["max_energy"], 1e-6)
+        m["can_reproduce"] = bool(a.get("can_reproduce"))
         rules = (hello.get("rules") or {}).get(root_species(a["species"]), {})
         m["breed_energy"] = rules.get("reproduce_energy", 0.8)
         allies = (a.get("sensors") or {}).get("allies", 0)
@@ -844,6 +973,8 @@ class Trainer:
 
     def _truncate(self, realm_name):
         """A realm dropped: its pending steps can't get rewards; discard them (not deaths)."""
+        for key in [k for k in self.open if k.startswith(realm_name + "|")]:
+            self.open.pop(key, None)
         for key in [k for k in self.pending if k.startswith(realm_name + "|")]:
             brain_id, _ = self.pending.pop(key)
             buf = self.brains[brain_id].buffer.get(key) if brain_id in self.brains else None
@@ -851,9 +982,16 @@ class Trainer:
                 buf.pop()
 
     def act(self, states):
+        """One snapshot from each realm -> rewards for open decisions -> new decisions or held ones.
+
+        With --action-repeat k, an agent decides every k-th snapshot and its action is re-sent
+        on the snapshots in between, so one PPO transition spans k snapshots: rewards add up over
+        them, and the food-distance shaping is applied once per transition (see _close)."""
         a = self.args
         self._count_population()
+        decide = (self.step % a.action_repeat) == 0
         per_brain = defaultdict(list)            # brain id -> [(realm client, key, actor)]
+        held = defaultdict(list)                 # realm -> re-sent commands
         for realm_name, (realm, state) in states.items():
             events = defaultdict(lambda: defaultdict(int))
             for ev in state.get("events", []):
@@ -868,68 +1006,127 @@ class Trainer:
             self.last_time[realm_name] = state["time"]
             self.metrics.step(len(actors))
 
-            # Rewards for last step's actions in this realm.
+            # Rewards for the last snapshot, added to each agent's open decision.
             for key in [k for k in self.pending if k.startswith(realm_name + "|")]:
                 brain_id, before = self.pending.pop(key)
                 after = actors.get(key)
-                dead = after is None
                 r = reward_for(before, after, events[key])
                 self.reward_sum += r
                 self.reward_n += 1
                 self.metrics.reward(r)
-                if after is not None:
-                    self.metrics.alive(step_s, after["xp"] - before["xp"])
-                buf = self.brains[brain_id].buffer[key] if brain_id in self.brains else None
-                if buf and "reward" not in buf[-1]:
-                    buf[-1]["reward"], buf[-1]["done"] = r, dead
+                if key in self.open:
+                    self.open[key]["acc"] += r
+                if after is None:
+                    self._close(key, None)                    # death ends the transition
+                else:
+                    self.metrics.alive(step_s, after["xp"] - before["xp"],
+                                       after.get("food", 0.0) - before.get("food", 0.0))
                 mem = self.memory.get(key)
                 if mem is not None:
-                    if dead:
+                    if after is None:
                         mem["alive"] = False
                     else:
                         mem["xp_gain"] += max(0.0, after["xp"] - before["xp"])
+                        mem["food_gain"] = mem.get("food_gain", 0.0) + max(0.0, after.get("food", 0.0) - before.get("food", 0.0))
                         mem["kills_gain"] += after.get("kills", 0) - before.get("kills", 0)
                         mem["alive_s"] += step_s
                     mem["births"] += events[key].get("births", 0)
 
             for key, actor in actors.items():
                 key, mem = self._remember(realm_name, actor, realm.hello)
-                per_brain[mem["brain"]].append((realm, key, actor))
+                self.pending[key] = (mem["brain"], actor)
+                if decide or key not in self.open:
+                    self._close(key, actor)                   # previous decision's outcome
+                    per_brain[mem["brain"]].append((realm, key, actor))
+                else:
+                    held[realm].append(self.open[key]["cmd"])
 
-        # One batched forward pass per brain, across all realms.
+        # New decisions: one batched forward pass per brain, across all realms.
         out = defaultdict(list)
+        for realm, cmds in held.items():
+            out[realm].extend(cmds)
         for brain_id, group in per_brain.items():
             brain = self.brains[brain_id]
+            obs_l = mraw_l = logp_l = value_l = None
             if a.policy == "random":
                 # Baseline: uniform movement in the allowed range, reproduce when able half the time.
                 moves = [[random.uniform(-1.0, 1.0) for _ in range(MOVE_SIZE)] for _ in group]
                 bbit_l = [1.0 if random.random() < 0.5 else 0.0 for _ in group]
+            elif a.policy == "greedy":
+                # Reference: full speed straight at the nearest food (wander randomly if none in
+                # range), reproduce whenever able. What a hand-written forager would do.
+                moves, bbit_l = [], []
+                for _, _, x in group:
+                    fv, _ = food_vector(x)
+                    norm = math.hypot(fv[0], fv[1]) if fv else 0.0
+                    if norm > 1e-6:
+                        moves.append([fv[0] / norm, fv[1] / norm, 0.0])
+                    else:
+                        moves.append([random.uniform(-1.0, 1.0), random.uniform(-1.0, 1.0), 0.0])
+                    bbit_l.append(1.0)
             else:
-                obs = torch.tensor([observe(x) for _, _, x in group], dtype=torch.float32, device=self.device)
+                raw_obs = torch.tensor([observe(x) for _, _, x in group], dtype=torch.float32, device=self.device)
+                if a.policy == "learn":
+                    self.obs_rms.update(raw_obs)
+                obs = self.obs_rms.normalize(raw_obs)
                 with torch.no_grad():
                     move, breed, value = brain.net(obs)
                     mraw, bbit = move.sample(), breed.sample()
                     logp = move.log_prob(mraw).sum(-1) + breed.log_prob(bbit)
+                    # Action-boundary telemetry: how often the mean sits in tanh's flat region.
+                    mean_tanh = torch.tanh(move.mean[:, :2])
+                    self.metrics.policy_stats(float((mean_tanh.abs() > 0.95).float().mean()),
+                                        float(move.mean[:, :2].abs().mean()), float(move.stddev[:, :2].mean()))
                 mraw_l, bbit_l = mraw.cpu().tolist(), bbit.cpu().tolist()
                 moves = torch.tanh(mraw).cpu().tolist()
-                if a.policy == "learn":
-                    logp_l, value_l, obs_l = logp.cpu().tolist(), value.cpu().tolist(), obs.cpu().tolist()
-                    for i, (_, key, _) in enumerate(group):
-                        brain.buffer[key].append({"obs": obs_l[i], "move": mraw_l[i], "breed": bbit_l[i],
-                                                  "logp": logp_l[i], "value": value_l[i]})
+                logp_l, value_l, obs_l = logp.cpu().tolist(), value.cpu().tolist(), obs.cpu().tolist()
             for i, (realm, key, actor) in enumerate(group):
-                self.pending[key] = (brain_id, actor)
                 m = moves[i]
+                fv, _ = food_vector(actor)
+                if fv and (fv[0] or fv[1]) and (m[0] or m[1]):
+                    self.metrics.alignment((m[0] * fv[0] + m[1] * fv[1]) /
+                                           (math.hypot(m[0], m[1]) * math.hypot(fv[0], fv[1])))
                 cmd = {"id": actor["id"], "delta_position": [m[0] * a.max_step_cm, m[1] * a.max_step_cm, 0.0],
                        "delta_rotation": [0.0, 0.0, m[2] * a.max_step_deg]}
+                # The decision is open until the next decision (or death) closes it.
+                self.open[key] = {"brain": brain_id, "acc": 0.0, "cmd": dict(cmd),
+                                  "target": food_target(actor), "phi0": food_potential(actor, food_target(actor))}
+                if a.policy == "learn":
+                    brain.buffer[key].append({"obs": obs_l[i], "move": mraw_l[i], "breed": bbit_l[i],
+                                              "logp": logp_l[i], "value": value_l[i]})
                 mem = self.memory[key]
-                if bbit_l[i] > 0.5 and mem["energy_frac"] >= mem["breed_energy"] and self._room(mem):
+                if a.breed and bbit_l[i] > 0.5 and actor.get("can_reproduce") and self._room(mem):
                     genes = {g: round(random.gauss(0.0, a.gene_sigma), 4) for g in random.sample(GENES, 1)}
                     cmd["commands"] = [{"type": "reproduce", "mutate": genes,
                                         "offset": [random.uniform(-150, 150), random.uniform(-150, 150), 0.0]}]
                 out[realm].append(cmd)
         for realm, cmds in out.items():
             self._send(realm, cmds)
+
+    def _close(self, key, actor):
+        """Close an agent's open decision: its reward is what it earned over the held snapshots
+        plus the food-distance shaping  gamma * phi(s') - phi(s), with phi measured to the SAME
+        food target chosen at decision time (so another agent emptying a node doesn't jump phi),
+        and phi = 0 at death. Rewards are then scaled by the running std of the discounted
+        return (reward normalisation)."""
+        o = self.open.pop(key, None)
+        if o is None:
+            return
+        dead = actor is None
+        phi1 = 0.0 if dead else food_potential(actor, o["target"])
+        r = o["acc"] + self.args.gamma * phi1 - o["phi0"]
+        if self.args.policy != "learn" or o["brain"] not in self.brains:
+            return
+        buf = self.brains[o["brain"]].buffer.get(key)
+        if not buf or "reward" in buf[-1]:
+            return
+        ret = self.ret.get(key, 0.0) * self.args.gamma + r
+        self.ret_rms.update(torch.tensor([[ret]]))
+        self.ret[key] = 0.0 if dead else ret
+        if dead:
+            self.ret.pop(key, None)
+        buf[-1]["reward"] = r / math.sqrt(float(self.ret_rms.var[0]) + 1e-8) if self.args.norm_reward else r
+        buf[-1]["done"] = dead
 
     def _count_population(self):
         """Per-step counts (brain load, species sizes), so per-agent checks are O(1)."""
@@ -1003,6 +1200,7 @@ class Trainer:
                 s = ppo_update(brain, self.args, self.device)
                 if s:
                     stats[brain.id] = s
+                    self.metrics.critic(s["explained_var"])
         self.update_count += 1
         self._prune_extinct()
         return stats
@@ -1037,7 +1235,11 @@ class Trainer:
         self.reward_sum, self.reward_n = 0.0, 0
         if self.update_count % self.args.metrics_every == 0:
             row = self.metrics.close_window(self.update_count)
-            print(f"[metrics] xp/agent-s {row['xp_per_agent_s']:.3f}  starved/agent-h {row['starved_per_agent_h']:.1f}  "
+            print(f"[metrics] align {row['food_alignment']:+.2f}  saturated {row['saturated']:.2f}  "
+                  f"|mu| {row['mean_abs_mu']:.2f}  std {row['action_std']:.2f}  ev {row['explained_var']}  "
+                  f"food/agent-s {row['food_per_agent_s']:.3f}  "
+                  f"xp/agent-s {row['xp_per_agent_s']:.3f}  "
+                  f"starved/agent-h {row['starved_per_agent_h']:.1f}  "
                   f"births/agent-h {row['births_per_agent_h']:.1f}  death age {row['mean_death_age_s']:.0f}s  "
                   f"pop {row['mean_population']:.0f}  immigrants {row['immigrants']}")
         print(f"[trainer] update {self.update_count} step {self.step}: {samples} samples, mean reward {mean_r:+.4f}, "
@@ -1105,7 +1307,8 @@ def parse_args(argv=None):
     p.add_argument("--realm", action="append", help="host:port of a bridge; repeat for multi-realm")
     p.add_argument("--run", default="runs/eco", help="folder for checkpoint.pt and lineage.jsonl")
     p.add_argument("--updates", type=int, default=0, help="PPO updates to run (0 = until Ctrl-C)")
-    p.add_argument("--rollout", type=int, default=64, help="snapshots per PPO update")
+    p.add_argument("--rollout", type=int, default=512,
+                   help="snapshots per PPO update (512 = 128 decisions at --action-repeat 4, ~25 s)")
     p.add_argument("--lr", type=float, default=3e-4)
     p.add_argument("--gamma", type=float, default=0.99)
     p.add_argument("--lam", type=float, default=0.95)
@@ -1113,7 +1316,12 @@ def parse_args(argv=None):
     p.add_argument("--epochs", type=int, default=4)
     p.add_argument("--minibatch", type=int, default=512)
     p.add_argument("--vf-coef", type=float, default=0.5)
-    p.add_argument("--ent-coef", type=float, default=0.005)
+    p.add_argument("--ent-coef", type=float, default=0.0, help="entropy bonus (0: see ppo_update)")
+    p.add_argument("--mu-penalty", type=float, default=1e-3, help="penalty on the pre-tanh mean")
+    p.add_argument("--action-repeat", type=int, default=4,
+                   help="snapshots each decision is held for (4 at 20 Hz = 5 decisions/s; longer horizon)")
+    p.add_argument("--no-norm-reward", dest="norm_reward", action="store_false", help="don't scale rewards")
+    p.add_argument("--no-breed", dest="breed", action="store_false", help="never send reproduce (benchmarks)")
     p.add_argument("--max-step-cm", type=float, default=15.0, help="largest move per step, per axis (15 cm at 20 Hz = 3 m/s)")
     p.add_argument("--max-step-deg", type=float, default=15.0)
     p.add_argument("--brains", type=int, default=2, help="brains per species (population-based training)")
@@ -1134,9 +1342,10 @@ def parse_args(argv=None):
     p.add_argument("--save-every", type=int, default=10, help="PPO updates between checkpoints")
     p.add_argument("--timeout", type=float, default=15.0)
     p.add_argument("--connect-retries", type=int, default=None, help="default: retry forever")
-    p.add_argument("--policy", choices=("learn", "frozen", "random"), default="learn",
+    p.add_argument("--policy", choices=("learn", "frozen", "random", "greedy"), default="learn",
                    help="learn = PPO; frozen = act with the brains but never update them (baseline, "
-                        "or evaluation with --load); random = uniform random actions (baseline)")
+                        "or evaluation with --load); random = uniform random actions (baseline); "
+                        "greedy = straight at the nearest food (hand-written reference)")
     p.add_argument("--load", default=None, help="take brains (only) from this checkpoint, e.g. to evaluate a trained run")
     p.add_argument("--metrics", default=None, help="metrics JSON path (default <run>/metrics.json)")
     p.add_argument("--metrics-every", type=int, default=5, help="PPO updates per metrics window")

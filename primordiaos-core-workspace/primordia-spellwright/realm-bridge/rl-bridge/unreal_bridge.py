@@ -107,6 +107,14 @@ class BridgeConfig:
     gather_rate_per_s: float = 12.0
     attack_radius_cm: float = 250.0
     cohesion_radius_cm: float = 600.0
+    # Population damping (against boom -> overgrazing -> starvation -> crash cycles). An agent can
+    # reproduce only once it is `maturity_s` old, `birth_cooldown_s` after its last birth, and
+    # with more energy the more crowded it is: the energy needed is multiplied by
+    # (1 + same-root neighbours within sense range / crowding_k), up to a full store.
+    # Setting all three to 0 restores undamped reproduction.
+    maturity_s: float = 15.0
+    birth_cooldown_s: float = 20.0
+    crowding_k: float = 8.0
 
 
 # ==============================================================================================
@@ -191,7 +199,7 @@ def level_for_xp(xp):
 class AgentRecord:
     FIELDS = ("id", "species", "xp", "level", "health", "max_health", "energy", "max_energy", "age",
               "generation", "parent", "lineage", "children", "genome", "mutations", "kills",
-              "gathered", "territory", "born", "alive", "cause", "world", "origin")
+              "gathered", "territory", "born", "alive", "cause", "world", "origin", "last_birth")
 
     def __init__(self, agent_id, species):
         r = rules_for(species)
@@ -218,6 +226,7 @@ class AgentRecord:
         self.cause = None            # cause of death
         self.world = None            # package path of the world it lives in
         self.origin = None           # e.g. {"forked_from": "<id>"} when re-adopted from a dead record
+        self.last_birth = None       # its age when it last reproduced
 
     def to_json(self):
         return {k: getattr(self, k) for k in self.FIELDS}
@@ -236,7 +245,7 @@ class LiveAgent:
     """Per-frame data for a tracked actor (not persisted)."""
 
     __slots__ = ("record", "actor", "pos", "rot", "scale", "prev_pos", "velocity", "home",
-                 "rays", "ray_cursor", "props", "dirty_scale")
+                 "rays", "ray_cursor", "props", "dirty_scale", "commanded_m")
 
     def __init__(self, record, actor):
         self.record = record
@@ -251,6 +260,7 @@ class LiveAgent:
         self.ray_cursor = 0
         self.props = None            # Blueprint variables this actor has (found once)
         self.dirty_scale = False
+        self.commanded_m = 0.0       # distance asked for by actions since the last ecosystem step
 
 
 # ==============================================================================================
@@ -701,7 +711,11 @@ class EcoBridge:
                 continue
             rec.age += dt
             rec.energy -= rules.drain_per_s * g["metabolism"] * dt
-            moved_m = math.dist(live.pos, live.prev_pos) / 100.0
+            # Movement costs what the agent ASKED for, or what it actually moved if more (pushed,
+            # carried). Charging only actual movement made pressing into a wall free, and the
+            # policy learned to sit pinned against the arena wall to save energy.
+            moved_m = max(math.dist(live.pos, live.prev_pos) / 100.0, live.commanded_m)
+            live.commanded_m = 0.0
             rec.energy -= rules.move_cost_per_m * moved_m
             self._xp(rec, "survival", dt)
 
@@ -814,7 +828,9 @@ class EcoBridge:
         if t.health <= 0 and t.alive:
             a.kills += 1
             self._xp(a, "kill", 1.0)
-            a.energy = min(a.max_energy, a.energy + 0.5 * t.max_energy)
+            gained = min(a.max_energy - a.energy, 0.5 * t.max_energy)
+            a.energy += gained
+            a.gathered += gained             # "gathered" is food eaten, from nodes or prey
             t.cause = f"killed by {a.id}"
 
     def _level_and_death(self, live):
@@ -921,11 +937,13 @@ class EcoBridge:
             rec = live.record
             my_root = root_species(rec.species)
             radius = cfg.sense_radius_cm * rec.genome["sense"]
-            nearest = {"resource": None, "enemy": None, "ally": None}
-            allies = threats = 0
+            nearest = {"resource": None, "enemy": None, "ally": None, "threat": None}
+            allies = threats = others = 0
+            food_amount = 0.0
             for node, p, d2 in res_grid.near(live.pos, radius):
                 if nearest["resource"] is None or d2 < nearest["resource"][1]:
                     nearest["resource"] = (p, d2)
+                    food_amount = node["amount"] / cfg.resource_capacity
             for (other, other_root, predator), p, d2 in grid.near(live.pos, radius):
                 if other is live:
                     continue
@@ -934,13 +952,17 @@ class EcoBridge:
                     if nearest["ally"] is None or d2 < nearest["ally"][1]:
                         nearest["ally"] = (p, d2)
                 else:
+                    others += 1
                     if predator:
                         threats += 1
+                        if nearest["threat"] is None or d2 < nearest["threat"][1]:
+                            nearest["threat"] = (p, d2)
                     if nearest["enemy"] is None or d2 < nearest["enemy"][1]:
                         nearest["enemy"] = (p, d2)
             live.rays = live.rays or [1.0] * cfg.rays
             # Vectors are [dx, dy, dz, distance] in cm relative to the agent, or None if nothing in range.
-            sensors = {"allies": allies, "threats": threats, "radius": round(radius, 1),
+            sensors = {"allies": allies, "threats": threats, "others": others, "radius": round(radius, 1),
+                       "resource_amount": round(food_amount, 3),
                        "owned_territory": self.territory_owner.get(rec.territory) == rec.species}
             for key, hit in nearest.items():
                 sensors[key] = None if hit is None else [
@@ -963,7 +985,9 @@ class EcoBridge:
 
     def _trace(self, live, i):
         """Fraction of the ray that is clear (1.0 = nothing within ray_length_cm)."""
-        yaw = math.radians(live.rot[2] + 360.0 * i / self.cfg.rays)
+        # World-aligned: ray 0 points along +X, then counter-clockwise. Movement actions are in
+        # world axes too, so "ray i is blocked" maps directly onto "don't move that way".
+        yaw = math.radians(360.0 * i / self.cfg.rays)
         start = unreal.Vector(live.pos[0], live.pos[1], live.pos[2] + 50.0)
         end = unreal.Vector(start.x + math.cos(yaw) * self.cfg.ray_length_cm,
                             start.y + math.sin(yaw) * self.cfg.ray_length_cm, start.z)
@@ -1117,6 +1141,7 @@ class EcoBridge:
                 "age": round(rec.age, 2), "max_age": rules_for(rec.species).max_age_s,
                 "generation": rec.generation, "parent": rec.parent, "lineage": rec.lineage,
                 "children": rec.children, "kills": rec.kills, "territory": rec.territory,
+                "food": round(rec.gathered, 2), "can_reproduce": self._can_reproduce(live)[0],
                 "genome": {k: round(v, 4) for k, v in rec.genome.items()},
                 "sensors": sensors,
             })
@@ -1162,6 +1187,7 @@ class EcoBridge:
             d = _triple(action["delta_position"], "delta_position", step)
             loc = actor.get_actor_location()
             actor.set_actor_location(unreal.Vector(loc.x + d[0], loc.y + d[1], loc.z + d[2]), False, True)
+            live.commanded_m += math.sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]) / 100.0
         if action.get("delta_rotation") is not None:
             d = _triple(action["delta_rotation"], "delta_rotation", self.cfg.max_step_deg)
             r = actor.get_actor_rotation()
@@ -1189,6 +1215,20 @@ class EcoBridge:
                 live.pos = live.prev_pos = (live.home.translation.x, live.home.translation.y, live.home.translation.z)
                 restored += 1
         return restored
+
+    def _can_reproduce(self, live):
+        """(allowed, reason): maturity, cooldown since the last birth, and crowding-scaled energy."""
+        rec, cfg = live.record, self.cfg
+        if rec.age < cfg.maturity_s:
+            return False, f"too young ({rec.age:.0f}/{cfg.maturity_s:.0f}s)"
+        if rec.last_birth is not None and rec.age - rec.last_birth < cfg.birth_cooldown_s:
+            return False, "still recovering from the last birth"
+        allies = (self.sensor_cache.get(rec.id) or {}).get("allies", 0)
+        crowd = 1.0 + (allies / cfg.crowding_k if cfg.crowding_k > 0 else 0.0)
+        need = min(1.0, rules_for(rec.species).reproduce_energy * crowd) * rec.max_energy
+        if rec.energy < need - 1e-6:
+            return False, f"not enough energy to reproduce ({rec.energy:.0f}/{need:.0f}, {allies} neighbours)"
+        return True, ""
 
     def _spawn_child(self, parent, offset, species):
         """A new agent beside the parent: from the pool, else (editor world) a duplicate."""
@@ -1234,8 +1274,10 @@ class EcoBridge:
 def cmd_reproduce(bridge, live, command, ack):
     """Species-specific reproduction. Needs energy >= rules.reproduce_energy * max_energy."""
     rec, rules = live.record, rules_for(live.record.species)
-    if rec.energy < rules.reproduce_energy * rec.max_energy:
-        raise ValueError(f"not enough energy to reproduce ({rec.energy:.0f}/{rules.reproduce_energy * rec.max_energy:.0f})")
+    allowed, reason = bridge._can_reproduce(live)
+    if not allowed:
+        raise ValueError(reason)
+    rec.last_birth = rec.age
     offset = _triple(command.get("offset", [150.0, 0.0, 0.0]), "offset", 2000.0)
     species = str(command.get("species", rec.species))
     if root_species(species) != root_species(rec.species):

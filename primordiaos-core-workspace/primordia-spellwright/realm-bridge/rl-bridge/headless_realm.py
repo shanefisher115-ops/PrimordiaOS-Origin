@@ -13,6 +13,7 @@ The same unreal_bridge.py file runs here and in the editor; only the `unreal` mo
 """
 
 import argparse
+import json
 import math
 import os
 import random
@@ -250,6 +251,8 @@ def main(argv=None):
     p.add_argument("--seconds", type=float, default=0.0, help="stop after this much real time (0 = forever)")
     p.add_argument("--saved", default=None, help="where agent records are saved (default: a temp folder)")
     p.add_argument("--respawn-below", type=int, default=4, help="immigration floor per species (0 = off)")
+    p.add_argument("--species", nargs="+", default=None, help="species to populate (default: all three)")
+    p.add_argument("--bridge", default="{}", help='extra BridgeConfig fields as JSON, e.g. \'{"maturity_s": 0}\'')
     p.add_argument("--seed", type=int, default=1)
     a = p.parse_args(argv)
     random.seed(a.seed)
@@ -260,9 +263,10 @@ def main(argv=None):
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import unreal_bridge
 
-    populate(u, a.agents, a.resources, a.pool, a.world_radius, unreal_bridge.BridgeConfig().species)
-    bridge = unreal_bridge.start_bridge(port=a.port, hz=a.hz, realm=a.realm, persist=a.saved is not None,
-                                        respawn_below=a.respawn_below)
+    species = tuple(a.species) if a.species else unreal_bridge.BridgeConfig().species
+    populate(u, a.agents, a.resources, a.pool, a.world_radius, species)
+    bridge = unreal_bridge.start_bridge(port=a.port, hz=a.hz, realm=a.realm, persist=a.saved is not None, species=species,
+                                        respawn_below=a.respawn_below, **json.loads(a.bridge))
     if bridge is None:
         return 1
     frame = 1.0 / 60.0

@@ -10,10 +10,11 @@ The realm runs in Unreal and the brains run in PyTorch. Agents (Lumen-Seed, Grav
 | File | Runs in | What it does |
 |---|---|---|
 | `unreal_bridge.py` | Unreal Editor 5.4 (Python Editor Script Plugin) | The world. It tracks agents, runs the ecosystem rules (XP, levels, health, energy, age, resources, territory, combat, death, reproduction), gathers sensors and raycasts, and serves TCP at 20–60 Hz. |
-| `agent_trainer.py` | Any Python 3.10+ with PyTorch | The brains. It handles observations, multi-agent PPO with several brains per species, XP-centred rewards, and evolution: selection, weight and gene mutation, reproduction, culling, population scaling, speciation and an elite archive. It also keeps the lineage log, multi-realm play and checkpoints. |
+| `agent_trainer.py` | Any Python 3.10+ with PyTorch | The brains. It handles observations, multi-agent PPO with one or more brains per species, food-centred rewards with potential-based shaping, and evolution: selection, weight and gene mutation, reproduction, culling, population scaling, speciation and an elite archive. It also keeps the lineage log, multi-realm play and checkpoints. |
 | `headless_realm.py` | Plain Python | Runs `unreal_bridge.py` on a stand-in for Unreal's API, with no physics or rendering. Use it to test the trainer and protocol without the editor. |
 | `demo_scene.py` | Unreal Editor | Builds a scratch test level (arena, resources, agents, pool) and starts the bridge. |
-| `ab_compare.py` | Plain Python | A/B evaluation: trained vs untrained vs random policy on identical headless realms. |
+| `ab_compare.py` | Plain Python | A/B evaluation: trained vs untrained vs random vs greedy policy on identical headless realms. |
+| `stability_check.py` | Plain Python | Ecology stability check: damped vs undamped reproduction under the random policy. |
 | `test_persistence.py` | Plain Python | Regression tests for the event log, record continuity and the species cap. |
 
 ## Architecture
@@ -29,7 +30,7 @@ The realm runs in Unreal and the brains run in PyTorch. Agents (Lumen-Seed, Grav
  │    immigration                           │                  │ observe() -> 53 floats per agent      │
  │  4 sensors: nearest resource/enemy/ally, │      state       │ Brain = actor-critic + PPO buffer     │
  │    counts, raycasts (budgeted)           ├─────────────────►│  (2+ brains per species)              │
- │  5 snapshot + events                     │  + events        │ reward_for(): XP gain + survival ...  │
+ │  5 snapshot + events                     │  + events        │ reward: food, birth, damage, death    │
  │ Agent records (XP, lineage, genome)      │                  │ Evolution every N updates             │
  │  -> Saved/RLBridge/<realm>.json          │                  │ LineageLog -> runs/<run>/lineage.jsonl│
  └──────────────────────────────────────────┘                  │ checkpoint -> runs/<run>/checkpoint.pt│
@@ -53,7 +54,7 @@ There are three reasons for the split:
 |---|---|
 | Gameplay (Unreal) | Each species earns XP for its own way of life (table below). Level = 1 + ⌊√(XP/100)⌋, so levels arrive at 0, 100, 400, 900 XP… A level-up heals the agent and grows species traits. If an actor has Blueprint variables called `XP`, `Level`, `Health`, `Energy` or `Age`, they are kept in sync every tick so Blueprints can react (VFX, sounds, UI). |
 | Observation | `log(1+XP)/10` and `level/10` are in every agent's observation. |
-| Reward | `0.05 × ΔXP` per step, plus `+1` per level gained, with small survival, damage and energy terms (`REWARD` in the trainer). |
+| Reward | Not used for learning since the A/B showed XP-based reward taught nothing (most XP comes from simply existing). The reward is food eaten, food-distance shaping, births, damage and death; see [Measuring whether it learns](#measuring-whether-it-learns). |
 | Fitness | XP gained over the generation dominates `fitness_of()`. Survival time, offspring and species metrics break ties. |
 | Evolution | The fittest (by XP) reproduce, the weakest are culled, species populations grow or shrink by mean fitness, and brains are selected by the mean fitness of their agents. |
 | Divergence | A brain whose agents keep earning XP differently enough to drift its weights becomes a new species. |
@@ -61,7 +62,7 @@ There are three reasons for the split:
 
 ## Species
 
-The gameplay rules for each species are in `SPECIES_RULES` (`unreal_bridge.py`). Its learning extras are in `SHAPING` and `fitness_of` (`agent_trainer.py`).
+The gameplay rules for each species are in `SPECIES_RULES` (`unreal_bridge.py`). Its learning extras are in `SHAPING` (empty by default) and `fitness_of` (`agent_trainer.py`).
 
 | | Lumen-Seed | Gravemind | Echo-Swarm |
 |---|---|---|---|
@@ -70,7 +71,6 @@ The gameplay rules for each species are in `SPECIES_RULES` (`unreal_bridge.py`).
 | Per level | size +8%, max health +8 | armor +0.03, aggression +5%, max health +12 | sense range +5%, speed +3%, max health +4 |
 | Reproduction | **budding**: one bud at 60% of the parent's size with 30% of its energy | **splitting**: two equals, with health and energy halved | **fission**: 2–3 small children share 80% of the energy |
 | Needs to reproduce | 70% energy | 80% energy | 75% energy |
-| Trainer shaping | energy gained | kills | allies nearby |
 | Fitness extra | levels × 5 | kills × 10 | mean allies × 0.5 |
 
 **Combat.** A Gravemind damages the nearest agent of another root species within 2.5 m. The damage is `20/s × aggression × (1 + 0.1 × (level−1))`, reduced by the target's armor. A kill gives it half the victim's max energy.
@@ -85,7 +85,7 @@ The gameplay rules for each species are in `SPECIES_RULES` (`unreal_bridge.py`).
 
 ## The evolution loop
 
-Every `--rollout` snapshots, each brain runs a PPO update on its own agents' experience: GAE(λ=0.95), clip 0.2, 4 epochs. Every `--generation` updates, the evolution step runs:
+Every `--rollout` snapshots (default 512, which is 128 decisions at `--action-repeat 4`), each brain runs a PPO update on its own agents' experience: GAE(λ=0.95), clip 0.2, 4 epochs. Every `--generation` updates, the evolution step runs:
 
 1. **Fitness:** `fitness_of()` for each living agent, over the generation.
 2. **Population scaling:** each species gets a target size of `n × (1 + 0.25 × relative mean fitness)`, between `--min-pop` and `--max-pop` and within `--max-total`.
@@ -234,11 +234,71 @@ A world that looks alive proves nothing by itself. The trainer has baseline mode
 | `--policy learn` | PPO, the default. |
 | `--policy frozen` | Act with the brains but never update them. With `--load <checkpoint>`, this evaluates a trained policy. Without it, it measures freshly initialised brains, which is where PPO starts. |
 | `--policy random` | Uniform random movement; reproduce when able, half the time. |
+| `--policy greedy` | Hand-written reference: full speed straight at the nearest food. |
+| `--no-breed` | Never send reproduce (benchmarks). |
 | `--generation 0` | Trainer-side evolution off (no culling, breeding, brain mutation or speciation), so the policy is the only difference between arms. |
 
-`<run>/metrics.json` gets a window every `--metrics-every` updates. It records XP per agent-second, starvation deaths per agent-hour, own births per agent-hour (immigration counted separately), mean age at death and mean population. All rates are per agent-second of life, so they don't depend on population size.
+`<run>/metrics.json` gets a window every `--metrics-every` updates. It records:
+- **food alignment:** the mean cosine between each move and the direction to that agent's food. +1 means straight at it; random is 0.
+- **food and XP per agent-second.**
+- **starvation deaths and own births per agent-hour.** Immigration is counted separately.
+- **mean age at death, and population mean, min and max.**
+- **policy telemetry:** the share of actions whose mean sits in tanh's flat region (`saturated`), the pre-squash mean `|mu|`, and the action std.
+- **the critic's explained variance.**
 
-`python ab_compare.py --checkpoint runs/<train>/checkpoint.pt --seeds 11 12 13` runs trained, untrained and random arms side by side on identical fresh headless realms for each seed. It prints the per-seed differences with a paired t statistic and writes `runs/ab/ab_results.json`.
+All rates are per agent-second of life, so they don't depend on population size.
+
+`python ab_compare.py --checkpoint runs/<train>/checkpoint.pt --seeds 11 12 13` runs trained, untrained, random and greedy arms side by side on identical fresh headless realms for each seed. It prints the per-seed differences with a paired t statistic and writes `runs/ab/ab_results.json`. `--realm-args` and `--trainer-args` pass extra settings to every arm. `python stability_check.py` compares damped and undamped reproduction under the random policy, so ecology is judged without any learning.
+
+### What it took for PPO to learn foraging
+
+Six versions of the reward failed before one worked. Each failure was measured with the A/B above, and the fixes follow the deep-research report `reports/PPO foraging failure fixes.md`, kept locally and not in git.
+
+| Version | Food alignment | Food vs random | What went wrong |
+|---|---|---|---|
+| XP reward | n/a | −4% | Most XP comes from simply existing, so the reward carried no foraging signal. |
+| Food + energy-efficiency reward | ~+0.1 (one brain) | −40% | Food paid only on arrival (5–10 s away): too sparse; agents drifted in a fixed direction. |
+| + shaping with γ·Φ(s′) − Φ(s), Φ = closeness ≥ 0 | −0.46 (training) | — | Charged agents for staying near food. Run stopped. |
+| + shaping without γ | −0.32 | −59% | Agents pushed into the wall: movement was charged on actual displacement, so pushing was free, and the efficiency term paid for it. |
+| Wall fix, no efficiency term | −0.06 | −45% | No drift any more, but the signal was still too weak (short horizon, nothing normalised). |
+| **Report fixes + single-species benchmark** | **+0.15** | **+11%** | — |
+
+**The fixes that worked:**
+- Shaping γ·Φ(s′) − Φ(s) with Φ = −distance to the food target chosen at decision time, held fixed for both ends of a transition, and Φ = 0 at death.
+- `--action-repeat 4` (5 decisions/s), so food 5–10 s away is within the horizon. Rollouts are 128 decisions.
+- Running observation normalisation, and rewards scaled by the running std of the discounted return.
+- Entropy bonus 0 with a tanh-squashed Gaussian (the bonus pays for noise the squash throws away), initial std 0.5, a small penalty on the pre-squash mean, and log-std clamped.
+- No reward for saving energy, and movement charged on the commanded distance.
+- One brain per species.
+
+**Benchmark result.** The benchmark world has one species (LumenSeed), a fixed population of 32 (immigration refills deaths, no breeding), and 40 food nodes. Training ran 130 updates on two realms. Results across 3 seeds:
+
+| | Trained | Untrained | Random | Greedy |
+|---|---|---|---|---|
+| Food alignment | **+0.15** | −0.04 | 0.00 | +1.00 |
+| Food per agent-second | **1.34** | 0.77 | 1.21 | 1.42 |
+| Starved per agent-hour | **0** | 16 | 6 | 0 |
+
+Trained beats random in 3 of 3 seeds:
+- food alignment, t = 12.8;
+- food, +11%, t = 9.4;
+- starvation, which falls to 0.
+
+It gets within 6% of greedy's food. Food is abundant in this world, so the margins are small: an agent with a full energy store can't eat more. Alignment of +0.15 also means the policy leans toward food rather than heading straight for it. The full ecosystem (predators, breeding, boom and crash) has not yet been retried with these fixes.
+
+To reproduce it (run each command from `rl-bridge`):
+
+```bash
+python headless_realm.py --port 9791 --seed 1 --speed 2 --species LumenSeed --agents 32 --pool 32 --resources 40 --respawn-below 32 --bridge '{"maturity_s": 1e9, "resource_regen_per_s": 4}'
+```
+
+```bash
+python agent_trainer.py --realm 127.0.0.1:9791 --run runs/bench --generation 0 --no-breed --brains 1 --updates 130
+```
+
+```bash
+python ab_compare.py --checkpoint runs/bench/checkpoint.pt --rollout 256 --updates 20 --realm-args "--species LumenSeed --agents 32 --pool 32 --resources 40 --respawn-below 32 --bridge '{\"maturity_s\": 1e9, \"resource_regen_per_s\": 4}'" --trainer-args "--no-breed --brains 1"
+```
 
 ## Multiple realms
 
