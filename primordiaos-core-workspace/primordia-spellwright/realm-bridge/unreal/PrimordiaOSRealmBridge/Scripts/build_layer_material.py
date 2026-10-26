@@ -29,16 +29,21 @@ MEL = unreal.MaterialEditingLibrary
 # tint (cliff faces lean to the secondary colour and darken), height shade (an instance is
 # darker at its foot than its top, a cheap stand-in for occlusion that Lumen-off iGPU
 # settings don't give) and tip glow (the top of an instance glows in the realm's essence).
+# Rim and contact replace what SSR and SSAO gave (both are off in live play on the iGPU):
+# rim = emissive Fresnel edge in the essence (glassy crystal, lit orbit metal), contact = cliff
+# faces darken just above the terrace below them.
 KINDS = {
-    #               gain  metal rough  macro side  shade  tip
-    "ground":      (0.15, 0.0, 0.70,  0.35, 0.65, 0.45, 0.0),
-    "ocean":       (0.30, 0.1, 0.15,  0.20, 0.00, 0.00, 0.0),
-    "sky":         (8.00, 0.0, 1.00,  0.00, 0.00, 0.00, 0.0),
-    "ring":        (0.80, 0.7, 0.35,  0.10, 0.00, 0.00, 0.0),
-    "lattice":     (1.50, 0.8, 0.25,  0.10, 0.00, 0.00, 0.0),
-    "spire_field": (0.60, 0.6, 0.35,  0.15, 0.00, 0.65, 4.0),
-    "void":        (0.05, 0.0, 0.90,  0.00, 0.00, 0.00, 0.0),
+    #               gain  metal rough  macro side  shade  tip  rim  contact
+    "ground":      (0.15, 0.0, 0.70,  0.35, 0.65, 0.45, 0.0, 0.0, 0.35),
+    "ocean":       (0.30, 0.1, 0.15,  0.20, 0.00, 0.00, 0.0, 0.4, 0.0),
+    "sky":         (8.00, 0.0, 1.00,  0.00, 0.00, 0.00, 0.0, 0.0, 0.0),
+    "ring":        (0.80, 0.7, 0.35,  0.10, 0.00, 0.00, 0.0, 0.8, 0.0),
+    "lattice":     (1.50, 0.8, 0.25,  0.10, 0.00, 0.00, 0.0, 0.8, 0.0),
+    "spire_field": (0.60, 0.6, 0.35,  0.15, 0.00, 0.65, 4.0, 1.5, 0.0),
+    "void":        (0.05, 0.0, 0.90,  0.00, 0.00, 0.00, 0.0, 0.6, 0.0),
 }
+# Terrace step height, as PrimordiaRealmComposition.cpp computes it: 150 cm x (0.5 + roughness).
+CONTACT_HEIGHT_CM = 60.0
 # World-space size of the macro variation, cm (two octaves: this and a fifth of it).
 MACRO_SCALE_CM = 2400.0
 
@@ -157,7 +162,21 @@ def build():
     albedo = lerp3(side, albedo, add(mul(top, side_tint), unary(unreal.MaterialExpressionOneMinus, side_tint)))
     albedo = mul(albedo, add(mul(n, mul(macro_amount, k=0.8)), k=1.0))
     foot = unary(unreal.MaterialExpressionOneMinus, mul(height_shade, unary(unreal.MaterialExpressionOneMinus, unary(unreal.MaterialExpressionSquareRoot, h01))))
-    base = mul(mul(albedo, foot), unary(unreal.MaterialExpressionOneMinus, mul(inversion, k=0.5)))
+    # Contact shade on cliff faces: height above the terrace top below, from the layer's own
+    # "roughness" param (the generator's step formula), darkened over the first 60 cm.
+    contact = scalar("ContactShade", 0.0)
+    step = mul(add(unary(unreal.MaterialExpressionSaturate, scalar("roughness", 0.5)), k=0.5), k=150.0)
+    # Frac of the large-world (double) position broke the instanced permutations: truncate to float
+    # first (exact enough: realms sit near the origin).
+    world_f = node(unreal.MaterialExpressionTruncateLWC, -900)
+    connect(world, "", world_f, "")
+    wz = node(unreal.MaterialExpressionComponentMask, r=False, g=False, b=True, a=False)
+    connect(world_f, "", wz, "")
+    above = mul(unary(unreal.MaterialExpressionFrac, op(unreal.MaterialExpressionDivide, wz, step)), step)
+    near_foot = unary(unreal.MaterialExpressionOneMinus, unary(unreal.MaterialExpressionSaturate, mul(above, k=1.0 / CONTACT_HEIGHT_CM)))
+    cliff = unary(unreal.MaterialExpressionOneMinus, top)
+    contact_dark = unary(unreal.MaterialExpressionOneMinus, mul(mul(near_foot, cliff), contact))
+    base = mul(mul(mul(albedo, foot), contact_dark), unary(unreal.MaterialExpressionOneMinus, mul(inversion, k=0.5)))
     MEL.connect_material_property(base, "", unreal.MaterialProperty.MP_BASE_COLOR)
 
     # Emissive: crowns, circle stones, band stars and big pieces glow with coherence and light;
@@ -171,6 +190,10 @@ def build():
     h2 = mul(h01, h01)
     tip = mul(mul(mul(mul(h2, h2), h2), tip_glow), luminosity)
     emissive = add(emissive, mul(mul(add(color, essence), k=0.5), mul(tip, flicker)))
+    # Rim: an emissive Fresnel edge in the essence, scaled by light (stands in for reflections).
+    fresnel = node(unreal.MaterialExpressionFresnel, exponent=4.0, base_reflect_fraction=0.0)
+    rim = mul(mul(fresnel, scalar("RimGlow", 0.0)), luminosity)
+    emissive = add(emissive, mul(mul(add(color, essence), k=0.5), rim))
     MEL.connect_material_property(emissive, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
 
     rough = add(add(roughness, mul(seed, k=0.3)), mul(n, mul(macro_amount, k=0.6)))
@@ -187,7 +210,7 @@ def build():
 def build_instances(parent):
     tools = unreal.AssetToolsHelpers.get_asset_tools()
     entries = []
-    for kind, (gain, metal, rough, macro, side, shade, tip) in KINDS.items():
+    for kind, (gain, metal, rough, macro, side, shade, tip, rim, contact) in KINDS.items():
         name = f"MI_PrimordiaLayer_{kind}"
         path = f"{PACKAGE_DIR}/{name}"
         mi = unreal.load_asset(path)
@@ -201,6 +224,8 @@ def build_instances(parent):
         MEL.set_material_instance_scalar_parameter_value(mi, "SideTint", side)
         MEL.set_material_instance_scalar_parameter_value(mi, "HeightShade", shade)
         MEL.set_material_instance_scalar_parameter_value(mi, "TipGlow", tip)
+        MEL.set_material_instance_scalar_parameter_value(mi, "RimGlow", rim)
+        MEL.set_material_instance_scalar_parameter_value(mi, "ContactShade", contact)
         MEL.update_material_instance(mi)
         if not unreal.EditorAssetLibrary.save_asset(path, only_if_is_dirty=False):
             raise RuntimeError(f"could not save {path}")

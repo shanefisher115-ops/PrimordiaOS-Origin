@@ -5,6 +5,7 @@
 #include "SpeciesActor.generated.h"
 
 class UInstancedStaticMeshComponent;
+class UStaticMesh;
 class UMaterialInstanceDynamic;
 
 /** How a species lives in the realm (the bridge picks it from the archetype; docs/SOVEREIGN.md). */
@@ -77,6 +78,9 @@ private:
 	float RangeMeters = 10.f;
 	int32 Seed = 0;
 	bool bFormBuilt = false;
+	/** A real creature mesh from the bridge ("mesh": an asset path); empty = the manifestation's engine shapes. */
+	FString MeshPath;
+	UPROPERTY() TObjectPtr<UStaticMesh> CustomMesh;
 	EPrimordiaManifestation BuiltFor = EPrimordiaManifestation::Individual;
 	float Time = 0.f;
 	float FadeAlpha = 1.f;

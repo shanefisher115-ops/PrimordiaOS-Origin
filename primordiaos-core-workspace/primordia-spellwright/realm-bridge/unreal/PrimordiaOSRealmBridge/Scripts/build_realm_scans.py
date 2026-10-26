@@ -31,6 +31,9 @@ SIDE_TILE_CM = 800.0   # Lichened Rock Wall every 8 m on cliff faces
 TINT = 0.25            # how much the layer's palette colour tints the scans
 BRIGHTNESS = 1.6       # the scans' albedo is dark (~0.15) next to the realm's pale palette
 MACRO_CM = 3000.0
+# Contact shade (SSAO is off in live play): cliff faces darken over the first 60 cm above the
+# terrace below. Terrace steps are 150 cm x (0.5 + the layer's "roughness"), as the generator makes them.
+CONTACT_SHADE, CONTACT_HEIGHT_CM = 0.45, 60.0
 
 MEL = unreal.MaterialEditingLibrary
 # The scans come with one LOD (4-8k triangles). As rubble they are drawn by the hundred at a few
@@ -147,6 +150,13 @@ def build_ground_material():
     base = op(unreal.MaterialExpressionMultiply, op(unreal.MaterialExpressionMultiply, albedo, tint), op(unreal.MaterialExpressionMultiply, macro, ao))
     base = op(unreal.MaterialExpressionMultiply, base, unary(unreal.MaterialExpressionOneMinus, op(unreal.MaterialExpressionMultiply, inversion, k=0.5)))
     base = op(unreal.MaterialExpressionMultiply, base, brightness)
+    step = op(unreal.MaterialExpressionMultiply, op(unreal.MaterialExpressionAdd, unary(unreal.MaterialExpressionSaturate, scalar("roughness", 0.5)), k=0.5), k=150.0)
+    # Truncate the large-world (double) position before Frac: Frac on it broke the instanced permutations.
+    world_f = unary(unreal.MaterialExpressionTruncateLWC, world)
+    above = op(unreal.MaterialExpressionMultiply, unary(unreal.MaterialExpressionFrac, op(unreal.MaterialExpressionDivide, mask(world_f, False, False, True), step)), step)
+    near_foot = unary(unreal.MaterialExpressionOneMinus, unary(unreal.MaterialExpressionSaturate, op(unreal.MaterialExpressionMultiply, above, k=1.0 / CONTACT_HEIGHT_CM)))
+    shade = op(unreal.MaterialExpressionMultiply, op(unreal.MaterialExpressionMultiply, near_foot, unary(unreal.MaterialExpressionOneMinus, top_w)), scalar("ContactShade", CONTACT_SHADE))
+    base = op(unreal.MaterialExpressionMultiply, base, unary(unreal.MaterialExpressionOneMinus, shade))
     MEL.connect_material_property(base, "", unreal.MaterialProperty.MP_BASE_COLOR)
     MEL.connect_material_property(rough, "", unreal.MaterialProperty.MP_ROUGHNESS)
     MEL.connect_material_property(normal, "", unreal.MaterialProperty.MP_NORMAL)
@@ -172,6 +182,11 @@ def build_lods():
     for rel in SCAN_MESHES:
         path = f"{SCANS}/{rel}"
         mesh = need(path)
+        if mesh.get_num_lods() >= len(SCAN_LODS):
+            log(f"{rel}: keeps its {mesh.get_num_lods()} LODs")
+            continue
+        # set_lods refuses headless commandlets: run this script once in the full editor
+        # (UnrealEditor.exe <uproject> -ExecutePythonScript=<this file>) to make the LODs.
         lods = meshes.set_lods(mesh, options)
         unreal.EditorAssetLibrary.save_asset(path, only_if_is_dirty=False)
         log(f"{rel}: {lods} LODs, " + ", ".join(str(mesh.get_num_triangles(i)) for i in range(mesh.get_num_lods())) + " triangles")

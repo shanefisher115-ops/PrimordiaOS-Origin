@@ -1,0 +1,10 @@
+[
+  { "name": "SM_SanctumWatchtower", "kind": "tower", "params": { "height": 26, "width": 9, "spireHeight": 22, "lancets": 2, "pinnacles": 1, "crockets": 10, "glass": 1 } },
+  { "name": "SM_SanctumShrine", "kind": "gable", "params": { "width": 11, "pitch": 62, "wallHeight": 4.5, "depth": 1.4, "lancets": 3, "rose": 1, "crockets": 1, "glass": 1 } },
+  { "name": "SM_SanctumButtress", "kind": "buttress", "params": { "span": 5, "height": 11, "pierWidth": 1.1, "pierDepth": 2, "pinnacle": 1, "crockets": 1 } },
+  { "name": "SM_SigilPylon", "kind": "pylon", "params": { "height": 12, "legs": 3, "spread": 0.28, "rings": 4, "fins": 3, "emitter": 1, "glass": 1 } },
+  { "name": "SM_LumenLamp", "kind": "lamp", "params": { "height": 4.6, "arms": 2, "lanternSize": 0.55, "glass": 1 } },
+  { "name": "SM_MoonObservatory", "kind": "dome", "params": { "diameter": 14, "rise": 0.85, "baseHeight": 2, "ribs": 12, "rings": 3, "airlocks": 0, "glass": 1 } },
+  { "name": "SM_SanctumPinnacle", "kind": "pinnacle", "params": { "height": 6.5, "width": 1, "crockets": 5, "gablets": 1, "panels": 1 } },
+  { "name": "SM_TerraceBalustrade", "kind": "balustrade", "params": { "length": 4, "height": 1.05, "depth": 0.32, "style": 1, "posts": 1 } }
+]

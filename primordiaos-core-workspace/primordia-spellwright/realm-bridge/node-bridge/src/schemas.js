@@ -102,6 +102,7 @@ export const payloadSchemas = {
       seed: { type: 'integer', minimum: 0 },
       traits: { type: 'array', items: { type: 'string' } },
       look: { type: 'string' },
+      mesh: { type: 'string' }, // a creature asset path; absent = engine shapes
       born_cycle: { type: 'integer', minimum: 0 },
       cycle: { type: 'integer', minimum: 0 },
     },

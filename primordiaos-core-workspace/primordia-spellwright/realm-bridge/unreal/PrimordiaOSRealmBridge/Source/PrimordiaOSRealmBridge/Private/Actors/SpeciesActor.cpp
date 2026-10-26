@@ -67,6 +67,13 @@ void ASpeciesActor::ApplyPayload(const TSharedPtr<FJsonObject>& P)
 	Seed = Int(P, TEXT("seed"), 0);
 	SetTargetLocation(Vec(P, TEXT("position"), FVector::ZeroVector, UnitsPerMeter()), !bHasReceivedPacket);
 
+	const FString NewMesh = Str(P, TEXT("mesh"));
+	if (NewMesh != MeshPath)
+	{
+		MeshPath = NewMesh;
+		CustomMesh = MeshPath.IsEmpty() ? nullptr : LoadObject<UStaticMesh>(nullptr, *MeshPath);
+		bFormBuilt = false; // rebuild with (or without) the creature mesh
+	}
 	if (!bFormBuilt || BuiltFor != Manifestation)
 	{
 		BuildForm();
@@ -109,7 +116,16 @@ void ASpeciesActor::BuildForm()
 	case EPrimordiaManifestation::Floating:   BodyMesh->SetStaticMesh(Mesh(PrimordiaAssets::Cone)); AccentMesh->SetStaticMesh(Mesh(PrimordiaAssets::Sphere)); bBodyGlows = true; break;
 	case EPrimordiaManifestation::Abyssal:    BodyMesh->SetStaticMesh(Mesh(PrimordiaAssets::Sphere)); AccentMesh->SetStaticMesh(Mesh(PrimordiaAssets::Sphere)); break;
 	}
-	if (bBodyGlows && GlowMat)
+	if (CustomMesh)
+	{
+		// A real creature: its own mesh and materials, no engine-shape accents.
+		BodyMesh->SetStaticMesh(CustomMesh);
+		BodyMesh->EmptyOverrideMaterials();
+		AccentMesh->SetStaticMesh(nullptr);
+		BodyMID = nullptr;
+		bBodyGlows = false;
+	}
+	else if (bBodyGlows && GlowMat)
 	{
 		BodyMesh->SetMaterial(0, GlowMat);
 		BodyMID = nullptr;
@@ -285,8 +301,32 @@ void ASpeciesActor::Draw()
 	AccentT.Reserve(Swarm.Num());
 	const float Fade = FMath::Max(0.001f, FadeAlpha);
 
+	if (CustomMesh)
+	{
+		// Creature meshes come normalized to 1 m long (Blender, docs/SOVEREIGN.md): size from their bounds.
+		const double Fit = SizeMeters * U / FMath::Max(1.0, CustomMesh->GetBoundingBox().GetSize().GetMax());
+		for (const FBody& B : Swarm)
+		{
+			const double S = Fit * B.Scale * Fade;
+			FQuat Q = FQuat(FVector::UpVector, B.Heading);
+			if (Manifestation == EPrimordiaManifestation::Floating)
+			{
+				Q = FQuat(FVector::UpVector, T * 0.25f * B.Rate + B.Phase); // drifting, slowly turning
+			}
+			else if (Manifestation == EPrimordiaManifestation::Abyssal)
+			{
+				Q = Q * FQuat(FVector::ForwardVector, 0.12f * FMath::Sin(T * 0.5f + B.Phase)); // a slow roll as it swims
+			}
+			const double Pulse = Manifestation == EPrimordiaManifestation::Floating ? 1.0 + 0.06 * FMath::Sin(T * 1.6f + B.Phase) : 1.0;
+			BodyT.Emplace(Q, B.Pos, FVector(S, S, S * Pulse));
+		}
+	}
 	for (const FBody& B : Swarm)
 	{
+		if (CustomMesh)
+		{
+			break;
+		}
 		const double S = Size * B.Scale * Fade;
 		switch (Manifestation)
 		{

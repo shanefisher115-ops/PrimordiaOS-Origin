@@ -6,6 +6,10 @@
 // The decisions live here, in one deterministic place: the same species in the same realm
 // always looks and lives the same way, and Unreal only animates what it is told.
 
+// Real creature meshes (free Fab models, normalized to 1 m in Blender; Scripts/build_realm_sanctum.py
+// imports them). A renderer without them falls back to the manifestation's engine shapes.
+const CREATURES = '/Game/ThirdParty/LumenneCreatures/';
+
 /** Archetype -> manifestation (behaviour) and body. Sizes in metres, speeds in m/s. */
 export const ARCHETYPE_FORMS = {
   // Sizes are mythic, not zoological: the realm is ~240 m across and mostly seen from ~200 m.
@@ -15,8 +19,8 @@ export const ARCHETYPE_FORMS = {
   Synthetic: { manifestation: 'individual', hue: 0.58, sat: 0.35, size: 3, speed: 1.6, glow: 1.4, cap: 32 },
   Collective: { manifestation: 'swarm', hue: 0.53, sat: 0.8, size: 0.7, speed: 6, glow: 2.4, cap: 400 },
   Elemental: { manifestation: 'floating', hue: 0.07, sat: 0.85, size: 6, speed: 0.6, glow: 2.6, cap: 24 },
-  Spectral: { manifestation: 'floating', hue: 0.76, sat: 0.4, size: 4.5, speed: 0.5, glow: 2.0, cap: 30 },
-  Abyssal: { manifestation: 'abyssal', hue: 0.62, sat: 0.7, size: 16, speed: 2, glow: 1.3, cap: 10 },
+  Spectral: { manifestation: 'floating', hue: 0.76, sat: 0.4, size: 4.5, speed: 0.5, glow: 2.0, cap: 30, mesh: CREATURES + 'SM_SpectralJelly/SM_SpectralJelly.SM_SpectralJelly' },
+  Abyssal: { manifestation: 'abyssal', hue: 0.62, sat: 0.7, size: 16, speed: 2, glow: 1.3, cap: 10, mesh: CREATURES + 'SM_SkyWhale/SM_SkyWhale.SM_SkyWhale' },
 };
 /** How far each manifestation roams, as a fraction of the ground's radius. */
 const RANGE = { rooted: 0.07, individual: 0.22, swarm: 0.3, floating: 0.25, abyssal: 0.45 };
@@ -83,6 +87,7 @@ export function incarnate(species, manifest, cycle = 0) {
     size: round(form.size * sizeJitter),
     speed: form.speed,
     seed: Math.floor(hash01(species.name, 'seed') * 0x7fffffff),
+    ...(form.mesh ? { mesh: form.mesh } : {}),
     traits: species.traits ?? [],
     look: species.look ?? '',
     born_cycle: species.born_cycle ?? cycle,
