@@ -550,9 +550,12 @@ class Evolution:
             if len(fit) < 2:
                 continue
             root = root_species(species)
-            existing = {s for s in (b.species for b in t.brains.values()) if root_species(s) == root}
+            # The cap counts species alive now. (It used to count every species that ever had a
+            # brain, so after four had existed speciation stopped for good, even once they died out.)
+            existing = {m["species"] for m in t.memory.values() if m["alive"] and root_species(m["species"]) == root}
             if len(existing) >= a.max_species_per_root:
                 continue
+            existing |= {b.species for b in t.brains.values()}         # names still in use
             # A brain's agents are a lineage (children inherit their parent's brain). Speciation is
             # measured on their heritable genes: the distance between the lineage's mean genome
             # and the rest of the species', with each gene scaled by its range. Gene mutation at
@@ -611,6 +614,74 @@ def mutate_weights(net, sigma):
 
 
 # ==============================================================================================
+# Metrics (what the A/B comparison and long runs are judged on)
+# ==============================================================================================
+
+class Metrics:
+    """Outcome measures per window of PPO updates, written to <run>/metrics.json.
+
+    All rates are per agent-second of life, so they don't depend on population size:
+      xp_per_agent_s       XP earned per second alive (XP is the game's own success measure)
+      starved_per_agent_h  starvation deaths per agent-hour (lower = better foraging)
+      births_per_agent_h   own-energy births per agent-hour (immigration counted separately)
+      mean_death_age_s     mean age at death (all causes)
+    """
+
+    def __init__(self, path, policy):
+        self.path, self.policy = path, policy
+        self.windows = []
+        self._reset()
+
+    def _reset(self):
+        self.w = {"agent_s": 0.0, "xp": 0.0, "steps": 0, "pop_sum": 0, "reward_sum": 0.0, "reward_n": 0,
+                  "deaths": defaultdict(int), "births": defaultdict(int), "death_age_sum": 0.0, "death_n": 0,
+                  "started": time.time()}
+
+    def alive(self, seconds, xp_gain):
+        self.w["agent_s"] += seconds
+        self.w["xp"] += max(0.0, xp_gain)
+
+    def reward(self, r):
+        self.w["reward_sum"] += r
+        self.w["reward_n"] += 1
+
+    def step(self, population):
+        self.w["steps"] += 1
+        self.w["pop_sum"] += population
+
+    def event(self, ev):
+        if ev.get("type") == "birth":
+            self.w["births"][ev.get("mode") or "?"] += 1
+        elif ev.get("type") == "death":
+            cause = (ev.get("cause") or "?").split(" ")[0]       # "killed by x" -> "killed"
+            self.w["deaths"][cause] += 1
+            self.w["death_age_sum"] += float(ev.get("age") or 0.0)
+            self.w["death_n"] += 1
+
+    def close_window(self, update):
+        w = self.w
+        hours = max(w["agent_s"], 1e-9) / 3600.0
+        own_births = sum(n for mode, n in w["births"].items() if mode != "immigration")
+        row = {"update": update, "policy": self.policy, "steps": w["steps"],
+               "agent_s": round(w["agent_s"], 1),
+               "mean_population": round(w["pop_sum"] / max(1, w["steps"]), 2),
+               "xp_per_agent_s": round(w["xp"] / max(w["agent_s"], 1e-9), 4),
+               "starved_per_agent_h": round(w["deaths"].get("starved", 0) / hours, 3),
+               "births_per_agent_h": round(own_births / hours, 3),
+               "immigrants": w["births"].get("immigration", 0),
+               "mean_death_age_s": round(w["death_age_sum"] / max(1, w["death_n"]), 2),
+               "mean_reward": round(w["reward_sum"] / max(1, w["reward_n"]), 5),
+               "deaths": dict(w["deaths"]), "births": dict(w["births"])}
+        self.windows.append(row)
+        self._reset()
+        tmp = self.path + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump({"policy": self.policy, "windows": self.windows}, f, indent=1)
+        os.replace(tmp, self.path)
+        return row
+
+
+# ==============================================================================================
 # Trainer
 # ==============================================================================================
 
@@ -633,6 +704,10 @@ class Trainer:
         self.ckpt_path = os.path.join(args.run, "checkpoint.pt")
         self.log = LineageLog(os.path.join(args.run, "lineage.jsonl"))
         self.evolution = Evolution(self, args)
+        self.metrics = Metrics(args.metrics or os.path.join(args.run, "metrics.json"), args.policy)
+        self.last_time = {}              # realm -> sim time of its last snapshot (real step length)
+        self.extinct_checks = defaultdict(int)
+        self.last_event_seq = {}         # realm -> last event seq seen (gap detection)
 
     # -- brains -------------------------------------------------------------------------------------
 
@@ -681,9 +756,14 @@ class Trainer:
         print(f"[trainer] saved {self.ckpt_path} ({len(self.brains)} brains, generation {self.generation})")
 
     def load(self):
-        if not os.path.exists(self.ckpt_path):
+        """Resume <run>/checkpoint.pt, or with --load take only the brains from another run's
+        checkpoint (to evaluate a trained policy on a fresh world)."""
+        path = self.args.load or self.ckpt_path
+        if not os.path.exists(path):
+            if self.args.load:
+                raise SystemExit(f"--load: {path} not found")
             return
-        data = torch.load(self.ckpt_path, map_location=self.device, weights_only=False)
+        data = torch.load(path, map_location=self.device, weights_only=False)
         for st in data["brains"]:
             b = Brain(st["id"], st["species"], self.device, self.args.lr, st.get("parent"))
             b.net.load_state_dict(st["net"])
@@ -694,9 +774,14 @@ class Trainer:
             b.fitness_history, b.mutations = st.get("fitness_history", []), st.get("mutations", [])
             self.brains[b.id] = b
         self.brain_counter = data.get("brain_counter", len(self.brains))
+        if self.args.load:
+            print(f"[trainer] loaded {len(self.brains)} brains from {path} (policy {self.args.policy})")
+            return
         self.memory = data.get("memory", {})
         for m in self.memory.values():
-            m["seen"] = False            # re-confirmed when the realm reports the agent again
+            # Not alive until a realm reports the agent again; ones that never come back are
+            # forgotten after the first update instead of counting as alive forever.
+            m["seen"], m["alive"] = False, False
         self.step, self.update_count = data.get("step", 0), data.get("updates", 0)
         self.generation = data.get("generation", 0)
         self.evolution.elites = data.get("elites", {})
@@ -761,7 +846,7 @@ class Trainer:
         """A realm dropped: its pending steps can't get rewards; discard them (not deaths)."""
         for key in [k for k in self.pending if k.startswith(realm_name + "|")]:
             brain_id, _ = self.pending.pop(key)
-            buf = self.brains[brain_id].buffer.get(key)
+            buf = self.brains[brain_id].buffer.get(key) if brain_id in self.brains else None
             if buf and "reward" not in buf[-1]:
                 buf.pop()
 
@@ -772,8 +857,16 @@ class Trainer:
         for realm_name, (realm, state) in states.items():
             events = defaultdict(lambda: defaultdict(int))
             for ev in state.get("events", []):
+                self._check_seq(realm_name, ev)
+                self.metrics.event(ev)
                 self._log_event(realm_name, ev, events)
             actors = {f"{realm_name}|{x['id']}": x for x in state["actors"]}
+            # Real time since this realm's previous snapshot (bigger than dt when snapshots were
+            # skipped); 0 on the first snapshot after (re)connecting.
+            prev_t = self.last_time.get(realm_name)
+            step_s = min(max(state["time"] - prev_t, 0.0), 2.0) if prev_t is not None else 0.0
+            self.last_time[realm_name] = state["time"]
+            self.metrics.step(len(actors))
 
             # Rewards for last step's actions in this realm.
             for key in [k for k in self.pending if k.startswith(realm_name + "|")]:
@@ -783,6 +876,9 @@ class Trainer:
                 r = reward_for(before, after, events[key])
                 self.reward_sum += r
                 self.reward_n += 1
+                self.metrics.reward(r)
+                if after is not None:
+                    self.metrics.alive(step_s, after["xp"] - before["xp"])
                 buf = self.brains[brain_id].buffer[key] if brain_id in self.brains else None
                 if buf and "reward" not in buf[-1]:
                     buf[-1]["reward"], buf[-1]["done"] = r, dead
@@ -793,7 +889,7 @@ class Trainer:
                     else:
                         mem["xp_gain"] += max(0.0, after["xp"] - before["xp"])
                         mem["kills_gain"] += after.get("kills", 0) - before.get("kills", 0)
-                        mem["alive_s"] += state.get("dt", 0.05)
+                        mem["alive_s"] += step_s
                     mem["births"] += events[key].get("births", 0)
 
             for key, actor in actors.items():
@@ -804,18 +900,26 @@ class Trainer:
         out = defaultdict(list)
         for brain_id, group in per_brain.items():
             brain = self.brains[brain_id]
-            obs = torch.tensor([observe(x) for _, _, x in group], dtype=torch.float32, device=self.device)
-            with torch.no_grad():
-                move, breed, value = brain.net(obs)
-                mraw, bbit = move.sample(), breed.sample()
-                logp = move.log_prob(mraw).sum(-1) + breed.log_prob(bbit)
-            mraw_l, bbit_l, logp_l, value_l, obs_l = mraw.cpu().tolist(), bbit.cpu().tolist(), \
-                logp.cpu().tolist(), value.cpu().tolist(), obs.cpu().tolist()
+            if a.policy == "random":
+                # Baseline: uniform movement in the allowed range, reproduce when able half the time.
+                moves = [[random.uniform(-1.0, 1.0) for _ in range(MOVE_SIZE)] for _ in group]
+                bbit_l = [1.0 if random.random() < 0.5 else 0.0 for _ in group]
+            else:
+                obs = torch.tensor([observe(x) for _, _, x in group], dtype=torch.float32, device=self.device)
+                with torch.no_grad():
+                    move, breed, value = brain.net(obs)
+                    mraw, bbit = move.sample(), breed.sample()
+                    logp = move.log_prob(mraw).sum(-1) + breed.log_prob(bbit)
+                mraw_l, bbit_l = mraw.cpu().tolist(), bbit.cpu().tolist()
+                moves = torch.tanh(mraw).cpu().tolist()
+                if a.policy == "learn":
+                    logp_l, value_l, obs_l = logp.cpu().tolist(), value.cpu().tolist(), obs.cpu().tolist()
+                    for i, (_, key, _) in enumerate(group):
+                        brain.buffer[key].append({"obs": obs_l[i], "move": mraw_l[i], "breed": bbit_l[i],
+                                                  "logp": logp_l[i], "value": value_l[i]})
             for i, (realm, key, actor) in enumerate(group):
-                brain.buffer[key].append({"obs": obs_l[i], "move": mraw_l[i], "breed": bbit_l[i],
-                                          "logp": logp_l[i], "value": value_l[i]})
                 self.pending[key] = (brain_id, actor)
-                m = torch.tanh(torch.tensor(mraw_l[i])).tolist()
+                m = moves[i]
                 cmd = {"id": actor["id"], "delta_position": [m[0] * a.max_step_cm, m[1] * a.max_step_cm, 0.0],
                        "delta_rotation": [0.0, 0.0, m[2] * a.max_step_deg]}
                 mem = self.memory[key]
@@ -852,6 +956,18 @@ class Trainer:
             realm.close()
             self._truncate(realm.name)
 
+    def _check_seq(self, realm, ev):
+        """Bridge events are numbered without gaps; a jump means history was lost."""
+        seq = ev.get("seq")
+        if not isinstance(seq, int):
+            return
+        last = self.last_event_seq.get(realm)
+        if last is not None and seq != last + 1 and seq > last:
+            print(f"[trainer] realm '{realm}': events {last + 1}..{seq - 1} missing (they are in the "
+                  f"bridge's event log, not in this run's lineage log)", file=sys.stderr)
+            self.log.write("event_gap", realm=realm, first=last + 1, last=seq - 1)
+        self.last_event_seq[realm] = max(seq, last or 0)
+
     def _log_event(self, realm, ev, events):
         kind = ev.get("type")
         key = f"{realm}|{ev.get('id')}"
@@ -866,28 +982,48 @@ class Trainer:
                                     "born_step": self.step, "alive": True, "xp_gain": 0.0, "alive_s": 0.0,
                                     "births": 0, "kills_gain": 0, "ally_sum": 0.0, "ally_n": 0, "ally_mean": 0.0,
                                     "fitness": 0.0}
-            self.log.write("birth", realm=realm, **{k: v for k, v in ev.items() if k != "type"})
+            self.log.write("birth", realm=realm, **{k: v for k, v in ev.items() if k not in ("type", "realm")})
         elif kind == "death":
             events[key]["deaths"] += 1
             if key in self.memory:
                 self.memory[key]["alive"] = False
-            self.log.write("death", realm=realm, **{k: v for k, v in ev.items() if k != "type"})
+            self.log.write("death", realm=realm, **{k: v for k, v in ev.items() if k not in ("type", "realm")})
         elif kind == "mutation":
             if key in self.memory:
                 self.memory[key]["mutation_history"].append(ev.get("genes"))
                 self.memory[key]["mutation_history"] = self.memory[key]["mutation_history"][-20:]
-            self.log.write("mutation", realm=realm, **{k: v for k, v in ev.items() if k != "type"})
-        elif kind in ("level_up", "speciation"):
-            self.log.write(kind, realm=realm, **{k: v for k, v in ev.items() if k != "type"})
+            self.log.write("mutation", realm=realm, **{k: v for k, v in ev.items() if k not in ("type", "realm")})
+        elif kind in ("level_up", "speciation", "adopted"):
+            self.log.write(kind, realm=realm, **{k: v for k, v in ev.items() if k not in ("type", "realm")})
 
     def learn(self):
         stats = {}
-        for brain in self.brains.values():
-            s = ppo_update(brain, self.args, self.device)
-            if s:
-                stats[brain.id] = s
+        if self.args.policy == "learn":
+            for brain in self.brains.values():
+                s = ppo_update(brain, self.args, self.device)
+                if s:
+                    stats[brain.id] = s
         self.update_count += 1
+        self._prune_extinct()
         return stats
+
+    def _prune_extinct(self):
+        """An evolved species ("Root/n") with no living agent for 3 updates in a row is extinct:
+        its brains are removed (the elite archive keeps its best) and the extinction is logged.
+        Root species keep their brains, since immigration can bring them back."""
+        alive_species = {m["species"] for m in self.memory.values() if m["alive"]}
+        for species in {b.species for b in self.brains.values() if "/" in b.species}:
+            if species in alive_species:
+                self.extinct_checks.pop(species, None)
+                continue
+            self.extinct_checks[species] += 1
+            if self.extinct_checks[species] >= 3:
+                gone = [b_id for b_id, b in self.brains.items() if b.species == species]
+                for b_id in gone:
+                    del self.brains[b_id]
+                del self.extinct_checks[species]
+                self.log.write("extinction", species=species, brains=gone, generation=self.generation)
+                print(f"[evolve]   EXTINCTION: {species} (brains {gone} removed)")
 
     def report(self, stats):
         alive = [m for m in self.memory.values() if m["alive"]]
@@ -899,6 +1035,11 @@ class Trainer:
         ent = sum(s["entropy"] for s in stats.values()) / max(1, len(stats))
         mean_r = self.reward_sum / max(1, self.reward_n)
         self.reward_sum, self.reward_n = 0.0, 0
+        if self.update_count % self.args.metrics_every == 0:
+            row = self.metrics.close_window(self.update_count)
+            print(f"[metrics] xp/agent-s {row['xp_per_agent_s']:.3f}  starved/agent-h {row['starved_per_agent_h']:.1f}  "
+                  f"births/agent-h {row['births_per_agent_h']:.1f}  death age {row['mean_death_age_s']:.0f}s  "
+                  f"pop {row['mean_population']:.0f}  immigrants {row['immigrants']}")
         print(f"[trainer] update {self.update_count} step {self.step}: {samples} samples, mean reward {mean_r:+.4f}, "
               f"{len(self.brains)} brains, entropy {ent:.2f}; population {line}")
         for realm in self.realms:
@@ -931,7 +1072,7 @@ class Trainer:
                 if self.step % a.rollout == 0:
                     stats = self.learn()
                     self.report(stats)
-                    if self.update_count % a.generation == 0:
+                    if a.generation > 0 and self.update_count % a.generation == 0:
                         self.generation += 1
                         commands = self.evolution.run(self.generation)
                         by_realm = defaultdict(list)
@@ -993,6 +1134,13 @@ def parse_args(argv=None):
     p.add_argument("--save-every", type=int, default=10, help="PPO updates between checkpoints")
     p.add_argument("--timeout", type=float, default=15.0)
     p.add_argument("--connect-retries", type=int, default=None, help="default: retry forever")
+    p.add_argument("--policy", choices=("learn", "frozen", "random"), default="learn",
+                   help="learn = PPO; frozen = act with the brains but never update them (baseline, "
+                        "or evaluation with --load); random = uniform random actions (baseline)")
+    p.add_argument("--load", default=None, help="take brains (only) from this checkpoint, e.g. to evaluate a trained run")
+    p.add_argument("--metrics", default=None, help="metrics JSON path (default <run>/metrics.json)")
+    p.add_argument("--metrics-every", type=int, default=5, help="PPO updates per metrics window")
+    p.add_argument("--threads", type=int, default=0, help="torch CPU threads (0 = torch default)")
     p.add_argument("--seed", type=int, default=None)
     return p.parse_args(argv)
 
@@ -1005,6 +1153,8 @@ def main(argv=None):
     for name in ("SIGTERM", "SIGBREAK"):
         if hasattr(signal, name):
             signal.signal(getattr(signal, name), _terminate)
+    if args.threads > 0:
+        torch.set_num_threads(args.threads)
     if args.seed is not None:
         random.seed(args.seed)
         torch.manual_seed(args.seed)

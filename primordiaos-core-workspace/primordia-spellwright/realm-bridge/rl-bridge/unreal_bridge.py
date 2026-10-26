@@ -191,7 +191,7 @@ def level_for_xp(xp):
 class AgentRecord:
     FIELDS = ("id", "species", "xp", "level", "health", "max_health", "energy", "max_energy", "age",
               "generation", "parent", "lineage", "children", "genome", "mutations", "kills",
-              "gathered", "territory", "born", "alive", "cause")
+              "gathered", "territory", "born", "alive", "cause", "world", "origin")
 
     def __init__(self, agent_id, species):
         r = rules_for(species)
@@ -216,6 +216,8 @@ class AgentRecord:
         self.born = time.time()
         self.alive = True
         self.cause = None            # cause of death
+        self.world = None            # package path of the world it lives in
+        self.origin = None           # e.g. {"forked_from": "<id>"} when re-adopted from a dead record
 
     def to_json(self):
         return {k: getattr(self, k) for k in self.FIELDS}
@@ -342,8 +344,11 @@ class EcoBridge:
         self.territory_anchors = []  # (id, pos, radius)
         self.territory_owner = {}    # territory id -> species
         self.pool = []               # dormant actors
-        self.events = []
+        self.events = []             # events not yet sent to a trainer (kept while none is connected)
         self.dropped_events = 0
+        self.event_seq = 0           # gap-free event numbering, continued across restarts
+        self.event_log = None        # append-only <realm>.events.jsonl (the full history)
+        self.missing = {}            # record id -> scans in a row its actor wasn't found
         self.ray_cursor = 0
         self.sensor_cache = {}       # id -> nearest resource / enemy / ally, counts
         self.immigration_clock = 0.0
@@ -352,6 +357,10 @@ class EcoBridge:
 
     def start(self):
         self._load()
+        if self.cfg.persist:
+            path = self._save_path().replace(".json", ".events.jsonl")
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            self.event_log = open(path, "a", encoding="utf-8", buffering=1)   # line-buffered
         srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
@@ -375,6 +384,9 @@ class EcoBridge:
             self.server.close()
             self.server = None
         self.save()
+        if self.event_log is not None:
+            self.event_log.close()
+            self.event_log = None
         self.agents.clear()
         _log("stopped")
 
@@ -395,6 +407,7 @@ class EcoBridge:
             with open(path, "r", encoding="utf-8") as f:
                 data = json.load(f)
             self.records = {r["id"]: AgentRecord.from_json(r) for r in data.get("agents", [])}
+            self.event_seq = int(data.get("event_seq", 0))
             _log(f"loaded {len(self.records)} agent records from {path}")
         except Exception as e:
             _error(f"could not read {path}: {e!r}; starting fresh")
@@ -407,11 +420,14 @@ class EcoBridge:
             os.makedirs(os.path.dirname(path), exist_ok=True)
             # Keep every living agent and the most recent dead ones (lineage history).
             alive = [r for r in self.records.values() if r.alive]
+            # (The full history is in the event log; the record file keeps the recent dead only,
+            # and so does memory, so a long run doesn't grow without bound.)
             dead = sorted((r for r in self.records.values() if not r.alive), key=lambda r: r.born)[-5000:]
+            self.records = {r.id: r for r in alive + dead}
             tmp = path + ".tmp"
             with open(tmp, "w", encoding="utf-8") as f:
                 json.dump({"protocol": PROTOCOL, "realm": self.cfg.realm, "saved": time.time(),
-                           "agents": [r.to_json() for r in alive + dead]}, f)
+                           "event_seq": self.event_seq, "agents": [r.to_json() for r in alive + dead]}, f)
             os.replace(tmp, path)
         except Exception as e:
             _error(f"could not save {path}: {e!r}")
@@ -449,8 +465,8 @@ class EcoBridge:
                 if self.client is not None:
                     self._send_snapshot(dt)
                     self._flush()
-                else:
-                    self.events.clear()
+                # With no trainer connected, events stay queued (up to MAX_EVENTS) for the next
+                # one, and every event is in the event log on disk regardless.
         except Exception as e:           # never let an exception kill the editor tick
             _error(f"tick failed: {e!r}")
         finally:
@@ -486,7 +502,11 @@ class EcoBridge:
             return
         if kind != self.world_kind or world != self.world:
             _log(f"tracking the {kind} world")
+            if self.world is not None and self.world_kind == "game":
+                # A Play session ended: its world is gone, and so is everyone who lived only in it.
+                self._lose_world(self._world_path(self.world), "play session ended")
             self.agents.clear()
+            self.missing.clear()
             self.world, self.world_kind = world, kind
 
         gs = unreal.GameplayStatics
@@ -500,10 +520,10 @@ class EcoBridge:
 
         fresh = {}
         by_actor = {a.actor.get_path_name(): a for a in self.agents.values() if _is_valid(a.actor)}
-        for path, (actor, tags) in found.items():
+        for path, (actor, tags) in sorted(found.items()):
             live = by_actor.get(path)
             if live is None:
-                live = self._adopt(actor, tags)
+                live = self._adopt(actor, tags, claimed=fresh)
                 if live is None:
                     continue
             fresh[live.record.id] = live
@@ -512,6 +532,17 @@ class EcoBridge:
         self.agents = fresh
         if added or removed:
             _log(f"{len(fresh)} agents (+{added} -{removed})")
+
+        # A living record of THIS world whose actor has been gone for 3 scans was deleted in the
+        # editor (or by something else): record it as lost, rather than "alive" forever.
+        here = self._world_path(world)
+        for rec in list(self.records.values()):
+            if rec.alive and rec.world == here and rec.id not in fresh:
+                self.missing[rec.id] = self.missing.get(rec.id, 0) + 1
+                if self.missing[rec.id] >= 3:
+                    self._mark_lost(rec, "actor removed")
+            else:
+                self.missing.pop(rec.id, None)
 
         # Resource nodes keep their amount between scans.
         res = {}
@@ -531,22 +562,59 @@ class EcoBridge:
 
         self.pool = [a for a in gs.get_all_actors_with_tag(world, self.cfg.pool_tag)]
 
-    def _adopt(self, actor, tags):
-        """Give a newly seen actor an id and a record (or reattach its saved record)."""
+    def _adopt(self, actor, tags, claimed=()):
+        """Give a newly seen actor an id and a record, or reattach its saved record.
+
+        A record is only reattached if it is alive and no other actor has claimed it this scan.
+        If the id belongs to a dead agent (for example the editor-world copy of an agent that
+        died during Play) or to another actor (a copy made with Ctrl+D), the actor becomes a new
+        agent with its own id; the dead record and its history are never overwritten. The new
+        record notes where it came from in `origin` and keeps the genes."""
         rid = next((t[5:] for t in tags if t.startswith("RLID:")), None)
         species = next((t[8:] for t in tags if t.startswith("Species:")), None)
         if species is None:
             species = next((t for t in tags if t in self.cfg.species), None)
         if species is None:
             return None
-        if rid is None:
-            rid = uuid.uuid4().hex[:12]
-        record = self.records.get(rid)
-        if record is None or not record.alive:
-            record = AgentRecord(rid, species)
-            self.records[rid] = record
+        if root_species(species) not in SPECIES_RULES:
+            species = root_species(species) if root_species(species) in self.cfg.species else self.cfg.species[0]
+        old = self.records.get(rid) if rid else None
+        if old is not None and old.alive and rid not in claimed:
+            record = old
+        else:
+            record = AgentRecord(uuid.uuid4().hex[:12], species)
+            if old is not None:
+                record.origin = {"forked_from": old.id, "reason": "dead" if not old.alive else "duplicate"}
+                record.genome = dict(old.genome)
+                record.generation = old.generation
+                record.lineage = list(old.lineage)
+                record.parent = old.parent
+            self.records[record.id] = record
+            self._event(type="adopted", id=record.id, species=species, origin=record.origin)
+        record.world = self._world_path(self.world)
         self._tag_agent(actor, record)
         return LiveAgent(record, actor)
+
+    @staticmethod
+    def _world_path(world):
+        try:
+            return world.get_path_name()
+        except Exception:
+            return "world"
+
+    def _mark_lost(self, rec, cause):
+        rec.alive = False
+        rec.cause = f"lost ({cause})"
+        self.missing.pop(rec.id, None)
+        self._event(type="death", id=rec.id, species=rec.species, cause=rec.cause, age=round(rec.age, 1),
+                    xp=round(rec.xp, 1), level=rec.level)
+
+    def _lose_world(self, world_path, cause):
+        lost = [r for r in self.records.values() if r.alive and r.world == world_path]
+        for rec in lost:
+            self._mark_lost(rec, cause)
+        if lost:
+            _log(f"{len(lost)} agents lived only in {world_path}; recorded as lost ({cause})")
 
     def _tag_agent(self, actor, record):
         keep = [t for t in self._tags(actor)
@@ -591,10 +659,19 @@ class EcoBridge:
         return f"cell:{int(pos[0] // c)}:{int(pos[1] // c)}"
 
     def _event(self, **event):
-        if len(self.events) >= self.MAX_EVENTS:
+        self.event_seq += 1
+        event["seq"] = self.event_seq
+        event["t"] = round(time.monotonic() - self.start_time, 3)
+        event["wall"] = round(time.time(), 3)
+        event["realm"] = self.cfg.realm
+        if self.event_log is not None:
+            try:
+                self.event_log.write(json.dumps(event, separators=(",", ":"), default=str) + "\n")
+            except Exception as e:
+                _error(f"event log write failed: {e!r}")
+        if len(self.events) >= self.MAX_EVENTS:      # the trainer's queue only; the log has it all
             self.events.pop(0)
             self.dropped_events += 1
-        event["t"] = round(time.monotonic() - self.start_time, 3)
         self.events.append(event)
 
     def _ecosystem_step(self, dt):
@@ -706,6 +783,7 @@ class EcoBridge:
         self._set_hidden(actor, False)
         actor.set_actor_location(target, False, True)
         rec = AgentRecord(uuid.uuid4().hex[:12], root)
+        rec.world = self._world_path(self.world)
         self.records[rec.id] = rec
         self._tag_agent(actor, rec)
         self.agents[rec.id] = LiveAgent(rec, actor)
@@ -924,7 +1002,6 @@ class EcoBridge:
                 continue
             self.client, self.client_addr = conn, addr
             self.inbuf, self.outbuf = b"", bytearray()
-            self.events.clear()
             self._discover()
             self._queue({
                 "type": "hello", "protocol": PROTOCOL, "realm": self.cfg.realm, "hz": self.cfg.hz,
@@ -1139,6 +1216,7 @@ class EcoBridge:
         child.lineage = ([prec.id] + prec.lineage)[:16]
         child.genome = dict(prec.genome)
         child.mutations = prec.mutations
+        child.world = self._world_path(self.world)
         self.records[child.id] = child
         self._tag_agent(actor, child)
         live = LiveAgent(child, actor)

@@ -145,6 +145,9 @@ def make_fake_unreal(world_radius, saved_dir):
         def __init__(self):
             self.actors = []
 
+        def get_path_name(self):
+            return "/Game/Headless.Headless"
+
     WORLD = World()
 
     class UnrealEditorSubsystem:
@@ -246,6 +249,7 @@ def main(argv=None):
     p.add_argument("--speed", type=float, default=1.0, help="simulated seconds per real second")
     p.add_argument("--seconds", type=float, default=0.0, help="stop after this much real time (0 = forever)")
     p.add_argument("--saved", default=None, help="where agent records are saved (default: a temp folder)")
+    p.add_argument("--respawn-below", type=int, default=4, help="immigration floor per species (0 = off)")
     p.add_argument("--seed", type=int, default=1)
     a = p.parse_args(argv)
     random.seed(a.seed)
@@ -257,7 +261,8 @@ def main(argv=None):
     import unreal_bridge
 
     populate(u, a.agents, a.resources, a.pool, a.world_radius, unreal_bridge.BridgeConfig().species)
-    bridge = unreal_bridge.start_bridge(port=a.port, hz=a.hz, realm=a.realm, persist=a.saved is not None)
+    bridge = unreal_bridge.start_bridge(port=a.port, hz=a.hz, realm=a.realm, persist=a.saved is not None,
+                                        respawn_below=a.respawn_below)
     if bridge is None:
         return 1
     frame = 1.0 / 60.0

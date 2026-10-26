@@ -12,6 +12,9 @@ The realm runs in Unreal and the brains run in PyTorch. Agents (Lumen-Seed, Grav
 | `unreal_bridge.py` | Unreal Editor 5.4 (Python Editor Script Plugin) | The world. It tracks agents, runs the ecosystem rules (XP, levels, health, energy, age, resources, territory, combat, death, reproduction), gathers sensors and raycasts, and serves TCP at 20–60 Hz. |
 | `agent_trainer.py` | Any Python 3.10+ with PyTorch | The brains. It handles observations, multi-agent PPO with several brains per species, XP-centred rewards, and evolution: selection, weight and gene mutation, reproduction, culling, population scaling, speciation and an elite archive. It also keeps the lineage log, multi-realm play and checkpoints. |
 | `headless_realm.py` | Plain Python | Runs `unreal_bridge.py` on a stand-in for Unreal's API, with no physics or rendering. Use it to test the trainer and protocol without the editor. |
+| `demo_scene.py` | Unreal Editor | Builds a scratch test level (arena, resources, agents, pool) and starts the bridge. |
+| `ab_compare.py` | Plain Python | A/B evaluation: trained vs untrained vs random policy on identical headless realms. |
+| `test_persistence.py` | Plain Python | Regression tests for the event log, record continuity and the species cap. |
 
 ## Architecture
 
@@ -213,7 +216,29 @@ python headless_realm.py --port 9777
 ### 7. Persist XP and lineage across sessions
 
 - **Unreal:** agent records (XP, level, health, energy, age, genome, lineage) go to `<Project>/Saved/RLBridge/<realm>.json` every 30 s, on `save()` and on stop. Actors keep their `RLID` tag, saved with the level, so placed actors reattach to their records after a restart. Save the level after a session if you want evolved species tags kept on placed actors too.
+- **Event log (the full history):** every event (birth, death, level-up, mutation, speciation, adoption) is appended to `<Project>/Saved/RLBridge/<realm>.events.jsonl` as it happens. Events carry a `seq` number that has no gaps and continues across restarts. The log is written whether or not a trainer is connected. Events wait in a queue, up to 5,000, for the next trainer to connect. The trainer warns and logs `event_gap` if a sequence number jumps.
+- **Records are never overwritten:**
+  - An actor whose `RLID` belongs to a dead agent becomes a new agent. Its `origin` is `{"forked_from": <old id>}` and it keeps the genes.
+  - A Ctrl+D copy of an agent gets its own id the same way.
+  - When Play stops, agents that lived only in the Play world are recorded as `lost (play session ended)`, and so are the Play-time records of placed agents. The placed actors in the editor then continue as new linked agents.
+  - Living records whose actor disappears for 3 scans are recorded as `lost (actor removed)`.
+- `python -m unittest test_persistence -v` checks all of this on the headless stand-in.
 - **Trainer:** `runs/<run>/checkpoint.pt` holds the brains, optimizers, agent memory, elites and counters. It is written every `--save-every` updates and on Ctrl-C. Running with the same `--run` resumes.
+
+## Measuring whether it learns
+
+A world that looks alive proves nothing by itself. The trainer has baseline modes so that results can be compared:
+
+| Flag | Meaning |
+|---|---|
+| `--policy learn` | PPO, the default. |
+| `--policy frozen` | Act with the brains but never update them. With `--load <checkpoint>`, this evaluates a trained policy. Without it, it measures freshly initialised brains, which is where PPO starts. |
+| `--policy random` | Uniform random movement; reproduce when able, half the time. |
+| `--generation 0` | Trainer-side evolution off (no culling, breeding, brain mutation or speciation), so the policy is the only difference between arms. |
+
+`<run>/metrics.json` gets a window every `--metrics-every` updates. It records XP per agent-second, starvation deaths per agent-hour, own births per agent-hour (immigration counted separately), mean age at death and mean population. All rates are per agent-second of life, so they don't depend on population size.
+
+`python ab_compare.py --checkpoint runs/<train>/checkpoint.pt --seeds 11 12 13` runs trained, untrained and random arms side by side on identical fresh headless realms for each seed. It prints the per-seed differences with a paired t statistic and writes `runs/ab/ab_results.json`.
 
 ## Multiple realms
 
