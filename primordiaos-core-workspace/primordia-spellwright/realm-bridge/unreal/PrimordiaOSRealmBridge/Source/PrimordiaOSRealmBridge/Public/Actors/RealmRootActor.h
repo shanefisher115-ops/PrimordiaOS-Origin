@@ -97,6 +97,13 @@ public:
 	 */
 	void ApplyAtmosphere(const FPrimordiaMetaphysics& Metaphysics);
 
+	/**
+	 * Only one realm drives the scene's atmosphere (fog, colour grade, the global metaphysics
+	 * collection): the live one. Archipelago islands render their own layers and leave it alone.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PrimordiaOS|Realm")
+	bool bDrivesAtmosphere = true;
+
 	/** Raised after each (re)generation. */
 	UFUNCTION(BlueprintImplementableEvent, Category = "PrimordiaOS|Realm")
 	void OnRealmGenerated(const FPrimordiaRealmManifest& GeneratedManifest);

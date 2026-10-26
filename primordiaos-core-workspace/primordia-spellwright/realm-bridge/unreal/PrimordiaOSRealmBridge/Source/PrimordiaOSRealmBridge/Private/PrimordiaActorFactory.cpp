@@ -11,6 +11,7 @@
 #include "Actors/ShadowInversionActor.h"
 #include "Actors/PrimordiaVoiceActor.h"
 #include "Actors/SpeciesActor.h"
+#include "Actors/ArchipelagoActor.h"
 #include "Engine/World.h"
 
 void UPrimordiaActorFactory::Initialize(UWorld* InWorld)
@@ -58,6 +59,7 @@ TSubclassOf<AActor> UPrimordiaActorFactory::ResolveClass(EPrimordiaPacketType Ty
 	case EPrimordiaPacketType::ShadowInversion: return AShadowInversionActor::StaticClass();
 	case EPrimordiaPacketType::Voice: return APrimordiaVoiceActor::StaticClass();
 	case EPrimordiaPacketType::Species: return ASpeciesActor::StaticClass();
+	case EPrimordiaPacketType::WorldManifest: return AArchipelagoActor::StaticClass();
 	default: return nullptr;
 	}
 }

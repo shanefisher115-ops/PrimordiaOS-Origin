@@ -630,8 +630,9 @@ void UPrimordiaRealmGenerator::ApplyMetaphysics(ARealmRootActor* Root, const FPr
 	}
 	UWorld* World = Root->GetWorld();
 
-	// 1. Global: Material Parameter Collection read by every Primordia material.
-	if (UMaterialParameterCollection* Collection = UPrimordiaBridgeSettings::Get()->MetaphysicsCollection.LoadSynchronous())
+	// 1. Global: Material Parameter Collection read by every Primordia material (the live realm only).
+	UMaterialParameterCollection* Collection = Root->bDrivesAtmosphere ? UPrimordiaBridgeSettings::Get()->MetaphysicsCollection.LoadSynchronous() : nullptr;
+	if (Collection)
 	{
 		if (UMaterialParameterCollectionInstance* Instance = World->GetParameterCollectionInstance(Collection))
 		{

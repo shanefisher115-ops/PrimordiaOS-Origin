@@ -25,6 +25,8 @@ enum class EPrimordiaPacketType : uint8
 	Voice            UMETA(DisplayName = "voice"),
 	/** A living species of the Primordia Sovereign ("species:<slug>"); see ASpeciesActor. */
 	Species          UMETA(DisplayName = "species"),
+	/** The archipelago: islands (each a full realm) and sky-bridges; see AArchipelagoActor. */
+	WorldManifest    UMETA(DisplayName = "world_manifest"),
 };
 
 UENUM(BlueprintType)

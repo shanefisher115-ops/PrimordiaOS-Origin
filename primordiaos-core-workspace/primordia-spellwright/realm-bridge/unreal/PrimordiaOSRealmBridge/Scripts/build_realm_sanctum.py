@@ -197,7 +197,7 @@ def polar(r_m, deg, z_m=0.0):
 
 def clear():
     for a in ACTORS.get_all_level_actors():
-        if a.get_actor_label().startswith("Sanctum_"):
+        if a.get_actor_label().startswith("Sanctum_"):  # includes islands placed by earlier versions
             ACTORS.destroy_actor(a)
 
 
@@ -282,20 +282,33 @@ def main():
     edge = GROUND_R - 0.45
     n = int(2 * math.pi * edge / seg)
     ring(meshes["SM_TerraceBalustrade"], "Sanctum_Balustrade",
-         [t(polar(edge, 360.0 * k / n), unreal.Rotator(0, 0, 360.0 * k / n + 90), unreal.Vector(2 * math.pi * edge / n / seg, 1, 1)) for k in range(n)], collide=True)
+         [t(polar(edge, 360.0 * k / n), unreal.Rotator(0, 0, 360.0 * k / n + 90), unreal.Vector(2 * math.pi * edge / n / seg, 1, 1)) for k in range(n)],
+         collide=False)  # decorative: the archipelago's sky-bridges leave the realm across the rim
     # Floating islands in the cloud sea; the Gothic Revival church on the largest.
     tundra = unreal.load_asset(f"{SCANS}/TundraFormation/TundraFormation")
     church = unreal.load_asset("/Game/ThirdParty/GothicRevivalChurch/SM_GothicRevivalChurch")
     if tundra:
-        for i, (r, deg, z, s, yaw) in enumerate(((330, 70, -18, 1.6, 20), (420, 205, -30, 1.1, 110), (380, 300, -8, 0.8, 250))):
+        # One rock island for the church; the archipelago's procedural islands fill the rest of the sea.
+        for i, (r, deg, z, s, yaw) in enumerate(((330, 70, -18, 1.6, 20),)):
             place(tundra, f"Sanctum_Island_{i}", polar(r, deg, z), yaw, s)
         if church:
             box = church.get_bounding_box()
             fit = 36.0 * 100.0 / max(1.0, (box.max - box.min).z)
             place(church, "Sanctum_IslandChurch", polar(330, 70, -18 + 12.37 * 1.6 - 0.5), 70 + 180, fit)
+    # A high vantage over the archipelago (renders: live_shot.ps1 -Camera Sanctum_ArchipelagoCamera).
+    cam = ACTORS.spawn_actor_from_class(unreal.CameraActor, unreal.Vector(-62000.0, -78000.0, 30000.0), unreal.Rotator(roll=0.0, pitch=-15.0, yaw=51.5))
+    cam.set_actor_label("Sanctum_ArchipelagoCamera")
+    cam.set_folder_path("Sanctum")
+    cam.get_component_by_class(unreal.CameraComponent).set_editor_property("field_of_view", 80.0)
+    # Eye height on the home -> Sorok Vigil sky-bridge, a fifth of the way across, facing Sorok Vigil.
+    # Only right for the default world seed (0x5eed1e55); the bridge runs (-101,-57) -> (-395,-223) m.
+    cam = ACTORS.spawn_actor_from_class(unreal.CameraActor, unreal.Vector(-16000.0, -9040.0, 1040.0), unreal.Rotator(roll=0.0, pitch=-2.0, yaw=-150.5))
+    cam.set_actor_label("Sanctum_BridgeCamera")
+    cam.set_folder_path("Sanctum")
+    cam.get_component_by_class(unreal.CameraComponent).set_editor_property("field_of_view", 80.0)
     if not LEVELS.save_current_level():
         raise RuntimeError(f"could not save {MAP}")
-    log(f"placed the Sanctum in {MAP}: 4 watchtowers, 4 shrines, 8 buttresses, observatory, 8 pylons, 24 lamps, 16 pinnacles, {n} balustrade segments, 3 islands")
+    log(f"placed the Sanctum in {MAP}: 4 watchtowers, 4 shrines, 8 buttresses, observatory, 8 pylons, 24 lamps, 16 pinnacles, {n} balustrade segments, the church island")
 
 
 main()

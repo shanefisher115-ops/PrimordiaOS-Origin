@@ -22,6 +22,7 @@ export const PACKET_TYPES = [
   'gpu_telemetry',
   'sovereign_cycle',
   'species',
+  'world_manifest',
 ];
 
 export const envelopeSchema = {
@@ -82,6 +83,25 @@ const gpuTelemetry = {
 export const payloadSchemas = {
   gpu_telemetry: gpuTelemetry,
 
+  // The archipelago (docs/ARCHIPELAGO.md): every island with its position and full PRS-1 realm
+  // (the home island streams as the live realm_manifest instead), and the sky-bridges between them.
+  world_manifest: {
+    type: 'object',
+    required: ['world_id', 'islands', 'bridges'],
+    properties: {
+      world_id: { type: 'string' },
+      name: { type: 'string' },
+      seed: { type: 'integer', minimum: 0 },
+      islands: {
+        type: 'array',
+        items: { type: 'object', required: ['id', 'home', 'realm_id', 'name', 'position', 'radius'],
+          properties: { id: { type: 'string' }, home: { type: 'boolean' }, realm_id: { type: 'string' }, name: { type: 'string' },
+            biome: { type: 'string' }, position: vec3, radius: num(1), hue: unit, manifest: { type: 'object' } } },
+      },
+      bridges: { type: 'array', items: { type: 'object', required: ['a', 'b'], properties: { a: { type: 'string' }, b: { type: 'string' } } } },
+    },
+  },
+
   // A living species of the Sovereign's chronicle, incarnated in the realm (id "species:<slug>";
   // src/sovereign/incarnation.js). 1 Hz while the Sovereign is awake; retired when it dies out.
   species: {
@@ -103,6 +123,7 @@ export const payloadSchemas = {
       traits: { type: 'array', items: { type: 'string' } },
       look: { type: 'string' },
       mesh: { type: 'string' }, // a creature asset path; absent = engine shapes
+      island: { type: 'string' }, // archipelago island it lives on (absent = the live realm)
       born_cycle: { type: 'integer', minimum: 0 },
       cycle: { type: 'integer', minimum: 0 },
     },

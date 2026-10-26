@@ -42,6 +42,8 @@ public:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "PrimordiaOS|Species") int32 Population = 0;
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "PrimordiaOS|Species") int32 Bodies = 0;
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "PrimordiaOS|Species") FString Look;
+	/** Beyond this distance from the camera (m) the species is hidden and not simulated (far islands). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PrimordiaOS|Species") float FarCullMeters = 900.f;
 
 protected:
 	virtual void UpdateRetireFade(float Alpha) override { FadeAlpha = Alpha; }

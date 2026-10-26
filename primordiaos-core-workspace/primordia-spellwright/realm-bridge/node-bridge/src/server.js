@@ -24,7 +24,8 @@ import { createOnyxHub } from './gpu/onyx.js';
 import { createTuner } from './gpu/tuner.js';
 import { startGpuSidecar } from './gpu/sidecar.js';
 import { applyCycle, createChronicleStore, cyclePrompt, dreamCycle, ecologyOf } from './sovereign/sovereign.js';
-import { createIncarnations } from './sovereign/incarnation.js';
+import { createIncarnations, incarnate, slug } from './sovereign/incarnation.js';
+import { createArchipelago, worldPayload } from './realm/archipelago.js';
 
 export const VERSION = '1.0.0';
 const MAX_BUFFERED_BYTES = 1 << 20; // above this a client is lagging: drop continuous frames
@@ -64,6 +65,8 @@ export async function createBridge(options = {}) {
     sovereignHoldSeconds = 60,   // how long a metaphysic the Sovereign pushes holds before fading back
     sovereignDir = DEFAULT_SOVEREIGN_DIR, // chronicle.json, cycles.jsonl, cycle-NNNN.wav; null = memory only
     sovereignPlayLocal = false,  // also play each cycle's WAV on this PC (Windows), after it is synthesized
+    archipelago = true,          // a world of procedural realms around the live one (src/realm/archipelago.js)
+    archipelagoIslands = 12,
     sovereignGpuLayers = 0,      // model layers on the GPU: 0 = CPU only (keeps an integrated GPU for Unreal); null = Ollama decides
     log = console.log,
   } = options;
@@ -244,6 +247,25 @@ export async function createBridge(options = {}) {
   function sendFullState(client) {
     for (const m of modules) {
       for (const p of m.sample(ctx, { full: true })) deliver(client, encode(p));
+    }
+    if (world) deliver(client, encode({ type: 'world_manifest', id: 'world', payload: worldPayload(world) }));
+  }
+
+  // ---- The archipelago: procedural realms around the live one, with their own species ----------
+  const world = archipelago ? createArchipelago(seed, ctx.manifest, { count: archipelagoIslands }) : null;
+  if (world) log(`[world] ${world.name}: ${world.islands.length} islands, ${world.bridges.length} sky-bridges`);
+  let islandClock = 0;
+  function pumpIslands(dt) {
+    islandClock += dt;
+    if (!world || islandClock < 1 || !clients.size) return;
+    islandClock = 0;
+    for (const isle of world.islands) {
+      if (isle.home) continue;
+      for (const s of isle.species) {
+        const p = incarnate(s, isle.manifest);
+        p.position = [p.position[0] + isle.position[0], p.position[1] + isle.position[1], p.position[2] + isle.position[2]];
+        broadcast({ type: 'species', id: `species:${isle.id}-${slug(s.name)}`, payload: { ...p, island: isle.id } });
+      }
     }
   }
 
@@ -686,6 +708,7 @@ export async function createBridge(options = {}) {
     }
     pumpGpu();
     sov.pump(dt);
+    pumpIslands(dt);
     nextAt += period;
     if (nextAt < now) nextAt = now + period; // fell behind (debugger, sleep): don't spiral
     timer = setTimeout(tick, Math.max(0, nextAt - performance.now()));
@@ -747,6 +770,8 @@ function parseArgs(argv) {
     sovereignModel: get('--sovereign-model', 'PRIMORDIA_SOVEREIGN_MODEL', get('--voice-model', 'PRIMORDIA_VOICE_MODEL', 'llama3.2:3b')),
     sovereignVoice: get('--sovereign-voice', 'PRIMORDIA_SOVEREIGN_VOICE', 'bf_emma'),
     sovereignPlayLocal: argv.includes('--sovereign-play-local') || env.PRIMORDIA_SOVEREIGN_PLAY_LOCAL === '1',
+    archipelago: !(argv.includes('--no-archipelago') || env.PRIMORDIA_ARCHIPELAGO === '0'),
+    archipelagoIslands: Number(get('--islands', 'PRIMORDIA_ISLANDS', 12)),
     // Model layers on the GPU (default 0: CPU, so the renderer keeps an integrated GPU); 'auto' lets Ollama decide.
     sovereignGpuLayers: (() => { const v = get('--sovereign-gpu-layers', 'PRIMORDIA_SOVEREIGN_GPU_LAYERS', '0'); return v === 'auto' ? null : Number(v); })(),
     // The standalone Vulkan engine (realm-bridge/gpu): path to primordia_realmd.exe.

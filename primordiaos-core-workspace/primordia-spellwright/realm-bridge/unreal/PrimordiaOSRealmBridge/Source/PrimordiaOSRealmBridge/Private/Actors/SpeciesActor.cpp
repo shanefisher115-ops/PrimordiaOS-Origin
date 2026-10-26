@@ -4,6 +4,8 @@
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
+#include "Camera/PlayerCameraManager.h"
+#include "GameFramework/PlayerController.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
 
@@ -407,6 +409,22 @@ void ASpeciesActor::Tick(float DeltaSeconds)
 	if (!bHasReceivedPacket || !GetWorld())
 	{
 		return;
+	}
+	// Species on far islands of the archipelago: hidden and not simulated until you come near.
+	if (const APlayerController* PC = GetWorld()->GetFirstPlayerController())
+	{
+		if (PC->PlayerCameraManager)
+		{
+			const bool bFar = FVector::Dist2D(PC->PlayerCameraManager->GetCameraLocation(), GetActorLocation()) > FarCullMeters * UnitsPerMeter();
+			if (bFar != IsHidden())
+			{
+				SetActorHiddenInGame(bFar);
+			}
+			if (bFar)
+			{
+				return;
+			}
+		}
 	}
 	const float Dt = FMath::Min(DeltaSeconds, 0.1f);
 	Time += Dt;

@@ -33,6 +33,10 @@ ARealmRootActor::ARealmRootActor()
 
 void ARealmRootActor::ApplyAtmosphere(const FPrimordiaMetaphysics& M)
 {
+	if (!bDrivesAtmosphere)
+	{
+		return;
+	}
 	const UPrimordiaBridgeSettings* Settings = UPrimordiaBridgeSettings::Get();
 	if (!bFogChecked && GetWorld())
 	{
