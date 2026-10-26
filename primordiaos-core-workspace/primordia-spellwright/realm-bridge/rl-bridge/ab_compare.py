@@ -99,6 +99,7 @@ def paired_t(diffs):
 
 
 def main(argv=None):
+    global ARMS
     p = argparse.ArgumentParser(description="A/B: trained vs untrained vs random policy on headless realms")
     p.add_argument("--checkpoint", required=True)
     p.add_argument("--seeds", type=int, nargs="+", default=[11, 12, 13])
@@ -112,7 +113,10 @@ def main(argv=None):
     p.add_argument("--base-port", type=int, default=9801)
     p.add_argument("--realm-args", default="", help="extra headless_realm.py arguments (e.g. the benchmark world)")
     p.add_argument("--trainer-args", default="", help="extra agent_trainer.py arguments for every arm")
+    all_arms = ("trained", "untrained", "random", "greedy")
+    p.add_argument("--arms", nargs="+", default=list(all_arms), choices=all_arms, help="arms to run")
     args = p.parse_args(argv)
+    ARMS = tuple(a for a in ("trained", "untrained", "random", "greedy") if a in args.arms)
     os.makedirs(args.out, exist_ok=True)
 
     per_seed = {}
@@ -135,7 +139,7 @@ def main(argv=None):
 
     print("\ntrained minus baseline, per seed (t = paired t across seeds)")
     comparisons = {}
-    for base in ("untrained", "random", "greedy"):
+    for base in [b for b in ("untrained", "random", "greedy") if b in ARMS and "trained" in ARMS]:
         for key, better in MEASURES:
             diffs = [per_seed[s]["trained"][key] - per_seed[s][base][key] for s in args.seeds]
             sign = 1 if better == "higher" else -1
